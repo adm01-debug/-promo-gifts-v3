@@ -36,7 +36,7 @@ export function ClientStatsCards({ ordersCount, totalLtv, avgTicket, lastOrderAt
             <div className="flex items-center gap-2 text-muted-foreground text-xs mb-1">
               <item.icon className="h-3.5 w-3.5" /> {item.label}
             </div>
-            <p className="text-xl font-semibold text-foreground truncate">{item.value}</p>
+            <p className="text-lg font-semibold text-foreground truncate">{item.value}</p>
           </CardContent>
         </Card>
       ))}

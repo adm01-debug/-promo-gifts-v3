@@ -3,7 +3,6 @@ import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Calculator, Package, Paintbrush, Palette, Check, Plus, X, FileText } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -276,27 +275,20 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
               1. Selecione o Produto
             </h3>
             {selectedProduct && (
-              <TooltipProvider >
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="sm" onClick={() => handleProductSelect(null)}>
-                      Alterar
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Escolher outro produto base</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Button variant="ghost" size="sm" onClick={() => handleProductSelect(null)}>
+                Alterar
+              </Button>
             )}
           </div>
           {!selectedProduct && (
             <ProductSearch onSelect={handleProductSelect} selectedProduct={selectedProduct} />
           )}
           {selectedProduct && (
-            <div className="p-3 rounded-xl bg-muted/50 flex items-center gap-3">
+            <div className="p-3 rounded-lg bg-muted/50 flex items-center gap-3">
               <Check className="w-5 h-5 text-success shrink-0" />
               <div className="flex-1 min-w-0">
                 <span className="font-medium truncate block">{selectedProduct.name}</span>
-                <span className="text-[11px] text-muted-foreground">SKU: {selectedProduct.sku}</span>
+                <span className="text-xs text-muted-foreground">SKU: {selectedProduct.sku}</span>
               </div>
               <Badge variant="secondary">{formatCurrency(selectedProduct.price)}</Badge>
             </div>
@@ -342,20 +334,13 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
             )}
 
             {mode === 'adding' && (
-              <div className="space-y-4 p-4 rounded-xl border-2 border-dashed border-primary/30 bg-primary/5 animate-scale-in">
+              <div className="space-y-4 p-4 rounded-lg border-2 border-dashed border-primary/30 bg-primary/5 animate-scale-in">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-medium">Nova Gravação</h4>
-                  <TooltipProvider >
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="ghost" size="sm" onClick={handleCancelAddEngraving}>
-                          <X className="w-4 h-4 mr-1" />
-                          Cancelar
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Voltar para lista de gravações</TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <Button variant="ghost" size="sm" onClick={handleCancelAddEngraving}>
+                    <X className="w-4 h-4 mr-1" />
+                    Cancelar
+                  </Button>
                 </div>
 
                 {!currentTechnique && (
@@ -368,24 +353,17 @@ export function ProductPriceSimulator({ className }: ProductPriceSimulatorProps)
 
                 {currentTechnique && (
                   <div className="space-y-4 animate-fade-in">
-                    <div className="p-3 rounded-xl bg-background border flex items-center gap-3">
+                    <div className="p-3 rounded-lg bg-background border flex items-center gap-3">
                       <Check className="w-5 h-5 text-success shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="font-medium text-sm">{currentTechnique.techniqueName}</p>
-                        <p className="text-[11px] text-muted-foreground">
+                        <p className="text-xs text-muted-foreground">
                           {currentTechnique.componentName} → {currentTechnique.locationName}
                         </p>
                       </div>
-                      <TooltipProvider >
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button variant="ghost" size="sm" onClick={() => setCurrentTechnique(null)}>
-                              Alterar
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Escolher outra técnica de gravação</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      <Button variant="ghost" size="sm" onClick={() => setCurrentTechnique(null)}>
+                        Alterar
+                      </Button>
                     </div>
 
                     <div className="space-y-3">

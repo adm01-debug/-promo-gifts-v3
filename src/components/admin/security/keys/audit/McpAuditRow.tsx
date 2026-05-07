@@ -33,7 +33,7 @@ export function McpAuditRow({ row }: Props) {
   const afterScopes = arr(diff.scopes?.after ?? d.after_scopes);
 
   return (
-    <li className="border border-border rounded-xl p-3 hover:bg-muted/30 transition-colors">
+    <li className="border border-border rounded-md p-3 hover:bg-muted/30 transition-colors">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-2">
           <Icon className={`h-4 w-4 ${meta.tone}`} />
@@ -43,7 +43,7 @@ export function McpAuditRow({ row }: Props) {
             <Badge variant="destructive" className="text-xs">ESCALAÇÃO</Badge>
           )}
         </div>
-        <span className="text-[11px] text-muted-foreground">
+        <span className="text-xs text-muted-foreground">
           {format(new Date(row.created_at), "dd/MM/yyyy HH:mm:ss", { locale: ptBR })}
         </span>
       </div>

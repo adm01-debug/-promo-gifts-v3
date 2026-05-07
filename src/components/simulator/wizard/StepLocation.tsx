@@ -34,7 +34,7 @@ export function StepLocation({ wizard }: StepLocationProps) {
     <div className="max-w-5xl mx-auto space-y-8">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <div className="p-3 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5">
+        <div className="p-3 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5">
           <MapPin className="h-6 w-6 text-primary" />
         </div>
         <div>
@@ -47,7 +47,7 @@ export function StepLocation({ wizard }: StepLocationProps) {
       {locationsLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {[1, 2, 3, 4].map(i => (
-            <Skeleton key={i} className="h-44 w-full rounded-xl" />
+            <Skeleton key={i} className="h-44 w-full rounded-2xl" />
           ))}
         </div>
       ) : availableLocationsFiltered.length === 0 ? (

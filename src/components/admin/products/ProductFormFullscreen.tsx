@@ -316,7 +316,7 @@ export function ProductFormFullscreen({
           </AnimatePresence>
 
           {showValidation && missingFields[stepIndex].length > 0 && (
-            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="rounded-xl border border-warning/30 bg-warning/5 p-3">
+            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="rounded-lg border border-warning/30 bg-warning/5 p-3">
               <div className="flex items-start gap-2.5">
                 <AlertCircle className="h-4 w-4 text-warning mt-0.5 shrink-0" />
                 <div>

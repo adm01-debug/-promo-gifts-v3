@@ -58,7 +58,7 @@ export function ZoneQuickNav({
   };
 
   return (
-    <TooltipProvider >
+    <TooltipProvider delayDuration={200}>
       <nav
         aria-label="Navegação por zonas com mostrar/ocultar"
         className="flex flex-wrap items-center gap-2 text-xs"

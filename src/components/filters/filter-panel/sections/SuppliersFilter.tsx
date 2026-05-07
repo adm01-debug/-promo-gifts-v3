@@ -58,7 +58,7 @@ export function SuppliersFilter({
                 <Label htmlFor={`sup-${supplier.id}`} className="text-sm cursor-pointer flex items-center gap-2">
                   <span>{supplier.name}</span>
                   {supplier.leadTimeDays && (
-                    <span className="text-[11px] text-muted-foreground">({supplier.leadTimeDays}d)</span>
+                    <span className="text-xs text-muted-foreground">({supplier.leadTimeDays}d)</span>
                   )}
                 </Label>
               </div>
@@ -66,7 +66,7 @@ export function SuppliersFilter({
           </div>
         </div>
       ) : (
-        <p className="text-[11px] text-muted-foreground">Nenhum fornecedor disponível</p>
+        <p className="text-xs text-muted-foreground">Nenhum fornecedor disponível</p>
       )}
     </div>
   );

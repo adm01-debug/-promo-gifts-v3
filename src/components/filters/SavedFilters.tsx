@@ -242,7 +242,7 @@ export function SavedFilters<T = Record<string, unknown>>({
         <PopoverContent className="w-80 p-0" align="start">
           <div className="border-b p-3">
             <h4 className="font-semibold text-sm">Filtros Salvos</h4>
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Acesse rapidamente suas configurações de filtro
             </p>
           </div>
@@ -419,7 +419,7 @@ export function FilterChip({ label, value, onRemove, className }: FilterChipProp
         className
       )}
     >
-      <span className="text-[11px] text-muted-foreground">{label}:</span>
+      <span className="text-xs text-muted-foreground">{label}:</span>
       <span className="font-medium">{value}</span>
       <button
         onClick={onRemove}

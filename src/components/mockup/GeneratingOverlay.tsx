@@ -70,7 +70,7 @@ export function GeneratingOverlay({
       aria-busy="true"
       data-testid="generating-overlay"
     >
-      <div className="relative max-w-md w-full mx-4 p-8 rounded-xl bg-card border shadow-2xl animate-scale-in">
+      <div className="relative max-w-md w-full mx-4 p-8 rounded-2xl bg-card border shadow-2xl animate-scale-in">
         {/* Decorative background elements */}
         <div className="absolute -top-12 -right-12 w-32 h-32 bg-primary/20 rounded-full blur-3xl animate-pulse" />
         <div className="absolute -bottom-12 -left-12 w-32 h-32 bg-primary/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '0.5s' }} />
@@ -111,7 +111,7 @@ export function GeneratingOverlay({
                 <div
                   key={index}
                   className={cn(
-                    "flex items-center gap-3 p-2 rounded-xl transition-all duration-300",
+                    "flex items-center gap-3 p-2 rounded-lg transition-all duration-300",
                     isCurrent && "bg-primary/10",
                     isComplete && "opacity-60"
                   )}

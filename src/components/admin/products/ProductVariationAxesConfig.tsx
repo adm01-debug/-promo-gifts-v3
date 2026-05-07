@@ -157,10 +157,10 @@ export function ProductVariationAxesConfig({ productId, gender, onGenderChange }
   if (isLoading) {
     return (
       <div className="space-y-2">
-        <Skeleton className="h-10 w-full rounded-xl" />
-        <Skeleton className="h-10 w-full rounded-xl" />
-        <Skeleton className="h-10 w-full rounded-xl" />
-        <Skeleton className="h-10 w-full rounded-xl" />
+        <Skeleton className="h-10 w-full rounded-lg" />
+        <Skeleton className="h-10 w-full rounded-lg" />
+        <Skeleton className="h-10 w-full rounded-lg" />
+        <Skeleton className="h-10 w-full rounded-lg" />
       </div>
     );
   }
@@ -200,15 +200,15 @@ export function ProductVariationAxesConfig({ productId, gender, onGenderChange }
           >
             <div
               className={cn(
-                'rounded-xl border transition-colors',
+                'rounded-lg border transition-colors',
                 state.active
                   ? 'border-primary/30 bg-primary/5'
                   : 'border-border/40 bg-muted/10 opacity-60',
               )}
             >
-              <CollapsibleTrigger className="w-full flex items-center gap-3 p-3 text-left hover:bg-accent/30 transition-colors rounded-xl">
+              <CollapsibleTrigger className="w-full flex items-center gap-3 p-3 text-left hover:bg-accent/30 transition-colors rounded-lg">
                 <div className={cn(
-                  'flex items-center justify-center w-8 h-8 rounded-xl',
+                  'flex items-center justify-center w-8 h-8 rounded-md',
                   state.active ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground',
                 )}>
                   <AxisIcon className="h-4 w-4" />
@@ -277,7 +277,7 @@ export function ProductVariationAxesConfig({ productId, gender, onGenderChange }
                               type="button"
                               disabled={exists}
                               className={cn(
-                                'px-2 py-0.5 text-[11px] rounded-xl border transition-colors',
+                                'px-2 py-0.5 text-[11px] rounded-md border transition-colors',
                                 exists
                                   ? 'bg-primary/10 border-primary/30 text-primary cursor-default'
                                   : 'border-border hover:border-primary/40 hover:bg-primary/5 text-muted-foreground',
@@ -326,15 +326,15 @@ function GenderAxis({
     <Collapsible open={isExpanded} onOpenChange={onToggle}>
       <div
         className={cn(
-          'rounded-xl border transition-colors',
+          'rounded-lg border transition-colors',
           hasValue
             ? 'border-primary/30 bg-primary/5'
             : 'border-border/40 bg-muted/10 opacity-60',
         )}
       >
-        <CollapsibleTrigger className="w-full flex items-center gap-3 p-3 text-left hover:bg-accent/30 transition-colors rounded-xl">
+        <CollapsibleTrigger className="w-full flex items-center gap-3 p-3 text-left hover:bg-accent/30 transition-colors rounded-lg">
           <div className={cn(
-            'flex items-center justify-center w-8 h-8 rounded-xl',
+            'flex items-center justify-center w-8 h-8 rounded-md',
             hasValue ? 'bg-primary/15 text-primary' : 'bg-muted text-muted-foreground',
           )}>
             <Users className="h-4 w-4" />

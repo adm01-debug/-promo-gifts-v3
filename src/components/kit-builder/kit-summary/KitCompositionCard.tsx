@@ -26,26 +26,26 @@ export function KitCompositionCard({ kitState, kitQuantity, stockByProduct }: Ki
 
   return (
     <Card>
-      <CardHeader className="pb-3"><CardTitle className="text-xl">Composição do Kit</CardTitle></CardHeader>
+      <CardHeader className="pb-3"><CardTitle className="text-lg">Composição do Kit</CardTitle></CardHeader>
       <CardContent>
         {box && (
-          <div className="flex items-center gap-3 p-3 rounded-xl bg-secondary/50 mb-3">
-            <div className="w-12 h-12 rounded-xl bg-background overflow-hidden">
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-secondary/50 mb-3">
+            <div className="w-12 h-12 rounded-md bg-background overflow-hidden">
               {box.imageUrl ? <img src={box.imageUrl} alt={box.name} className="w-full h-full object-cover" loading="lazy" /> : <div className="w-full h-full flex items-center justify-center"><Package className="h-6 w-6 text-muted-foreground" /></div>}
             </div>
             <div className="flex-1">
               <p className="font-medium">{box.name}</p>
-              <p className="text-[11px] text-muted-foreground">{formatDimensions(box.internalWidth, box.internalHeight, box.internalDepth)} • {formatVolume(box.internalVolume)}</p>
+              <p className="text-xs text-muted-foreground">{formatDimensions(box.internalWidth, box.internalHeight, box.internalDepth)} • {formatVolume(box.internalVolume)}</p>
             </div>
-            <div className="text-right"><p className="font-semibold">{formatCurrency(box.price)}</p><p className="text-[11px] text-muted-foreground">por kit</p></div>
+            <div className="text-right"><p className="font-semibold">{formatCurrency(box.price)}</p><p className="text-xs text-muted-foreground">por kit</p></div>
           </div>
         )}
         <div className="space-y-2">
           {items.map(item => {
             const itemP = personalization.items[item.id];
             return (
-              <div key={item.id} className="flex items-center gap-3 p-2 rounded-xl hover:bg-secondary/30">
-                <div className="w-10 h-10 rounded-xl bg-secondary overflow-hidden">
+              <div key={item.id} className="flex items-center gap-3 p-2 rounded-lg hover:bg-secondary/30">
+                <div className="w-10 h-10 rounded-md bg-secondary overflow-hidden">
                   {item.imageUrl ? <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover" loading="lazy" /> : <div className="w-full h-full flex items-center justify-center"><Gift className="h-5 w-5 text-muted-foreground" /></div>}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -55,7 +55,7 @@ export function KitCompositionCard({ kitState, kitQuantity, stockByProduct }: Ki
                     {itemP?.enabled && <Badge variant="outline" className="text-xs flex-shrink-0"><Palette className="h-3 w-3 mr-1" />{itemP.techniqueName}</Badge>}
                   </div>
                   <div className="flex items-center gap-1 flex-wrap">
-                    <p className="text-[11px] text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       <span className="font-mono">{item.sku}</span>
                       {item.weight ? ` • ${item.weight >= 1000 ? `${(item.weight / 1000).toFixed(1)}kg` : `${item.weight}g`}` : ''}
                       {item.material ? ` • ${item.material}` : ''}

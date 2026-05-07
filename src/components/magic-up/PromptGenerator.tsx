@@ -80,9 +80,18 @@ export function PromptGenerator({
   const [audience, setAudience] = useState("");
   const [season, setSeason] = useState("none");
 
-  // Selection derived from parent (controlled-ish)
-  const selectedAreaId = initialLocationId || null;
-  const selectedTechId = initialTechniqueId || null;
+  // Customization from real DB — sync from parent when props change
+  const [selectedAreaId, setSelectedAreaId] = useState<string | null>(initialLocationId || null);
+  const [selectedTechId, setSelectedTechId] = useState<string | null>(initialTechniqueId || null);
+
+  // Keep in sync when parent changes (e.g. user selects in Step 1 bank mode, then switches to AI tab)
+  useEffect(() => {
+    setSelectedAreaId(initialLocationId || null);
+  }, [initialLocationId]);
+
+  useEffect(() => {
+    setSelectedTechId(initialTechniqueId || null);
+  }, [initialTechniqueId]);
 
   // Generation
   const [generating, setGenerating] = useState(false);
@@ -115,6 +124,8 @@ export function PromptGenerator({
 
   const handleAreaChange = (areaId: string) => {
     const isNone = areaId === "none";
+    setSelectedAreaId(isNone ? null : areaId);
+    setSelectedTechId(null);
     const area = isNone ? null : printAreas?.find(a => a.area_id === areaId);
     onCustomizationChange?.({
       locationId: isNone ? null : areaId,
@@ -129,6 +140,7 @@ export function PromptGenerator({
 
   const handleTechChange = (techId: string) => {
     const isNone = techId === "none";
+    setSelectedTechId(isNone ? null : techId);
     const tech = isNone ? null : availableTechniques.find(t => t.id === techId);
     onCustomizationChange?.({
       locationId: selectedAreaId,

@@ -1,7 +1,6 @@
 import { useState, useCallback, useMemo } from "react";
 import { QuoteItem, QuoteItemPersonalization } from "@/hooks/useQuotes";
 import { ExternalVariantStock } from "@/hooks/useExternalVariantStock";
-import { getPriceFreshness } from "@/utils/price-freshness";
 
 interface Product {
   id: string;
@@ -13,7 +12,7 @@ interface Product {
   priceFreshnessThresholdDays?: number;
 }
 
-export function useQuoteItems(initialItems: QuoteItem[] = [], isLoadingItems = false) {
+export function useQuoteItems(initialItems: QuoteItem[] = []) {
   const [items, setItems] = useState<QuoteItem[]>(initialItems);
   const [activeItemIndex, setActiveItemIndex] = useState<number | null>(null);
   const [expandedItems, setExpandedItems] = useState<Set<number>>(new Set());
@@ -87,21 +86,9 @@ export function useQuoteItems(initialItems: QuoteItem[] = [], isLoadingItems = f
     setItems(prev => prev.map((item, idx) => idx === index ? { ...item, price_confirmed_at: ts } : item));
   }, []);
 
-  const confirmAllStalePrices = useCallback(() => {
-    const ts = new Date().toISOString();
-    setItems(prev => prev.map(item => {
-      const f = getPriceFreshness(item.price_updated_at, item.price_freshness_threshold_days);
-      if (f.shouldWarn && !item.price_confirmed_at) {
-        return { ...item, price_confirmed_at: ts };
-      }
-      return item;
-    }));
-  }, []);
-
   return {
     items,
     setItems,
-    isLoadingItems,
     activeItemIndex,
     setActiveItemIndex,
     expandedItems,
@@ -112,7 +99,6 @@ export function useQuoteItems(initialItems: QuoteItem[] = [], isLoadingItems = f
     updateItemPrice,
     removeItem,
     handlePersonalizationsChange,
-    confirmItemPrice,
-    confirmAllStalePrices
+    confirmItemPrice
   };
 }

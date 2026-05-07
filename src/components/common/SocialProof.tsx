@@ -371,7 +371,7 @@ export function LowStockAlert({
       initial={{ opacity: 0, x: -10 }}
       animate={{ opacity: 1, x: 0 }}
       className={cn(
-        "flex items-center gap-2 px-3 py-1.5 rounded-xl",
+        "flex items-center gap-2 px-3 py-1.5 rounded-lg",
         "bg-warning/10 text-warning",
         "text-sm font-medium",
         className
@@ -448,16 +448,16 @@ export function ConversionStats({
       className
     )}>
       <div className="text-center">
-        <div className="text-xl font-bold text-foreground">{ordersToday}</div>
-        <div className="text-[11px] text-muted-foreground">Pedidos hoje</div>
+        <div className="text-2xl font-bold text-foreground">{ordersToday}</div>
+        <div className="text-xs text-muted-foreground">Pedidos hoje</div>
       </div>
       <div className="text-center">
-        <div className="text-xl font-bold text-foreground">{activeUsers}</div>
-        <div className="text-[11px] text-muted-foreground">Usuários ativos</div>
+        <div className="text-2xl font-bold text-foreground">{activeUsers}</div>
+        <div className="text-xs text-muted-foreground">Usuários ativos</div>
       </div>
       <div className="text-center">
-        <div className="text-xl font-bold text-success">{satisfactionRate}%</div>
-        <div className="text-[11px] text-muted-foreground">Satisfação</div>
+        <div className="text-2xl font-bold text-success">{satisfactionRate}%</div>
+        <div className="text-xs text-muted-foreground">Satisfação</div>
       </div>
     </div>
   );

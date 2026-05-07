@@ -113,15 +113,15 @@ export function StockFilterToolbar({
   return (
     <div className="space-y-3">
       {/* Row 1: Search + Quick Filters */}
-      <div className="flex flex-col lg:flex-row gap-3">
+      <div className="flex flex-col sm:flex-row gap-2">
         {/* 1. Advanced Filters Popover */}
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline" size="default" className={cn("gap-2.5 relative h-11 px-5 border-border/60 font-bold uppercase text-[11px] tracking-widest transition-all hover:border-primary/50 hover:bg-primary/5", activeFiltersCount > 0 && "border-primary bg-primary/10 text-primary shadow-sm")}>
+            <Button variant="outline" size="default" className={cn("gap-2 relative", activeFiltersCount > 0 && "border-primary/50 bg-primary/5")}>
               <SlidersHorizontal className="h-4 w-4" />
-              <span>Filtros Avançados</span>
+              <span className="hidden sm:inline">Filtros</span>
               {activeFiltersCount > 0 && (
-                <Badge className="bg-primary text-primary-foreground h-5 min-w-5 text-[10px] px-1.5 animate-in zoom-in-50 border-none shadow-md">
+                <Badge className="bg-primary text-primary-foreground h-5 min-w-5 text-[10px] px-1.5 animate-in zoom-in-50">
                   {activeFiltersCount}
                 </Badge>
               )}
@@ -291,13 +291,13 @@ export function StockFilterToolbar({
         </Popover>
 
         {/* 2. Search */}
-        <div className="relative flex-1 min-w-[280px]">
-          <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-primary opacity-60" />
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Buscar no estoque (nome, SKU ou cor)... "
+            placeholder="Buscar no Estoque (Nome, SKU ou Cor)... "
             value={localSearch}
             onChange={(e) => setLocalSearch(e.target.value)}
-            className="pl-10 pr-10 h-11 bg-card/40 border-border/50 focus:bg-card focus:border-primary/60 transition-all rounded-xl shadow-inner"
+            className="pl-9 pr-8"
           />
           {localSearch && (
             <button onClick={() => setLocalSearch('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
@@ -310,14 +310,14 @@ export function StockFilterToolbar({
         <TooltipProvider>
           <Tooltip>
             <TooltipTrigger asChild>
-              <div className="relative w-full lg:w-56 group">
-                <ShoppingCart className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-primary opacity-60 group-focus-within:opacity-100 transition-opacity" />
+              <div className="relative w-full sm:w-48">
+                <ShoppingCart className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="number"
-                  placeholder="Preciso de X unidades..."
+                  placeholder="Preciso de X un..."
                   value={quantityInput}
                   onChange={(e) => setQuantityInput(e.target.value)}
-                  className="pl-10 h-11 bg-card/40 border-border/50 focus:bg-card transition-all rounded-xl shadow-inner text-sm font-semibold"
+                  className="pl-9"
                   min={0}
                 />
               </div>

@@ -17,8 +17,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 export interface BulkVariantSelection {
   product: Product;
   variant: ExternalVariantStock | null;
-  /** Permite múltiplos variantes para o mesmo produto (opcional para manter compatibilidade) */
-  variants?: (ExternalVariantStock | null)[];
 }
 
 export type BulkWizardMode = 'cart' | 'quote' | 'favorite' | 'compare' | 'collection';
@@ -29,10 +27,6 @@ interface BulkVariantWizardProps {
   products: Product[];
   mode: BulkWizardMode;
   onComplete: (selections: BulkVariantSelection[]) => void;
-  /** Pré-popula o wizard (usado quando o usuário clica em "Voltar" no modal seguinte). */
-  initialSelections?: BulkVariantSelection[];
-  /** Índice inicial do produto a editar. */
-  initialIndex?: number;
 }
 
 /* ── Step: variant picker for a single product ── */
@@ -42,39 +36,13 @@ function ProductVariantStep({
   onSkip,
   stepIndex,
   totalSteps,
-  initialVariants = [],
 }: {
   product: Product;
-  onSelect: (variants: (ExternalVariantStock | null)[]) => void;
+  onSelect: (variant: ExternalVariantStock | null) => void;
   onSkip: () => void;
   stepIndex: number;
   totalSteps: number;
-  initialVariants?: (ExternalVariantStock | null)[];
 }) {
-  const [selectedVariants, setSelectedVariants] = useState<(ExternalVariantStock | null)[]>(initialVariants);
-
-  // Sincroniza se o produto mudar (via Voltar/Próximo)
-  useEffect(() => {
-    setSelectedVariants(initialVariants);
-  }, [product.id, initialVariants]);
-
-  const toggleVariant = (variant: ExternalVariantStock | null) => {
-    setSelectedVariants(prev => {
-      const isSelected = prev.some(v => v?.id === variant?.id);
-      if (isSelected) {
-        return prev.filter(v => v?.id !== variant?.id);
-      }
-      return [...prev, variant];
-    });
-  };
-
-  const handleConfirm = () => {
-    if (selectedVariants.length === 0) {
-      onSkip();
-    } else {
-      onSelect(selectedVariants);
-    }
-  };
   const { data: variants, isLoading } = useExternalVariantStock(product.id);
 
   const sortedVariants = useMemo(() => {
@@ -132,7 +100,7 @@ function ProductVariantStep({
           <img
             src={product.images[0]}
             alt={product.name}
-            className="w-12 h-12 rounded-xl object-cover border border-border/60 shrink-0 shadow-sm"
+            className="w-12 h-12 rounded-lg object-cover border border-border/60 shrink-0 shadow-sm"
           />
         )}
         <div className="flex-1 min-w-0">
@@ -147,17 +115,10 @@ function ProductVariantStep({
 
       {/* Skip / add without color */}
       <button
-        onClick={() => toggleVariant(null)}
-        className={cn(
-          "w-full flex items-center gap-3 p-3 rounded-xl border transition-all text-left text-sm group",
-          selectedVariants.some(v => v === null)
-            ? "border-primary bg-primary/5 text-primary"
-            : "border-dashed border-border/60 text-muted-foreground hover:border-primary/40 hover:bg-primary/5"
-        )}
+        onClick={onSkip}
+        className="w-full flex items-center gap-3 p-3 rounded-xl border border-dashed border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-all text-left text-sm text-muted-foreground group"
       >
-        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-destructive/70 via-success/70 to-info/70 border border-border/50 shrink-0 group-hover:scale-110 transition-transform flex items-center justify-center">
-          {selectedVariants.some(v => v === null) && <Check className="h-4 w-4 text-white drop-shadow-sm" />}
-        </div>
+        <div className="w-8 h-8 rounded-full bg-gradient-to-br from-destructive/70 via-success/70 to-info/70 border border-border/50 shrink-0 group-hover:scale-110 transition-transform" />
         <span className="flex-1">Sem cor específica</span>
         <SkipForward className="h-3.5 w-3.5 opacity-50 group-hover:opacity-100 transition-opacity" />
       </button>
@@ -167,30 +128,25 @@ function ProductVariantStep({
         {sortedVariants.map((variant) => {
           const stock = variant.stock_quantity ?? 0;
           const isOutOfStock = stock === 0;
-          const isSelected = selectedVariants.some(v => v?.id === variant.id);
+          const isLowStock = stock > 0 && stock < 100;
 
           return (
             <button
               key={variant.id}
-              onClick={() => toggleVariant(variant)}
+              onClick={() => onSelect(variant)}
               className={cn(
                 'relative flex items-center gap-2.5 p-2.5 rounded-xl border transition-all text-left group',
-                isSelected
-                  ? 'border-primary bg-primary/5 ring-1 ring-primary/20'
-                  : 'hover:border-primary/50 hover:bg-accent/60',
-                isOutOfStock && !isSelected
+                'hover:border-primary/50 hover:bg-accent/60 hover:shadow-sm',
+                isOutOfStock
                   ? 'opacity-50 border-border/40 bg-muted/20'
-                  : isSelected ? 'border-primary' : 'border-border/60 bg-card',
+                  : 'border-border/60 bg-card',
               )}
             >
-              <div className="absolute top-2 right-2">
-                {isSelected && <Check className="h-3 w-3 text-primary" />}
-              </div>
               {variant.selected_thumbnail ? (
                 <img
                   src={`${variant.selected_thumbnail}/thumbnail`}
                   alt={variant.color_name ?? ''}
-                  className="w-10 h-10 rounded-xl object-cover border border-border/50 shrink-0 shadow-sm group-hover:scale-105 transition-transform"
+                  className="w-10 h-10 rounded-lg object-cover border border-border/50 shrink-0 shadow-sm group-hover:scale-105 transition-transform"
                   onError={(e) => {
                     const t = e.currentTarget;
                     if (t.src.includes('/thumbnail')) {
@@ -202,7 +158,7 @@ function ProductVariantStep({
                 />
               ) : (
                 <div
-                  className="w-10 h-10 rounded-xl border border-border/50 shrink-0 shadow-sm group-hover:scale-105 transition-transform"
+                  className="w-10 h-10 rounded-lg border border-border/50 shrink-0 shadow-sm group-hover:scale-105 transition-transform"
                   style={{ backgroundColor: variant.color_hex || '#CCC' }}
                 />
               )}
@@ -231,26 +187,6 @@ function ProductVariantStep({
           );
         })}
       </div>
-
-      <div className="pt-2">
-        <Button
-          onClick={handleConfirm}
-          className="w-full gap-2 shadow-sm"
-          size="lg"
-        >
-          {selectedVariants.length > 0 ? (
-            <>
-              Confirmar {selectedVariants.length} {selectedVariants.length === 1 ? 'Variação' : 'Variações'}
-              <ArrowRight className="h-4 w-4" />
-            </>
-          ) : (
-            <>
-              Sem cor específica
-              <SkipForward className="h-4 w-4" />
-            </>
-          )}
-        </Button>
-      </div>
     </motion.div>
   );
 }
@@ -270,7 +206,7 @@ function ProductHeader({
         <img
           src={product.images[0]}
           alt={product.name}
-          className="w-12 h-12 rounded-xl object-cover border border-border/60 shrink-0 shadow-sm"
+          className="w-12 h-12 rounded-lg object-cover border border-border/60 shrink-0 shadow-sm"
         />
       )}
       <div className="flex-1 min-w-0">
@@ -300,43 +236,28 @@ function ProgressBar({ current, total }: { current: number; total: number }) {
 }
 
 /* ── Main Wizard ── */
-export function BulkVariantWizard({ open, onOpenChange, products, mode, onComplete, initialSelections, initialIndex }: BulkVariantWizardProps) {
+export function BulkVariantWizard({ open, onOpenChange, products, mode, onComplete }: BulkVariantWizardProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selections, setSelections] = useState<BulkVariantSelection[]>([]);
 
-  // Reset (ou restaura) quando modal abre
+  // Reset when modal opens
   useEffect(() => {
     if (open) {
-      const seed = initialSelections ?? [];
-      setSelections(seed);
-      // Se vier initialIndex válido, usa; senão começa do início (ou do fim do seed)
-      const startIdx = typeof initialIndex === 'number'
-        ? Math.max(0, Math.min(initialIndex, products.length - 1))
-        : 0;
-      setCurrentIndex(startIdx);
+      setCurrentIndex(0);
+      setSelections([]);
     }
-  }, [open, initialSelections, initialIndex, products.length]);
+  }, [open]);
 
-  const handleSelectMulti = useCallback(
-    (selectedVariants: (ExternalVariantStock | null)[]) => {
+  const handleSelect = useCallback(
+    (variant: ExternalVariantStock | null) => {
       const product = products[currentIndex];
-      
-      // Criamos seleções individuais para cada variante escolhida
-      // Isso mantém a compatibilidade com o BulkAddToCartModal que espera 1 item por linha
-      const newItems: BulkVariantSelection[] = selectedVariants.map(v => ({
-        product,
-        variant: v
-      }));
-
-      // Removemos seleções anteriores deste produto (para evitar duplicatas em re-edição)
-      const otherProductSelections = selections.filter(s => s.product.id !== product.id);
-      const updatedSelections = [...otherProductSelections, ...newItems];
+      const newSelections = [...selections, { product, variant }];
 
       if (currentIndex + 1 >= products.length) {
-        onComplete(updatedSelections);
+        onComplete(newSelections);
         onOpenChange(false);
       } else {
-        setSelections(updatedSelections);
+        setSelections(newSelections);
         setCurrentIndex((i) => i + 1);
       }
     },
@@ -344,12 +265,8 @@ export function BulkVariantWizard({ open, onOpenChange, products, mode, onComple
   );
 
   const handleSkip = useCallback(() => {
-    handleSelectMulti([null]);
-  }, [handleSelectMulti]);
-
-  const handleBack = useCallback(() => {
-    setCurrentIndex((i) => Math.max(0, i - 1));
-  }, []);
+    handleSelect(null);
+  }, [handleSelect]);
 
   const currentProduct = products[currentIndex];
   if (!currentProduct) return null;
@@ -372,7 +289,7 @@ export function BulkVariantWizard({ open, onOpenChange, products, mode, onComple
           <DialogHeader className="p-0">
             <DialogTitle className="flex items-center gap-2.5 text-base font-display font-semibold">
               <div className={cn(
-                'w-8 h-8 rounded-xl flex items-center justify-center shrink-0',
+                'w-8 h-8 rounded-lg flex items-center justify-center shrink-0',
                 bgClass,
               )}>
                 <Icon className={cn('h-4 w-4', colorClass)} />
@@ -387,7 +304,7 @@ export function BulkVariantWizard({ open, onOpenChange, products, mode, onComple
           <ProgressBar current={currentIndex} total={products.length} />
 
           <p className="text-xs text-muted-foreground leading-relaxed">
-            Selecione uma ou mais cores/variações para cada produto e clique em "Confirmar".
+            Escolha a cor/variação de cada produto. Clique em "Sem cor específica" para pular.
           </p>
         </div>
 
@@ -397,33 +314,16 @@ export function BulkVariantWizard({ open, onOpenChange, products, mode, onComple
             <ProductVariantStep
               key={currentProduct.id}
               product={currentProduct}
-              onSelect={handleSelectMulti}
+              onSelect={handleSelect}
               onSkip={handleSkip}
               stepIndex={currentIndex}
               totalSteps={products.length}
-              initialVariants={selections
-                .filter(s => s.product.id === currentProduct.id)
-                .map(s => s.variant)
-              }
             />
           </AnimatePresence>
         </div>
 
-        {/* Bottom step indicator + Voltar */}
-        <div className="px-5 py-3 border-t border-border/40 bg-muted/20 flex items-center justify-between gap-3">
-          <button
-            type="button"
-            onClick={handleBack}
-            disabled={currentIndex === 0}
-            className={cn(
-              'inline-flex items-center gap-1 text-[11px] font-medium px-2.5 py-1.5 rounded-lg transition-colors',
-              'text-muted-foreground hover:text-foreground hover:bg-muted/50',
-              'disabled:opacity-40 disabled:pointer-events-none',
-            )}
-            aria-label="Voltar para o produto anterior"
-          >
-            ← Voltar
-          </button>
+        {/* Bottom step indicator */}
+        <div className="px-5 py-3 border-t border-border/40 bg-muted/20 flex items-center justify-between">
           <span className="text-[11px] text-muted-foreground">
             Produto <strong className="text-foreground">{currentIndex + 1}</strong> de <strong className="text-foreground">{products.length}</strong>
           </span>

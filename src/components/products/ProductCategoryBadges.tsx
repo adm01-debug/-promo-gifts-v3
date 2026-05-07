@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { Package, Palette, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -93,8 +93,7 @@ export function ProductCategoryBadges({
 
   return (
     <div className={cn("flex flex-wrap items-center gap-1.5", className)}>
-      <TooltipProvider >
-        {allCategories.map((cat) => (
+      {allCategories.map((cat) => (
         <Tooltip key={cat.id}>
           <TooltipTrigger asChild>
             <Badge
@@ -110,7 +109,7 @@ export function ProductCategoryBadges({
               <span className="text-xs">{cat.name}</span>
             </Badge>
           </TooltipTrigger>
-          <TooltipContent side="top" className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+          <TooltipContent side="top" className="font-medium">
             Ver todos os produtos de {cat.name}
           </TooltipContent>
         </Tooltip>
@@ -134,7 +133,7 @@ export function ProductCategoryBadges({
               <span className="text-xs">Personalização</span>
             </Badge>
           </TooltipTrigger>
-          <TooltipContent side="top" className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+          <TooltipContent side="top" className="font-medium">
             Simular preço de personalização
           </TooltipContent>
         </Tooltip>
@@ -163,7 +162,7 @@ export function ProductCategoryBadges({
               <span className="text-xs">Visualizar com Logo</span>
             </Badge>
           </TooltipTrigger>
-          <TooltipContent side="top" className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+          <TooltipContent side="top" className="font-medium">
             Gerar mockup com sua logo
           </TooltipContent>
         </Tooltip>
@@ -187,12 +186,11 @@ export function ProductCategoryBadges({
               <span className="text-xs">Monte seu Kit</span>
             </Badge>
           </TooltipTrigger>
-          <TooltipContent side="top" className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
+          <TooltipContent side="top" className="font-medium">
             Montar um kit personalizado com este produto
           </TooltipContent>
         </Tooltip>
       )}
-      </TooltipProvider>
     </div>
   );
 }

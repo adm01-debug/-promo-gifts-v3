@@ -97,8 +97,7 @@ export function QuickAddToQuote({
               "transition-all duration-200 hover:scale-105 hover:border-primary",
               className,
             )}
-            onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
-
+            onClick={(e) => e.stopPropagation()}
           >
             <ShoppingCart className="h-3.5 w-3.5 mr-1.5" />
             <span className="text-xs">Orçar</span>
@@ -113,8 +112,7 @@ export function QuickAddToQuote({
               "hover:bg-primary hover:text-primary-foreground hover:scale-110 transition-all duration-200",
               className,
             )}
-            onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
-
+            onClick={(e) => e.stopPropagation()}
           >
             <ShoppingCart className="h-4 w-4" />
           </Button>
@@ -122,8 +120,7 @@ export function QuickAddToQuote({
           <Button
             size={buttonSize}
             className={cn(className)}
-            onClick={(e) => { e.stopPropagation(); e.preventDefault(); }}
-
+            onClick={(e) => e.stopPropagation()}
           >
             {iconOverride === "cart" ? <ShoppingBag className="h-4 w-4" /> : <Plus className="h-4 w-4" />}
             {labelOverride || "Orçar"}
@@ -134,7 +131,7 @@ export function QuickAddToQuote({
       <PopoverContent className="w-80 p-4 relative" align="end" onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
         <button
           aria-label="Fechar"
-          className="absolute top-2 right-2 h-6 w-6 flex items-center justify-center rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors z-10"
+          className="absolute top-2 right-2 h-6 w-6 flex items-center justify-center rounded-md text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-colors z-10"
           onClick={() => setIsOpen(false)}
         >
           <X className="h-3.5 w-3.5" />
@@ -169,15 +166,15 @@ export function QuickAddToQuote({
 
             {/* Selected variant summary */}
             {selectedVariant && (
-              <div className="flex items-center gap-2 p-2 rounded-xl bg-muted/40 border border-border/50">
+              <div className="flex items-center gap-2 p-2 rounded-lg bg-muted/40 border border-border/50">
                 {selectedVariant.selected_thumbnail ? (
                   <img
                     src={`${selectedVariant.selected_thumbnail}/thumbnail`}
                     alt={selectedVariant.color_name ?? ''}
-                    className="w-7 h-7 rounded-xl object-cover border border-border/50"
+                    className="w-7 h-7 rounded-md object-cover border border-border/50"
                   />
                 ) : selectedVariant.color_hex ? (
-                  <div className="w-7 h-7 rounded-xl border border-border/50" style={{ backgroundColor: selectedVariant.color_hex }} />
+                  <div className="w-7 h-7 rounded-md border border-border/50" style={{ backgroundColor: selectedVariant.color_hex }} />
                 ) : null}
                 <span className="text-xs font-medium flex-1 truncate">
                   {selectedVariant.color_name}
@@ -221,7 +218,7 @@ export function QuickAddToQuote({
                   +
                 </Button>
               </div>
-              <p className="text-[11px] text-muted-foreground">Mínimo: {minQuantity} un.</p>
+              <p className="text-xs text-muted-foreground">Mínimo: {minQuantity} un.</p>
             </div>
 
             <Button data-testid="product-card-add-to-cart" className="w-full gap-2" onClick={handleAddToQuote} disabled={isAdded || !activeCart}>

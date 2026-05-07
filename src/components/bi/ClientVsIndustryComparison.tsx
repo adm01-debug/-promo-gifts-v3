@@ -46,7 +46,7 @@ function MetricRow({ metric }: { metric: MetricComparison }) {
   const deltaSign = metric.deltaPercent > 0 ? "+" : "";
 
   return (
-    <div className="space-y-2 p-3 rounded-xl border bg-card/50">
+    <div className="space-y-2 p-3 rounded-lg border bg-card/50">
       <div className="flex items-center justify-between gap-2">
         <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
           {metric.label}
@@ -105,7 +105,7 @@ function ShareOfWalletCard({ clientLtv, industryAvgLtv }: { clientLtv: number; i
     <button
       type="button"
       onClick={() => setOpen((o) => !o)}
-      className="text-left space-y-2 p-3 rounded-xl border bg-card/50 hover:border-primary/40 hover:shadow-sm transition-all"
+      className="text-left space-y-2 p-3 rounded-lg border bg-card/50 hover:border-primary/40 hover:shadow-sm transition-all"
       aria-expanded={open}
     >
       <div className="flex items-center justify-between gap-2">
@@ -151,7 +151,7 @@ export function ClientVsIndustryComparison({ clientId, ramoAtividade }: Props) {
           </div>
           <div className="space-y-1">
             <h3 className="font-display font-semibold text-sm">Comparativo Cliente × Setor</h3>
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Amostra do ramo <span className="font-medium">{ramoAtividade}</span> ainda
               insuficiente para gerar benchmarking. Mínimo de 3 empresas com orçamentos
               nos últimos {daysWindow} dias.
@@ -199,7 +199,7 @@ export function ClientVsIndustryComparison({ clientId, ramoAtividade }: Props) {
         </div>
 
         {insight && (
-          <div className="flex items-start gap-2.5 p-3 rounded-xl bg-primary/5 border border-primary/10">
+          <div className="flex items-start gap-2.5 p-3 rounded-lg bg-primary/5 border border-primary/10">
             <Lightbulb className="h-4 w-4 text-primary mt-0.5 shrink-0" />
             <p className="text-xs text-foreground leading-relaxed">{insight}</p>
           </div>

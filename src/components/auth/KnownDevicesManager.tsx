@@ -137,7 +137,7 @@ export function KnownDevicesManager({ targetUserId }: KnownDevicesManagerProps) 
           devices.map((device) => (
             <div
               key={device.id}
-              className={`flex items-center justify-between p-4 rounded-xl border ${
+              className={`flex items-center justify-between p-4 rounded-lg border ${
                 isCurrentDevice(device) ? 'border-primary bg-primary/5' : ''
               }`}
             >

@@ -4,7 +4,6 @@
 import { Building2, Globe, MapPin, ArrowLeft } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useNavigate } from "react-router-dom";
 import { getCompanyDisplayName, type CrmCompany } from "@/types/crm";
 
@@ -19,20 +18,11 @@ export function ClientDetailHeader({ client }: ClientDetailHeaderProps) {
 
   return (
     <div className="space-y-3">
-      <TooltipProvider >
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button variant="ghost" size="sm" onClick={() => navigate("/clientes")} className="-ml-2">
-              <ArrowLeft className="h-4 w-4 mr-1" /> Voltar
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-            Voltar para a lista geral de clientes
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Button variant="ghost" size="sm" onClick={() => navigate("/clientes")} className="-ml-2">
+        <ArrowLeft className="h-4 w-4 mr-1" /> Voltar
+      </Button>
       <div className="flex items-start gap-4">
-        <div className="h-14 w-14 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+        <div className="h-14 w-14 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
           {client.logo_url ? (
             <img src={client.logo_url} alt={name} className="h-full w-full object-cover" />
           ) : (
@@ -40,7 +30,7 @@ export function ClientDetailHeader({ client }: ClientDetailHeaderProps) {
           )}
         </div>
         <div className="min-w-0 flex-1">
-          <h1 className="text-xl font-bold font-display text-foreground truncate">{name}</h1>
+          <h1 className="text-2xl font-bold font-display text-foreground truncate">{name}</h1>
           <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1 flex-wrap">
             {client.cnpj && <span className="font-mono">{client.cnpj}</span>}
             {location && (<span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{location}</span>)}

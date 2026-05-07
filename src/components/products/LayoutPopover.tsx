@@ -35,7 +35,7 @@ export const LayoutPopover = React.forwardRef<HTMLDivElement, LayoutPopoverProps
                 </Button>
               </PopoverTrigger>
             </TooltipTrigger>
-            <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Alterar visualização (grid, lista, tabela) e densidade de colunas</TooltipContent>
+            <TooltipContent>Alterar visualização (grid, lista, tabela) e densidade de colunas</TooltipContent>
           </Tooltip>
           <PopoverContent align="end" className="w-60 p-4" sideOffset={8}>
             <div className="space-y-4">
@@ -52,7 +52,7 @@ export const LayoutPopover = React.forwardRef<HTMLDivElement, LayoutPopoverProps
                       <button
                         key={mode.value}
                         className={cn(
-                          "relative flex-1 flex items-center justify-center gap-1.5 h-9 rounded-xl text-xs font-medium transition-colors duration-150 z-10",
+                          "relative flex-1 flex items-center justify-center gap-1.5 h-9 rounded-lg text-xs font-medium transition-colors duration-150 z-10",
                           isActive
                             ? "text-primary-foreground"
                             : "text-muted-foreground hover:text-foreground"
@@ -62,7 +62,7 @@ export const LayoutPopover = React.forwardRef<HTMLDivElement, LayoutPopoverProps
                         {isActive && (
                           <motion.div
                             layoutId="viewmode-pill"
-                            className="absolute inset-0 rounded-xl bg-primary shadow-sm"
+                            className="absolute inset-0 rounded-lg bg-primary shadow-sm"
                             transition={{ type: "spring", stiffness: 500, damping: 35 }}
                           />
                         )}

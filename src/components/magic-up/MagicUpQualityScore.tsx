@@ -12,7 +12,7 @@ export function MagicUpQualityScore({ diagnosis, aspectRatio }: MagicUpQualitySc
   const tone = diagnosis.total >= 88 ? "text-primary" : diagnosis.total >= 75 ? "text-foreground" : diagnosis.total >= 60 ? "text-muted-foreground" : "text-destructive";
 
   return (
-    <section className="rounded-xl border border-primary/20 bg-primary/5 p-3" aria-label="Diagnóstico Magic Score">
+    <section className="rounded-lg border border-primary/20 bg-primary/5 p-3" aria-label="Diagnóstico Magic Score">
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="text-sm font-semibold">Magic Score</p>
@@ -33,7 +33,7 @@ export function MagicUpQualityScore({ diagnosis, aspectRatio }: MagicUpQualitySc
       />
       <div className="mt-2 space-y-1">
         <p className="text-xs font-medium text-foreground">{diagnosis.label}</p>
-        <p className="text-[11px] text-muted-foreground">{diagnosis.summary}</p>
+        <p className="text-xs text-muted-foreground">{diagnosis.summary}</p>
       </div>
     </section>
   );

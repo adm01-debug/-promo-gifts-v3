@@ -95,7 +95,7 @@ export function SortableProductItem({
           <img
             src={displayImage}
             alt={product.name}
-            className="w-12 h-12 rounded-xl object-cover"
+            className="w-12 h-12 rounded-lg object-cover"
             loading="lazy"
           />
         )}
@@ -113,7 +113,7 @@ export function SortableProductItem({
             )}
           </div>
           <div className="flex items-center gap-1.5">
-            <p className="text-[11px] text-muted-foreground">{product.sku}</p>
+            <p className="text-xs text-muted-foreground">{product.sku}</p>
             {variant?.color_hex && (
               <span className="flex items-center gap-1">
                 <span

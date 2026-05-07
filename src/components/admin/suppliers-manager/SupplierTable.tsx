@@ -51,7 +51,7 @@ export function SupplierTable({ suppliers, loading, search, deleting, onEdit, on
                       )}
                       <div>
                         <p className="font-medium text-sm">{supplier.name}</p>
-                        {supplier.trading_name && <p className="text-[11px] text-muted-foreground">{supplier.trading_name}</p>}
+                        {supplier.trading_name && <p className="text-xs text-muted-foreground">{supplier.trading_name}</p>}
                       </div>
                     </div>
                   </TableCell>

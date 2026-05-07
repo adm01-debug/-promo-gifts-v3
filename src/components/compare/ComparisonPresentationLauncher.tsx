@@ -20,9 +20,9 @@ export function ComparisonPresentationLauncher({ products, formatCurrency, trigg
   const [open, setOpen] = useState(false);
   const [slide, setSlide] = useState(0);
   const totalSlides = products.length + 1; // +1 para slide final tabela
-  const scoreItems = useComparisonScore(products);
-  const winnerIdx = scoreItems.length > 0
-    ? scoreItems.reduce((best, cur, idx, arr) => cur.total > arr[best].total ? idx : best, 0)
+  const { items: scoreItems = [] } = useComparisonScore(products) || { items: [] };
+  const winnerIdx = (scoreItems && scoreItems.length > 0)
+    ? scoreItems.reduce((best, cur, idx, arr) => cur.score > arr[best].score ? idx : best, 0)
     : -1;
 
   const next = useCallback(() => setSlide(s => Math.min(s + 1, totalSlides - 1)), [totalSlides]);
@@ -133,7 +133,7 @@ function ProductSlide({ product, idx, formatCurrency, isWinner }: {
   if (!product) return null;
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-16 max-w-7xl mx-auto h-full items-center">
-      <div className="relative aspect-square rounded-xl bg-muted overflow-hidden">
+      <div className="relative aspect-square rounded-2xl bg-muted overflow-hidden">
         <img src={product.images?.[0]} alt={product.name} className="w-full h-full object-contain p-8" loading="lazy" />
         {isWinner && (
           <Badge className="absolute top-4 left-4 bg-primary text-primary-foreground gap-1.5 shadow-xl text-sm py-1.5 px-3">

@@ -62,7 +62,7 @@ export function EfficiencyGrid({
 
         <span className="pl-3.5 inline-flex items-center gap-1 mt-0.5">
           <Zap className="h-2.5 w-2.5" aria-hidden="true" />
-          within TTL (&lt;10s)
+          within TTL (&lt;5s)
         </span>
         <span className={cn("tabular-nums text-right mt-0.5 font-semibold", fetchesByTtlWindow.withinTtl === 0 ? "text-muted-foreground" : "text-warning")}>
           {fetchesByTtlWindow.withinTtl} ({ttlWithinPct}%)

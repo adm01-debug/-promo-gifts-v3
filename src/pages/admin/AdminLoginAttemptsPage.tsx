@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Shield, ShieldAlert, ShieldCheck, Search, ChevronLeft, ChevronRight } from "lucide-react";
@@ -43,7 +42,7 @@ export default function AdminLoginAttemptsPage() {
             <div className="flex items-center gap-3">
               <Shield className="h-8 w-8 text-primary" />
               <div>
-                <p className="text-xl font-bold">{stats?.total24h || 0}</p>
+                <p className="text-2xl font-bold">{stats?.total24h || 0}</p>
                 <p className="text-sm text-muted-foreground">Total 24h</p>
               </div>
             </div>
@@ -54,7 +53,7 @@ export default function AdminLoginAttemptsPage() {
             <div className="flex items-center gap-3">
               <ShieldAlert className="h-8 w-8 text-destructive" />
               <div>
-                <p className="text-xl font-bold">{stats?.failed24h || 0}</p>
+                <p className="text-2xl font-bold">{stats?.failed24h || 0}</p>
                 <p className="text-sm text-muted-foreground">Falhas 24h</p>
               </div>
             </div>
@@ -65,7 +64,7 @@ export default function AdminLoginAttemptsPage() {
             <div className="flex items-center gap-3">
               <ShieldCheck className="h-8 w-8 text-primary" />
               <div>
-                <p className="text-xl font-bold">{stats?.failRate24h || 0}%</p>
+                <p className="text-2xl font-bold">{stats?.failRate24h || 0}%</p>
                 <p className="text-sm text-muted-foreground">Taxa de Falha</p>
               </div>
             </div>
@@ -76,7 +75,7 @@ export default function AdminLoginAttemptsPage() {
             <div className="flex items-center gap-3">
               <Shield className="h-8 w-8 text-muted-foreground" />
               <div>
-                <p className="text-xl font-bold">{stats?.total7d || 0}</p>
+                <p className="text-2xl font-bold">{stats?.total7d || 0}</p>
                 <p className="text-sm text-muted-foreground">Total 7 dias</p>
               </div>
             </div>
@@ -175,30 +174,12 @@ export default function AdminLoginAttemptsPage() {
                 Página {page} de {data.totalPages} ({data.totalCount} registros)
               </p>
               <div className="flex gap-2">
-                <TooltipProvider >
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
-                        <ChevronLeft className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-                      Página anterior
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <TooltipProvider >
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="outline" size="sm" disabled={page >= data.totalPages} onClick={() => setPage(p => p + 1)}>
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-                      Próxima página
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <Button variant="outline" size="sm" disabled={page >= data.totalPages} onClick={() => setPage(p => p + 1)}>
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
               </div>
             </div>
           )}

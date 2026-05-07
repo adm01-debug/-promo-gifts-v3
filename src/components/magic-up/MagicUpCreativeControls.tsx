@@ -36,7 +36,7 @@ export function MagicUpCreativeControls({ value, onChange }: MagicUpCreativeCont
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {CONTROL_GROUPS.map(({ field, label, options }) => (
             <div key={field} className="space-y-1.5">
-              <Label className="text-[11px] text-muted-foreground">{label}</Label>
+              <Label className="text-xs text-muted-foreground">{label}</Label>
               <Select value={value[field]} onValueChange={(next) => onChange({ ...value, [field]: next })}>
                 <SelectTrigger className="h-9" aria-label={label}><SelectValue /></SelectTrigger>
                 <SelectContent>{options.map((option) => <SelectItem key={option} value={option}>{toHuman(option)}</SelectItem>)}</SelectContent>
@@ -47,14 +47,14 @@ export function MagicUpCreativeControls({ value, onChange }: MagicUpCreativeCont
 
         <div className="space-y-2">
           <div className="flex items-center justify-between gap-2">
-            <Label className="text-[11px] text-muted-foreground">Negative prompt</Label>
+            <Label className="text-xs text-muted-foreground">Negative prompt</Label>
             <Badge variant="outline" className="text-[10px]">{value.negativePrompt.length} ativos</Badge>
           </div>
           <div className="flex flex-wrap gap-1.5">
             {NEGATIVE_PROMPTS.map((item) => {
               const active = value.negativePrompt.includes(item);
               return (
-                <button key={item} type="button" onClick={() => toggleNegativePrompt(item)} className={cn("px-2.5 py-1 rounded-xl text-xs border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", active ? "border-primary bg-primary/10 text-primary" : "border-border bg-muted/30 text-muted-foreground hover:border-primary/50")} aria-pressed={active}>
+                <button key={item} type="button" onClick={() => toggleNegativePrompt(item)} className={cn("px-2.5 py-1 rounded-lg text-xs border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring", active ? "border-primary bg-primary/10 text-primary" : "border-border bg-muted/30 text-muted-foreground hover:border-primary/50")} aria-pressed={active}>
                   {item}
                 </button>
               );

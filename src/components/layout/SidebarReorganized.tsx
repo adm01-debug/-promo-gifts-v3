@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useEffect, useCallback } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
@@ -43,7 +42,6 @@ import {
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/contexts/AuthContext";
 import { SidebarBrandHeader } from "./sidebar/SidebarBrandHeader";
 
@@ -75,14 +73,14 @@ const navGroups: NavGroup[] = [
     icon: Package,
     defaultOpen: true,
     items: [
-      { icon: Package, label: "Produtos", href: "/produtos", tourId: "products", shortcut: "Alt+P", exact: true },
-      { icon: SlidersHorizontal, label: "Super Filtro", href: "/filtros", shortcut: "Alt+F", exact: true },
+      { icon: Package, label: "Produtos", href: "/", tourId: "products", shortcut: "Alt+P" },
+      { icon: SlidersHorizontal, label: "Super Filtro", href: "/filtros", shortcut: "Alt+F" },
       { icon: Zap, label: "Novidades", href: "/novidades" },
       { icon: RefreshCw, label: "Reposição", href: "/reposicao" },
       { icon: FolderOpen, label: "Coleções", href: "/colecoes" },
-      { icon: Layers, label: "Estoque", href: "/estoque", shortcut: "Alt+E" },
-      { icon: Heart, label: "Favoritos", href: "/favoritos", shortcut: "Alt+V" },
-      { icon: GitCompare, label: "Comparar", href: "/comparar", shortcut: "Alt+C" },
+      { icon: Layers, label: "Estoque", href: "/estoque" },
+      { icon: Heart, label: "Favoritos", href: "/favoritos" },
+      { icon: GitCompare, label: "Comparar", href: "/comparar" },
     ],
   },
   {
@@ -94,9 +92,9 @@ const navGroups: NavGroup[] = [
       { icon: ImagePlus, label: "Mockup", href: "/mockup-generator", shortcut: "Alt+M" },
       { icon: Sparkles, label: "Magic Up", href: "/magic-up" },
       { icon: Crosshair, label: "Match", href: "/match" },
-      { icon: Boxes, label: "Kit Maker", href: "/montar-kit", shortcut: "Alt+K" },
-      { icon: Calculator, label: "Mestre da Personalização", href: "/simulador", shortcut: "Alt+S" },
-      { icon: BarChart3, label: "Radar de Preços", href: "/simulador-precos" },
+      { icon: Boxes, label: "Kit Maker", href: "/montar-kit" },
+      { icon: Calculator, label: "Simulador", href: "/simulador", shortcut: "Alt+S" },
+      { icon: BarChart3, label: "Preços por Tiragem", href: "/simulador-precos" },
       { icon: DollarSign, label: "Busca por Preço", href: "/busca-preco" },
     ],
   },
@@ -122,7 +120,6 @@ const navGroups: NavGroup[] = [
       { icon: Settings, label: "Configurações", href: "/configuracoes", adminOnly: true },
       { icon: ShieldCheck, label: "Segurança", href: "/admin/seguranca", devOnly: true },
       { icon: ShieldCheck, label: "Acesso & Bots", href: "/admin/seguranca-acesso", devOnly: true },
-      { icon: ShieldCheck, label: "Compliance", href: "/admin/compliance", devOnly: true },
       { icon: Plug, label: "Conexões", href: "/admin/conexoes", devOnly: true },
       { icon: FolderOpen, label: "Cadastros", href: "/admin/cadastros", adminOnly: true, children: [
         { icon: Package, label: "Produtos", href: "/admin/cadastros?tab=products" },
@@ -227,8 +224,6 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
   // Global keyboard shortcuts for navigation
   useEffect(() => {
     const shortcutMap: Record<string, string> = {};
-    
-    // Auto-map shortcuts from navGroups
     navGroups.forEach(g => g.items.forEach(item => {
       if (item.shortcut) {
         const key = item.shortcut.replace("Alt+", "").toLowerCase();
@@ -236,34 +231,20 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
       }
     }));
 
-    // Manual overrides or extra shortcuts
-    shortcutMap['b'] = 'toggle-sidebar'; // Alt+B toggles menu
-    shortcutMap['u'] = 'user-menu';      // Alt+U opens user menu
-
     const handler = (e: KeyboardEvent) => {
       if (e.altKey && !e.ctrlKey && !e.metaKey) {
         const target = e.target as HTMLElement;
         if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) return;
-        
-        const action = shortcutMap[e.key.toLowerCase()];
-        if (!action) return;
-
-        e.preventDefault();
-        
-        if (action === 'toggle-sidebar') {
-          onToggle();
-        } else if (action === 'user-menu') {
-          // Trigger user menu dropdown via click simulation on the button
-          const btn = document.querySelector('[aria-label="Menu do usuário"]') as HTMLButtonElement;
-          btn?.click();
-        } else {
-          navigate(action);
+        const href = shortcutMap[e.key.toLowerCase()];
+        if (href) {
+          e.preventDefault();
+          navigate(href);
         }
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [navigate, onToggle]);
+  }, [navigate]);
 
   const hasAnyGroupOpen = Object.values(openGroups).some(Boolean);
 
@@ -315,44 +296,30 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
 
   return (
     <>
-      {/* Mobile overlay — backdrop that closes menu on click */}
+      {/* Mobile overlay */}
       {isOpen && (
-        <button
-          className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-[15] lg:hidden w-full h-full border-none cursor-default"
+        <div
+          className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-40 lg:hidden"
           onClick={onToggle}
-          aria-label="Fechar menu lateral"
-          type="button"
+          aria-hidden="true"
         />
       )}
 
       {/* Sidebar */}
-      <AnimatePresence>
-        {(isOpen || window.innerWidth >= 1024) && (
-          <motion.aside
-            ref={ref}
-            data-tour="sidebar"
-            role="navigation"
-            aria-label="Menu principal"
-            initial={window.innerWidth < 1024 ? { x: "-100%" } : false}
-            animate={{ x: 0 }}
-            exit={{ x: "-100%" }}
-            transition={{ type: "spring", damping: 25, stiffness: 200 }}
-            drag={window.innerWidth < 1024 ? "x" : false}
-            dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={{ left: 0.1, right: 0.5 }}
-            onDragEnd={(_, info) => {
-              if (window.innerWidth < 1024 && info.offset.x < -100) {
-                onToggle();
-              }
-            }}
-            style={{ ['--sidebar-w' as string]: isCollapsed ? '4rem' : '16rem' }}
-            className={cn(
-              "fixed left-0 top-0 z-[20] h-full bg-sidebar border-r border-sidebar-border",
-              isCollapsed ? "overflow-visible" : "overflow-hidden",
-              "lg:sticky lg:top-0 lg:z-auto lg:h-screen",
-              isCollapsed ? "w-16" : "w-64"
-            )}
-          >
+      <aside
+        ref={ref}
+        data-tour="sidebar"
+        role="navigation"
+        aria-label="Menu principal"
+        style={{ ['--sidebar-w' as string]: isCollapsed ? '4rem' : '16rem' }}
+        className={cn(
+          "fixed left-0 top-0 z-50 h-full bg-sidebar border-r border-sidebar-border transition-all duration-300 ease-out",
+          isCollapsed ? "overflow-visible" : "overflow-hidden",
+          "lg:sticky lg:top-0 lg:z-auto lg:h-screen",
+          isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
+          isCollapsed ? "w-16" : "w-64"
+        )}
+      >
         <div className={cn("flex flex-col h-full pt-16 lg:pt-0 min-h-0", isCollapsed && "overflow-visible")}>
           {/* Brand Header */}
           <SidebarBrandHeader isCollapsed={isCollapsed} />
@@ -361,46 +328,31 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
           {/* Collapse controls (desktop) */}
           <div className="hidden lg:flex items-center justify-between px-2 mb-1">
             {!isCollapsed && hasAnyGroupOpen && (
-              <TooltipProvider >
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-7 gap-1.5 text-[10px] border-sidebar-border/50 hover:bg-orange/10 hover:text-orange text-sidebar-foreground/40"
-                      onClick={collapseAllGroups}
-                    >
-                      <X className="h-3 w-3" />
-                      Fechar
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Recolher todas as seções abertas</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Button
+                variant="outline"
+                size="sm"
+                className="h-7 gap-1.5 text-[10px] border-sidebar-border/50 hover:bg-orange/10 hover:text-orange text-sidebar-foreground/40"
+                onClick={collapseAllGroups}
+              >
+                <X className="h-3 w-3" />
+                Fechar
+              </Button>
             )}
             {!isCollapsed && !hasAnyGroupOpen && <div />}
-            <TooltipProvider >
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-7 w-7 hover:bg-sidebar-accent/50 hover:text-orange ml-auto text-sidebar-foreground/30"
-                    onClick={toggleCollapse}
-                    aria-label={isCollapsed ? "Expandir menu" : "Recolher menu"}
-                  >
-                    {isCollapsed ? (
-                      <ChevronRight className="h-3.5 w-3.5" />
-                    ) : (
-                      <ChevronLeft className="h-3.5 w-3.5" />
-                    )}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="right" className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-                  {isCollapsed ? "Expandir menu lateral" : "Recolher menu lateral"}
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 hover:bg-sidebar-accent/50 hover:text-orange ml-auto text-sidebar-foreground/30"
+              onClick={toggleCollapse}
+              aria-label={isCollapsed ? "Expandir menu" : "Recolher menu"}
+              title={isCollapsed ? "Expandir menu" : "Recolher menu"}
+            >
+              {isCollapsed ? (
+                <ChevronRight className="h-3.5 w-3.5" />
+              ) : (
+                <ChevronLeft className="h-3.5 w-3.5" />
+              )}
+            </Button>
           </div>
 
           {/* Aviso quando vendedor/admin tenta abrir rota técnica via URL/histórico */}
@@ -437,11 +389,8 @@ export const SidebarReorganized = React.forwardRef<HTMLElement, SidebarProps>(
 
 
         </div>
-      </motion.aside>
-        )}
-      </AnimatePresence>
+      </aside>
     </>
   );
-});
-
-SidebarReorganized.displayName = "SidebarReorganized";
+  }
+);

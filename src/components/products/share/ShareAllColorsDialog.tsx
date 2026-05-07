@@ -180,14 +180,14 @@ export function ShareAllColorsDialog({ open, onOpenChange, product }: ShareAllCo
                           type="button"
                           onClick={() => handleToggleColor(index)}
                           className={cn(
-                            "flex items-center gap-2 p-1.5 rounded-xl text-left transition-all border",
+                            "flex items-center gap-2 p-1.5 rounded-lg text-left transition-all border",
                             isSelected
                               ? "bg-primary/5 border-primary/30 ring-1 ring-primary/20"
                               : "bg-secondary/30 border-transparent opacity-60 hover:opacity-100 hover:bg-secondary/60"
                           )}
                         >
                           {/* Color thumbnail */}
-                          <div className="relative w-10 h-10 rounded-xl overflow-hidden bg-secondary shrink-0">
+                          <div className="relative w-10 h-10 rounded-md overflow-hidden bg-secondary shrink-0">
                             <img
                               src={thumb}
                               alt={color.name}

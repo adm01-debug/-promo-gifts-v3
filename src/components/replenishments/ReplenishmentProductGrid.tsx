@@ -151,7 +151,7 @@ export function ReplenishmentProductGrid() {
     if (error && products.length === 0) {
       return (
         <div className="text-center py-10" role="alert">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-destructive/10 mb-3">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-destructive/10 mb-3">
             <AlertTriangle className="h-7 w-7 text-destructive" />
           </div>
           <p className="text-destructive font-medium text-sm">Erro ao carregar reposições</p>
@@ -163,7 +163,7 @@ export function ReplenishmentProductGrid() {
     if (filteredProducts.length === 0) {
       return (
         <div className="text-center py-10" role="status">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-muted/80 mb-3">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-muted/80 mb-3">
             <Package className="h-7 w-7 text-muted-foreground/40" />
           </div>
           <p className="text-muted-foreground font-medium text-sm">
@@ -262,8 +262,8 @@ export function ReplenishmentProductGrid() {
       {selectionMode && (
         <BulkActionBar selectedCount={sel.selectedCount} totalCount={filteredProducts.length} onSelectAll={sel.selectAll} onClearSelection={sel.clearSelection} onBulkFavorite={sel.handleBulkFavorite} onBulkCompare={sel.handleBulkCompare} onBulkCollection={sel.handleBulkCollection} onBulkCart={sel.handleBulkCart} onBulkQuote={sel.handleBulkQuote} />
       )}
-      <BulkVariantWizard open={sel.variantWizardOpen} onOpenChange={sel.setVariantWizardOpen} products={sel.selectedProducts} mode={sel.wizardMode} onComplete={sel.handleWizardComplete} initialSelections={sel.wizardSelections} initialIndex={sel.wizardSelections.length > 0 ? Math.max(0, sel.wizardSelections.length - 1) : 0} />
-      <BulkAddToCartModal open={sel.cartModalOpen} onOpenChange={sel.setCartModalOpen} products={sel.bulkCartProducts} variantSelections={sel.wizardSelections} onDone={sel.clearSelection} onBack={sel.handleBackToWizard} />
+      <BulkVariantWizard open={sel.variantWizardOpen} onOpenChange={sel.setVariantWizardOpen} products={sel.selectedProducts} mode={sel.wizardMode} onComplete={sel.handleWizardComplete} />
+      <BulkAddToCartModal open={sel.cartModalOpen} onOpenChange={sel.setCartModalOpen} products={sel.bulkCartProducts} variantSelections={sel.wizardSelections} onDone={sel.clearSelection} />
       <AddToCollectionModal open={sel.collectionModalOpen} onOpenChange={sel.setCollectionModalOpen} productId={sel.firstSelectedId} productName={sel.firstSelectedProduct?.product_name ?? ""} />
     </div>
   );

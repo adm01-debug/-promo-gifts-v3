@@ -102,7 +102,7 @@ export function IndustryTrendingProducts({ ramoAtividade, clientId }: Props) {
       <CardContent className="p-5 space-y-4">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-xl bg-info/10 flex items-center justify-center">
+            <div className="h-8 w-8 rounded-lg bg-info/10 flex items-center justify-center">
               <TrendingUp className="h-4 w-4 text-info" />
             </div>
             <div>
@@ -110,7 +110,7 @@ export function IndustryTrendingProducts({ ramoAtividade, clientId }: Props) {
                 Tendência do setor
                 {ramoAtividade && <span className="text-muted-foreground font-normal"> · {ramoAtividade}</span>}
               </h2>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {data?.isMock
                   ? "Top produtos dos últimos 90 dias · setor"
                   : `Agregado de ${data?.companiesInRamo} empresas do mesmo ramo · 90 dias`}
@@ -206,13 +206,13 @@ export function IndustryTrendingProducts({ ramoAtividade, clientId }: Props) {
                         src={t.imageUrl}
                         alt={t.productName}
                         loading="lazy"
-                        className="h-16 w-16 rounded-xl object-contain bg-background border shrink-0"
+                        className="h-16 w-16 rounded-lg object-contain bg-background border shrink-0"
                         onError={(e) => {
                           (e.currentTarget as HTMLImageElement).style.display = "none";
                         }}
                       />
                     ) : (
-                      <div className="h-16 w-16 rounded-xl bg-muted/40 flex items-center justify-center shrink-0">
+                      <div className="h-16 w-16 rounded-lg bg-muted/40 flex items-center justify-center shrink-0">
                         <Package className="h-6 w-6 text-muted-foreground" />
                       </div>
                     )}
@@ -251,15 +251,15 @@ export function IndustryTrendingProducts({ ramoAtividade, clientId }: Props) {
                 <div
                   key={`${t.productName}-${i}`}
                   className={cn(
-                    "flex items-center gap-3 p-2.5 rounded-xl hover:bg-muted/60 transition-colors group",
+                    "flex items-center gap-3 p-2.5 rounded-lg hover:bg-muted/60 transition-colors group",
                     t.alreadyBuys && "opacity-90",
                   )}
                 >
-                  <div className="h-7 w-7 rounded-xl bg-muted flex items-center justify-center font-display font-bold text-xs text-muted-foreground shrink-0">
+                  <div className="h-7 w-7 rounded-md bg-muted flex items-center justify-center font-display font-bold text-xs text-muted-foreground shrink-0">
                     {i + 1}
                   </div>
                   {t.imageUrl ? (
-                    <div className="h-9 w-9 rounded-xl overflow-hidden bg-muted/40 border shrink-0">
+                    <div className="h-9 w-9 rounded-md overflow-hidden bg-muted/40 border shrink-0">
                       <img
                         src={t.imageUrl}
                         alt={t.productName}
@@ -271,13 +271,13 @@ export function IndustryTrendingProducts({ ramoAtividade, clientId }: Props) {
                       />
                     </div>
                   ) : (
-                    <div className="h-9 w-9 rounded-xl bg-muted/40 flex items-center justify-center shrink-0">
+                    <div className="h-9 w-9 rounded-md bg-muted/40 flex items-center justify-center shrink-0">
                       <Package className="h-4 w-4 text-muted-foreground" />
                     </div>
                   )}
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-sm truncate">{t.productName}</div>
-                    <div className="text-[11px] text-muted-foreground">{t.category}</div>
+                    <div className="text-xs text-muted-foreground">{t.category}</div>
                   </div>
 
                   {/* Status: cliente já compra? */}
@@ -294,11 +294,11 @@ export function IndustryTrendingProducts({ ramoAtividade, clientId }: Props) {
                   </div>
 
                   <div className="text-right shrink-0 hidden md:block">
-                    <div className="text-[11px] text-muted-foreground">unidades</div>
+                    <div className="text-xs text-muted-foreground">unidades</div>
                     <div className="font-semibold text-sm">{t.unitsSold.toLocaleString("pt-BR")}</div>
                   </div>
                   <div className="text-right shrink-0 hidden lg:block">
-                    <div className="text-[11px] text-muted-foreground">preço médio</div>
+                    <div className="text-xs text-muted-foreground">preço médio</div>
                     <div className="font-semibold text-sm">{fmtBRL(t.avgPrice)}</div>
                   </div>
                   <Trend.icon className={cn("h-4 w-4 shrink-0", Trend.className)} />

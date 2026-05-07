@@ -253,7 +253,7 @@ export function QuoteTemplateForm({
               <Separator />
               <div className="space-y-3">
                 <h4 className="font-medium">Itens do Template</h4>
-                <div className="bg-muted/50 rounded-xl p-4 space-y-2">
+                <div className="bg-muted/50 rounded-lg p-4 space-y-2">
                   {formData.items_data.map((item, index) => (
                     <div key={index} className="flex items-center justify-between text-sm">
                       <span className="truncate flex-1">
@@ -267,7 +267,7 @@ export function QuoteTemplateForm({
                   <Separator className="my-2" />
                   <div className="flex items-center justify-between font-medium">
                     <span>Total Estimado</span>
-                    <span className="text-xl">{formatCurrency(calculateTotal())}</span>
+                    <span className="text-lg">{formatCurrency(calculateTotal())}</span>
                   </div>
                 </div>
               </div>

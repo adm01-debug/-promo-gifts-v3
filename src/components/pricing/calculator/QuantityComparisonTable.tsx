@@ -69,29 +69,29 @@ export function QuantityComparisonTable({ product, selectedConfigs, quantities }
             {selectedConfigs.map((config) => (
               <TableRow key={config.technique.id}>
                 <TableCell>
-                  <div><p className="font-medium text-sm">{config.technique.techniqueName}</p><p className="text-[11px] text-muted-foreground">{config.colors} cor{config.colors > 1 ? 'es' : ''} • {availableSizes.find(s => s.value === config.sizeOption)?.label.split(' ')[0]}</p></div>
+                  <div><p className="font-medium text-sm">{config.technique.techniqueName}</p><p className="text-xs text-muted-foreground">{config.colors} cor{config.colors > 1 ? 'es' : ''} • {availableSizes.find(s => s.value === config.sizeOption)?.label.split(' ')[0]}</p></div>
                 </TableCell>
                 {quantities.map(qty => {
                   const result = calculateForConfig(config, qty);
                   const isBest = bestPricePerConfig.get(config.technique.id) === qty;
                   if (!result) return <TableCell key={qty} className="text-center text-xs text-muted-foreground">N/D</TableCell>;
                   return (
-                    <TableCell key={qty} className={cn("text-center relative", isBest && "bg-success/10 border border-success/30 rounded-xl")}>
+                    <TableCell key={qty} className={cn("text-center relative", isBest && "bg-success/10 border border-success/30 rounded-lg")}>
                       {isBest && <Trophy className="w-3 h-3 text-success absolute top-1 right-1" />}
-                      <div className="space-y-1"><p className={cn("font-bold text-sm", isBest ? "text-success" : "text-primary")}>{formatCurrency(result.unitTotal)}</p><p className="text-[11px] text-muted-foreground">Total: {formatCurrency(result.grandTotal)}</p></div>
+                      <div className="space-y-1"><p className={cn("font-bold text-sm", isBest ? "text-success" : "text-primary")}>{formatCurrency(result.unitTotal)}</p><p className="text-xs text-muted-foreground">Total: {formatCurrency(result.grandTotal)}</p></div>
                     </TableCell>
                   );
                 })}
               </TableRow>
             ))}
             <TableRow className="bg-muted/30">
-              <TableCell><div><p className="font-medium text-sm">Apenas Produto</p><p className="text-[11px] text-muted-foreground">Sem gravação</p></div></TableCell>
-              {quantities.map(qty => <TableCell key={qty} className="text-center"><div className="space-y-1"><p className="font-bold text-sm">{formatCurrency(product.price)}</p><p className="text-[11px] text-muted-foreground">Total: {formatCurrency(product.price * qty)}</p></div></TableCell>)}
+              <TableCell><div><p className="font-medium text-sm">Apenas Produto</p><p className="text-xs text-muted-foreground">Sem gravação</p></div></TableCell>
+              {quantities.map(qty => <TableCell key={qty} className="text-center"><div className="space-y-1"><p className="font-bold text-sm">{formatCurrency(product.price)}</p><p className="text-xs text-muted-foreground">Total: {formatCurrency(product.price * qty)}</p></div></TableCell>)}
             </TableRow>
           </TableBody>
         </Table>
       </div>
-      <div className="text-xs text-muted-foreground p-3 bg-muted/50 rounded-xl">
+      <div className="text-xs text-muted-foreground p-3 bg-muted/50 rounded-lg">
         <p className="font-medium mb-1">Valores incluem:</p>
         <ul className="list-disc list-inside space-y-0.5"><li>Preço do produto ({formatCurrency(product.price)}/un)</li><li>Custo de gravação por unidade</li><li>Custo de setup (quando aplicável)</li></ul>
       </div>

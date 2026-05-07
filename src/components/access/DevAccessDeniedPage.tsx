@@ -237,12 +237,12 @@ export function DevAccessDeniedPage({
 
           <div className="space-y-4 w-full">
             <div className="space-y-1">
-              <span className="badge-premium-destructive text-[10px] py-0.5 px-2">
+              <span className="inline-block text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-destructive/10 text-destructive border border-destructive/20">
                 {copy.badge} · 403
               </span>
               <h1
                 id="dev-access-denied-title"
-                className="text-xl font-bold tracking-tight text-foreground"
+                className="text-2xl font-bold tracking-tight text-foreground"
               >
                 {copy.title}
               </h1>
@@ -254,7 +254,7 @@ export function DevAccessDeniedPage({
               </p>
               
               {isSupervisor && (
-                <div className="mx-auto max-w-sm p-3 rounded-xl bg-muted/40 border border-border/50 text-xs text-left">
+                <div className="mx-auto max-w-sm p-3 rounded-lg bg-muted/40 border border-border/50 text-xs text-left">
                   <p className="font-medium text-foreground mb-1">Nota de Permissão:</p>
                   <p className="text-muted-foreground leading-normal">
                     Seus privilégios administrativos estão configurados para gestão de negócio e usuários. 
@@ -265,10 +265,10 @@ export function DevAccessDeniedPage({
             </div>
 
             <div className="pt-2 border-t border-border/10">
-              <p className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-[0.15em]">
+              <p className="text-[10px] font-medium text-muted-foreground/50 uppercase tracking-widest">
                 Identificador de Segurança
               </p>
-              <p className="badge-premium-mono mt-1.5">
+              <p className="text-xs font-mono text-muted-foreground mt-1 bg-muted/30 py-1 px-2 rounded inline-block">
                 {securityId}
               </p>
             </div>
@@ -277,7 +277,7 @@ export function DevAccessDeniedPage({
           {/* Para supervisor: atalhos visuais para áreas administrativas. */}
           {isSupervisor && (
             <div className="w-full pt-2 border-t border-border/40">
-              <p className="text-[11px] font-medium text-muted-foreground/50 uppercase tracking-widest mb-3">
+              <p className="text-[10px] font-medium text-muted-foreground/50 uppercase tracking-widest mb-3">
                 Atalhos Administrativos
               </p>
               <div className="grid grid-cols-2 gap-2">
@@ -301,8 +301,8 @@ export function DevAccessDeniedPage({
             </div>
           )}
 
-          <div className="w-full text-left rounded-xl border border-border/60 bg-muted/20 p-3">
-            <p className="text-[11px] leading-relaxed text-muted-foreground">{copy.hint}</p>
+          <div className="w-full text-left rounded-lg border border-border/60 bg-muted/20 p-3">
+            <p className="text-[10px] leading-relaxed text-muted-foreground">{copy.hint}</p>
           </div>
 
           {/* Bloco de motivo + CTA de solicitação (todos os papéis podem
@@ -310,7 +310,7 @@ export function DevAccessDeniedPage({
           <div className="w-full text-left space-y-2">
             <label
               htmlFor="dev-access-reason"
-              className="text-[11px] font-medium text-foreground"
+              className="text-xs font-medium text-foreground"
             >
               Motivo (opcional)
             </label>
@@ -327,7 +327,7 @@ export function DevAccessDeniedPage({
               className="resize-none"
               disabled={submitting}
             />
-            <div className="text-[11px] text-muted-foreground text-right">
+            <div className="text-[10px] text-muted-foreground text-right">
               {reason.length}/500
             </div>
           </div>
@@ -365,7 +365,7 @@ export function DevAccessDeniedPage({
               variant="link-secondary"
               size="sm"
               asChild
-              className="text-[11px] h-auto py-1"
+              className="text-[10px] h-auto py-1"
               onClick={() => emit("mail")}
             >
               <a

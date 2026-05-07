@@ -26,7 +26,7 @@ function SpecItem({ icon, label, value, unit, iconBgClass = "bg-primary/10", ico
   if (compact) {
     return (
       <div className="flex items-center gap-2.5 px-3 py-3 rounded-xl bg-secondary/40 border border-border/40">
-        <div className={`w-8 h-8 rounded-xl ${iconBgClass} flex items-center justify-center shrink-0 [&_svg]:h-4 [&_svg]:w-4`}>
+        <div className={`w-8 h-8 rounded-lg ${iconBgClass} flex items-center justify-center shrink-0 [&_svg]:h-4 [&_svg]:w-4`}>
           <span className={iconColorClass}>{icon}</span>
         </div>
         <div className="min-w-0">
@@ -39,7 +39,7 @@ function SpecItem({ icon, label, value, unit, iconBgClass = "bg-primary/10", ico
 
   return (
     <div className="flex flex-col items-center justify-center gap-1.5 p-4 rounded-xl bg-secondary/50 border border-border text-center">
-      <div className={`w-10 h-10 rounded-xl ${iconBgClass} flex items-center justify-center shrink-0`}>
+      <div className={`w-10 h-10 rounded-lg ${iconBgClass} flex items-center justify-center shrink-0`}>
         <span className={iconColorClass}>{icon}</span>
       </div>
       <p className="text-[11px] text-muted-foreground leading-tight">{label}</p>

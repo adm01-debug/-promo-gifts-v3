@@ -143,7 +143,7 @@ export function CollectionsTrashView({ collectionId, onCountChange }: Props) {
           const thumb = it.thumbnail_url ?? p?.images?.[0];
           return (
             <div key={it.id} className="flex gap-3 p-3 rounded-xl border border-border bg-card">
-              <div className="w-16 h-16 rounded-xl bg-muted overflow-hidden shrink-0">
+              <div className="w-16 h-16 rounded-lg bg-muted overflow-hidden shrink-0">
                 {thumb && (
                   <img
                     src={thumb}

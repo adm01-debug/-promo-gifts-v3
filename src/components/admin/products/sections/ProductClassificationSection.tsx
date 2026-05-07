@@ -68,14 +68,14 @@ function ClassificationCard({ title, subtitle, icon: Icon, iconColor, children, 
         className="flex items-center gap-3 w-full px-4 py-3.5 text-left hover:bg-accent/30 transition-colors"
       >
         <div className={cn(
-          "flex h-9 w-9 items-center justify-center rounded-xl shrink-0",
+          "flex h-9 w-9 items-center justify-center rounded-lg shrink-0",
           iconColor
         )}>
           <Icon className="h-4 w-4" />
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-sm font-semibold text-foreground">{title}</p>
-          <p className="text-[11px] text-muted-foreground">{subtitle}</p>
+          <p className="text-xs text-muted-foreground">{subtitle}</p>
         </div>
         {disabled && (
           <Badge variant="outline" className="text-[10px] shrink-0 opacity-60">Salvar primeiro</Badge>
@@ -114,7 +114,7 @@ export default function ProductClassificationSection({
         </div>
         <div>
           <h3 className="font-display text-base font-bold text-foreground">Classificação & Vínculos</h3>
-          <p className="text-[11px] text-muted-foreground">Configure variações, materiais, tags e vínculos comerciais</p>
+          <p className="text-xs text-muted-foreground">Configure variações, materiais, tags e vínculos comerciais</p>
         </div>
       </div>
 
@@ -214,7 +214,7 @@ export default function ProductClassificationSection({
       </div>
 
       {!showFullContent && (
-        <div className="flex items-center gap-2 p-3 rounded-xl bg-muted/30 text-xs text-muted-foreground border border-border/30">
+        <div className="flex items-center gap-2 p-3 rounded-lg bg-muted/30 text-xs text-muted-foreground border border-border/30">
           <Info className="h-4 w-4 shrink-0 text-primary" />
           <span>Salve o produto primeiro para editar as classificações acima.</span>
         </div>

@@ -2,7 +2,7 @@ import React, { forwardRef, useState, useCallback } from "react";
 import { cn } from "@/lib/utils";
 import { ChevronDown } from "lucide-react";
 import { NavLink, useLocation } from "react-router-dom";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { motion } from "framer-motion";
 import { useAuth } from "@/contexts/AuthContext";
@@ -116,7 +116,7 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
             aria-label={`Expandir ${item.label}`}
             onClick={() => toggleSubMenu(item.label)}
             className={cn(
-              "flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all duration-150 group relative",
+              "flex items-center gap-3 w-full px-3 py-2 rounded-lg transition-all duration-150 group relative",
               "hover:bg-sidebar-accent/50 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-orange/20 active:scale-[0.995]",
               hasActiveChild
                 ? "text-orange font-semibold bg-orange/[0.03] before:absolute before:left-0 before:top-[20%] before:bottom-[20%] before:w-[1.5px] before:rounded-r-full before:bg-orange"
@@ -167,9 +167,8 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
       <NavLink
         to={item.href}
         data-tour={item.tourId}
-        aria-label={`${item.label}${item.shortcut ? ` (atalho ${item.shortcut.replace('Alt+', 'Alt mais ')})` : ''}`}
         className={cn(
-          "flex items-center gap-3 px-3 py-2 rounded-xl transition-all duration-150 group relative focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-orange/20 active:scale-[0.995]",
+          "flex items-center gap-3 px-3 py-2 rounded-lg transition-all duration-150 group relative focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-orange/20 active:scale-[0.995]",
           "hover:bg-sidebar-accent/50",
           isActive
             ? "bg-orange/[0.03] text-orange font-bold before:absolute before:left-0 before:top-[20%] before:bottom-[20%] before:w-[1.5px] before:rounded-r-full before:bg-orange"
@@ -191,7 +190,7 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
           </span>
         )}
         {!isCollapsed && item.shortcut && (
-          <kbd className="ml-auto text-[9px] text-muted-foreground/40 font-mono bg-muted/30 px-1 py-0.5 rounded hidden lg:inline-block" aria-hidden="true">
+          <kbd className="ml-auto text-[9px] text-muted-foreground/40 font-mono bg-muted/30 px-1 py-0.5 rounded hidden lg:inline-block">
             {item.shortcut}
           </kbd>
         )}
@@ -205,28 +204,26 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
 
     if (isCollapsed) {
       return (
-        <TooltipProvider key={item.href} >
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <div>{linkContent}</div>
-            </TooltipTrigger>
-            <TooltipContent side="right" className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl z-[100]">
-              <div className="flex items-center gap-2">
-                <span>{item.label}</span>
-                {item.shortcut && (
-                  <kbd className="text-[9px] bg-primary-foreground/20 text-primary-foreground px-1 py-0.5 rounded font-mono" aria-hidden="true">
-                    {item.shortcut}
-                  </kbd>
-                )}
-                {item.badge != null && (
-                  <span className="bg-orange text-orange-foreground text-[10px] font-bold px-1.5 py-0.5 rounded-full">
-                    {item.badge}
-                  </span>
-                )}
-              </div>
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <Tooltip key={item.href} delayDuration={0}>
+          <TooltipTrigger asChild>
+            <div>{linkContent}</div>
+          </TooltipTrigger>
+          <TooltipContent side="right" className="bg-card border-border z-[100]">
+            <div className="flex items-center gap-2">
+              <span>{item.label}</span>
+              {item.shortcut && (
+                <kbd className="text-[9px] text-muted-foreground/60 font-mono bg-muted/50 px-1 py-0.5 rounded">
+                  {item.shortcut}
+                </kbd>
+              )}
+              {item.badge != null && (
+                <span className="bg-orange/15 text-orange text-[10px] font-semibold px-1.5 py-0.5 rounded-full">
+                  {item.badge}
+                </span>
+              )}
+            </div>
+          </TooltipContent>
+        </Tooltip>
       );
     }
 
@@ -249,7 +246,7 @@ export const SidebarNavGroup = forwardRef<HTMLDivElement, SidebarNavGroupProps>(
           aria-expanded={isOpen}
           aria-label={groupToggleLabel}
           className={cn(
-            "flex items-center gap-3 w-full px-3 py-2 rounded-xl transition-all duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-orange/15 active:scale-[0.995]",
+            "flex items-center gap-3 w-full px-3 py-2 rounded-lg transition-all duration-150 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-orange/15 active:scale-[0.995]",
             "hover:bg-sidebar-accent/50 text-sidebar-foreground/70 hover:text-sidebar-foreground",
             hasActiveItem && "text-orange bg-orange/[0.02]"
           )}

@@ -69,11 +69,11 @@ export function ScenarioComparison({
       <CardHeader className="pb-4">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div className="flex items-center gap-3">
-            <div className="p-2 rounded-xl bg-muted">
+            <div className="p-2 rounded-lg bg-muted">
               <GitCompare className="h-5 w-5 text-muted-foreground" />
             </div>
             <div>
-              <CardTitle className="text-xl flex items-center gap-2">
+              <CardTitle className="text-lg flex items-center gap-2">
                 Comparar Cenários
                 <Badge variant="outline" className="text-xs gap-1">
                   <Sparkles className="h-3 w-3" />
@@ -109,12 +109,12 @@ export function ScenarioComparison({
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="p-3 rounded-xl bg-primary/10 border border-primary/30"
+                className="p-3 rounded-lg bg-primary/10 border border-primary/30"
               >
                 <p className="font-medium text-sm truncate">{scenarioA.productName}</p>
-                <p className="text-[11px] text-muted-foreground">{scenarioA.quantity} un</p>
+                <p className="text-xs text-muted-foreground">{scenarioA.quantity} un</p>
                 <div className="mt-2 flex items-center justify-between">
-                  <span className="text-[11px] text-muted-foreground">Melhor:</span>
+                  <span className="text-xs text-muted-foreground">Melhor:</span>
                   <span className="font-bold text-primary">
                     {formatCurrency(scenarioA.bestOption?.grandTotal || 0)}
                   </span>
@@ -152,12 +152,12 @@ export function ScenarioComparison({
               <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="p-3 rounded-xl bg-primary/15 border border-primary/25"
+                className="p-3 rounded-lg bg-primary/15 border border-primary/25"
               >
                 <p className="font-medium text-sm truncate">{scenarioB.productName}</p>
-                <p className="text-[11px] text-muted-foreground">{scenarioB.quantity} un</p>
+                <p className="text-xs text-muted-foreground">{scenarioB.quantity} un</p>
                 <div className="mt-2 flex items-center justify-between">
-                  <span className="text-[11px] text-muted-foreground">Melhor:</span>
+                  <span className="text-xs text-muted-foreground">Melhor:</span>
                   <span className="font-bold text-primary/80">
                     {formatCurrency(scenarioB.bestOption?.grandTotal || 0)}
                   </span>
@@ -195,14 +195,14 @@ export function ScenarioComparison({
                 <div className="grid grid-cols-3 gap-4 text-center">
                   {/* Scenario A */}
                   <div className={cn(
-                    "p-3 rounded-xl transition-all",
+                    "p-3 rounded-lg transition-all",
                     comparison.winner === 'A' && "bg-success/20 ring-2 ring-success"
                   )}>
                     <p className="text-xs text-muted-foreground mb-1">Cenário A</p>
                     <p className="font-bold text-lg">
                       {formatCurrency(scenarioA?.bestOption?.grandTotal || 0)}
                     </p>
-                    <p className="text-[11px] text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       {scenarioA?.bestOption?.estimatedDays}d
                     </p>
                     {comparison.winner === 'A' && (
@@ -244,14 +244,14 @@ export function ScenarioComparison({
 
                   {/* Scenario B */}
                   <div className={cn(
-                    "p-3 rounded-xl transition-all",
+                    "p-3 rounded-lg transition-all",
                     comparison.winner === 'B' && "bg-success/20 ring-2 ring-success"
                   )}>
                     <p className="text-xs text-muted-foreground mb-1">Cenário B</p>
                     <p className="font-bold text-lg">
                       {formatCurrency(scenarioB?.bestOption?.grandTotal || 0)}
                     </p>
-                    <p className="text-[11px] text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       {scenarioB?.bestOption?.estimatedDays}d
                     </p>
                     {comparison.winner === 'B' && (
@@ -265,9 +265,9 @@ export function ScenarioComparison({
 
                 {/* Savings highlight */}
                 {comparison.priceDiff !== 0 && (
-                  <div className="mt-4 p-3 rounded-xl bg-card/50 text-center">
+                  <div className="mt-4 p-3 rounded-lg bg-card/50 text-center">
                     <p className="text-sm text-muted-foreground">Economia escolhendo {comparison.winner}:</p>
-                    <p className="text-xl font-bold text-success">
+                    <p className="text-2xl font-bold text-success">
                       {formatCurrency(Math.abs(comparison.priceDiff))}
                     </p>
                   </div>

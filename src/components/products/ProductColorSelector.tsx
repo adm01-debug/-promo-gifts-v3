@@ -114,7 +114,7 @@ export function ProductColorSelector({
           const isWhite = colorHex.toUpperCase() === "#FFFFFF" || colorHex.toUpperCase() === "#FFF";
 
           return (
-            <Tooltip key={color.id || idx} >
+            <Tooltip key={color.id || idx} delayDuration={200}>
               <TooltipTrigger asChild>
                 <motion.button
                   onClick={() => onColorSelect?.(color)}
@@ -172,7 +172,7 @@ export function ProductColorSelector({
                 <div className="text-center">
                   <p>{formatColorName(color)}</p>
                   {color.groupName && color.groupName !== color.variationName && (
-                    <p className="text-[11px] text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       Grupo: {color.groupName}
                     </p>
                   )}
@@ -261,7 +261,7 @@ export function CompactColorDots({
   return (
     <div className="flex items-center gap-1">
       {visibleColors.map((color, idx) => (
-        <Tooltip key={color.id || idx} >
+        <Tooltip key={color.id || idx} delayDuration={300}>
           <TooltipTrigger asChild>
             <span
               className={cn(

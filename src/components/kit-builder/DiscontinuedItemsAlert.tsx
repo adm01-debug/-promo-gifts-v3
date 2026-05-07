@@ -54,7 +54,7 @@ export function DiscontinuedItemsAlert({ items }: DiscontinuedItemsAlertProps) {
             <h4 className="font-medium text-destructive text-sm">
               {discontinuedItems.length} {discontinuedItems.length === 1 ? 'item descontinuado' : 'itens descontinuados'}
             </h4>
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Os seguintes itens foram desativados no catálogo. Considere substituí-los.
             </p>
             <div className="space-y-1">

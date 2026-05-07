@@ -195,7 +195,7 @@ export const MockupWizard = forwardRef<HTMLDivElement, MockupWizardProps>(functi
               <p className="text-sm font-medium text-foreground">
                 {steps[currentStep - 1]?.label}
               </p>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {steps[currentStep - 1]?.description}
               </p>
             </div>
@@ -204,7 +204,7 @@ export const MockupWizard = forwardRef<HTMLDivElement, MockupWizardProps>(functi
             <p className="text-xs font-medium text-primary animate-pulse">
               {getMicrocopy()}
             </p>
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Passo {currentStep} de {steps.length}
             </p>
           </div>

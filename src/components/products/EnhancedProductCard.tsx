@@ -4,8 +4,6 @@
  */
 
 import { useState, useRef } from "react";
-import { useNavigate } from "react-router-dom";
-
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Heart,
@@ -58,9 +56,7 @@ export function EnhancedProductCard({
   urgencyType = "limited-stock",
   urgencyText,
 }: EnhancedProductCardProps) {
-  const navigate = useNavigate();
   const [isHovered, setIsHovered] = useState(false);
-
   const [showPreview, setShowPreview] = useState(false);
   const [imageLoaded, setImageLoaded] = useState(false);
   const [quickAddQuantity, setQuickAddQuantity] = useState(1);
@@ -130,7 +126,7 @@ export function EnhancedProductCard({
   return (
     <article
       className={cn(
-        "group relative overflow-hidden rounded-xl bg-card border border-border/50",
+        "group relative overflow-hidden rounded-2xl bg-card border border-border/50",
         "transition-all duration-300 ease-out cursor-pointer",
         "hover:border-primary/30 hover:shadow-2xl hover:-translate-y-1",
         isHovered && "ring-2 ring-primary/20"
@@ -314,7 +310,7 @@ export function EnhancedProductCard({
                   data-testid="product-card-quick-add"
                   size="sm"
                   className="flex-1 rounded-full gap-2"
-                  onClick={(e) => { e.stopPropagation(); onQuickAdd(product, quickAddQuantity); }}
+                  onClick={() => onQuickAdd(product, quickAddQuantity)}
                 >
                   <ShoppingCart className="h-4 w-4" />
                   Adicionar
@@ -379,7 +375,7 @@ export function EnhancedProductCard({
         <div className="flex items-end justify-between">
           <div>
             <p className="text-[10px] text-muted-foreground">A partir de</p>
-            <span className="text-xl font-bold inline-flex items-center gap-1.5">
+            <span className="text-lg font-bold inline-flex items-center gap-1.5">
               {formatPrice(product.price)}
               <PriceFreshnessBadge
                 priceUpdatedAt={product.priceUpdatedAt}
@@ -442,10 +438,9 @@ export function EnhancedProductCard({
                 </div>
               </div>
 
-              <Button className="w-full" size="sm" onClick={(e) => { e.stopPropagation(); navigate(`/produto/${product.id}`); }}>
+              <Button className="w-full" size="sm">
                 Ver produto completo
               </Button>
-
             </div>
           </motion.div>
         )}

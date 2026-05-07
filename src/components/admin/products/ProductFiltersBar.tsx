@@ -209,7 +209,7 @@ export function ProductFiltersBar({ filters, onChange }: ProductFiltersBarProps)
       </div>
 
       <CollapsibleContent>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-3 p-3 bg-muted/30 rounded-xl border border-border/50">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-3 p-3 bg-muted/30 rounded-lg border border-border/50">
           {/* Categoria */}
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-muted-foreground">Categoria</label>
@@ -292,7 +292,7 @@ export function ProductFiltersBar({ filters, onChange }: ProductFiltersBarProps)
           {/* Kit */}
           <div className="space-y-1.5">
             <label className="text-xs font-medium text-muted-foreground">Tipo</label>
-            <div className="flex items-center gap-2 h-9 px-3 rounded-xl border border-input bg-background">
+            <div className="flex items-center gap-2 h-9 px-3 rounded-md border border-input bg-background">
               <Boxes className="h-3.5 w-3.5 text-primary" />
               <span className="text-sm flex-1">Apenas Kits</span>
               <Switch
@@ -316,7 +316,7 @@ export function ProductFiltersBar({ filters, onChange }: ProductFiltersBarProps)
                 min={0}
                 step={0.01}
               />
-              <span className="text-[11px] text-muted-foreground">–</span>
+              <span className="text-xs text-muted-foreground">–</span>
               <Input
                 type="number"
                 placeholder="Máx"

@@ -59,7 +59,7 @@ export function QuoteCommentsSection({ quoteId }: QuoteCommentsSectionProps) {
           />
         </div>
         <div className="flex justify-between items-center">
-          <p className="text-[11px] text-muted-foreground">Ctrl+Enter para enviar</p>
+          <p className="text-xs text-muted-foreground">Ctrl+Enter para enviar</p>
           <Button
             onClick={handleSubmit}
             disabled={!newComment.trim() || isSubmitting}
@@ -188,7 +188,7 @@ function CommentItem({
   };
 
   return (
-    <div className={`group rounded-xl p-3 transition-colors hover:bg-muted/30 ${isReply ? "bg-muted/10" : ""}`}>
+    <div className={`group rounded-lg p-3 transition-colors hover:bg-muted/30 ${isReply ? "bg-muted/10" : ""}`}>
       <div className="flex gap-3">
         <Avatar className="h-8 w-8 shrink-0">
           <AvatarImage src={comment.author_avatar || undefined} />
@@ -197,7 +197,7 @@ function CommentItem({
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-sm font-medium">{comment.author_name}</span>
-            <span className="text-[11px] text-muted-foreground">
+            <span className="text-xs text-muted-foreground">
               {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true, locale: ptBR })}
             </span>
             {comment.is_edited && (

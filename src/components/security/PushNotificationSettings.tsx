@@ -81,11 +81,11 @@ export function PushNotificationSettings() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-3 p-4 rounded-xl bg-muted/50">
+          <div className="flex items-center gap-3 p-4 rounded-lg bg-muted/50">
             <AlertTriangle className="h-5 w-5 text-orange" />
             <div>
               <p className="text-sm font-medium">Navegador não compatível</p>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 Tente usar Chrome, Firefox, Edge ou Safari para receber notificações.
               </p>
             </div>
@@ -114,7 +114,7 @@ export function PushNotificationSettings() {
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Status */}
-        <div className="flex items-center justify-between p-4 rounded-xl bg-muted/50">
+        <div className="flex items-center justify-between p-4 rounded-lg bg-muted/50">
           <div className="flex items-center gap-3">
             {isEnabled ? (
               <div className="p-2 rounded-full bg-success/10">
@@ -147,7 +147,7 @@ export function PushNotificationSettings() {
         </div>
 
         {permission === 'denied' && (
-          <div className="flex items-start gap-3 p-4 rounded-xl border border-destructive/20 bg-destructive/5">
+          <div className="flex items-start gap-3 p-4 rounded-lg border border-destructive/20 bg-destructive/5">
             <XCircle className="h-5 w-5 text-destructive mt-0.5" />
             <div>
               <p className="font-medium text-destructive">Permissão bloqueada</p>
@@ -171,40 +171,40 @@ export function PushNotificationSettings() {
               <h4 className="text-sm font-medium">Tipos de alerta</h4>
               
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 rounded-xl border">
+                <div className="flex items-center justify-between p-3 rounded-lg border">
                   <div className="flex items-center gap-3">
                     <div className="p-1.5 rounded bg-destructive/10">
                       <AlertTriangle className="h-4 w-4 text-destructive" />
                     </div>
                     <div>
                       <p className="text-sm font-medium">Tentativas de login falhas</p>
-                      <p className="text-[11px] text-muted-foreground">Alerta quando houver tentativas inválidas</p>
+                      <p className="text-xs text-muted-foreground">Alerta quando houver tentativas inválidas</p>
                     </div>
                   </div>
                   <Switch defaultChecked disabled />
                 </div>
 
-                <div className="flex items-center justify-between p-3 rounded-xl border">
+                <div className="flex items-center justify-between p-3 rounded-lg border">
                   <div className="flex items-center gap-3">
                     <div className="p-1.5 rounded bg-orange/10">
                       <Smartphone className="h-4 w-4 text-orange" />
                     </div>
                     <div>
                       <p className="text-sm font-medium">Novos dispositivos</p>
-                      <p className="text-[11px] text-muted-foreground">Alerta quando um novo dispositivo acessar</p>
+                      <p className="text-xs text-muted-foreground">Alerta quando um novo dispositivo acessar</p>
                     </div>
                   </div>
                   <Switch defaultChecked disabled />
                 </div>
 
-                <div className="flex items-center justify-between p-3 rounded-xl border">
+                <div className="flex items-center justify-between p-3 rounded-lg border">
                   <div className="flex items-center gap-3">
                     <div className="p-1.5 rounded bg-primary/10">
                       <Bell className="h-4 w-4 text-primary" />
                     </div>
                     <div>
                       <p className="text-sm font-medium">Alertas gerais de segurança</p>
-                      <p className="text-[11px] text-muted-foreground">Outras notificações importantes</p>
+                      <p className="text-xs text-muted-foreground">Outras notificações importantes</p>
                     </div>
                   </div>
                   <Switch defaultChecked disabled />

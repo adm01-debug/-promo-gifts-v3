@@ -97,7 +97,7 @@ export function McpTab() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label className="text-[11px] text-muted-foreground">Endpoint</Label>
+            <Label className="text-xs text-muted-foreground">Endpoint</Label>
             <div className="flex gap-2 mt-1">
               <Input value={MCP_URL} readOnly className="font-mono text-xs" />
               <Button size="sm" variant="outline" onClick={() => copy(MCP_URL)}>
@@ -191,11 +191,11 @@ export function McpTab() {
                 const expiresLabel = formatExpiresIn(k.expires_at);
                 const expired = expiresLabel === "expirada";
                 return (
-                  <div key={k.id} className="flex items-center justify-between p-3 border border-border rounded-xl">
+                  <div key={k.id} className="flex items-center justify-between p-3 border border-border rounded-md">
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-medium">{k.name}</span>
-                        <code className="text-[11px] text-muted-foreground">{k.key_prefix}…</code>
+                        <code className="text-xs text-muted-foreground">{k.key_prefix}…</code>
                         {full && (
                           <Badge variant="destructive" className="text-xs gap-1">
                             <ShieldAlert className="h-3 w-3" /> FULL

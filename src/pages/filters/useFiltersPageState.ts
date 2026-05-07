@@ -13,7 +13,6 @@ import { usePromoSalesRanking } from "@/hooks/usePromoSalesRanking";
 import { useSupplierSalesRanking } from "@/hooks/useSupplierSalesRanking";
 import { sortProducts } from "@/utils/product-sorting";
 import { toast } from "sonner";
-import { useFilterPresets } from "@/components/filters/FilterPresets";
 
 export function useFiltersPageState() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -58,39 +57,12 @@ export function useFiltersPageState() {
     return f;
   });
 
-  const [activePresetId, setActivePresetId] = useState<string | undefined>(() => searchParams.get('preset') || undefined);
-  
-  // Ref to track if we've already tried to apply a preset from URL to avoid loops
-  const presetAppliedFromUrl = useRef(false);
-
-  // Auto-apply preset filters if only preset ID is in URL but filters are default
-  const { presets } = useFilterPresets("catalog");
-  useEffect(() => {
-    if (activePresetId && presets.length > 0 && !presetAppliedFromUrl.current) {
-      try {
-        const preset = presets.find(p => p.id === activePresetId);
-        if (preset) {
-          // If current filters are default (or mostly empty), apply preset filters
-          const isDefault = activeFiltersCount === 0;
-          if (isDefault) {
-            setFilters(preset.filters);
-            presetAppliedFromUrl.current = true;
-            toast.info(`Preset "${preset.name}" carregado.`);
-          }
-        }
-      } catch (err) {
-        console.error("[useFiltersPageState] Erro ao carregar preset da URL:", err);
-      }
-    }
-  }, [activePresetId, presets, activeFiltersCount]);
-
   const debouncedServerSearch = useDebounce(filters.search || '', 400);
   const urlSearch = searchParams.get('search') || '';
   const debouncedUrlSearch = useDebounce(urlSearch, 400);
   const serverSearchTerm = debouncedServerSearch || debouncedUrlSearch;
 
-  // Fetch catalog data (must be declared BEFORE any effect/memo that depends on it — TDZ).
-  const { data: catalogData, isLoading: isLoadingProducts, hasNextPage, fetchNextPage, isFetchingNextPage, error: catalogError } = useProductsCatalog(serverSearchTerm ? { search: serverSearchTerm } : undefined);
+  const { data: catalogData, isLoading: isLoadingProducts, hasNextPage, fetchNextPage, isFetchingNextPage } = useProductsCatalog(serverSearchTerm ? { search: serverSearchTerm } : undefined);
 
   useEffect(() => { if (hasNextPage && !isFetchingNextPage) fetchNextPage(); }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
 
@@ -105,7 +77,6 @@ export function useFiltersPageState() {
     if (isInitialMount.current) { isInitialMount.current = false; return; }
     const params = new URLSearchParams();
     const setArr = (k: string, arr: string[]) => { if (arr.length) params.set(k, arr.join(',')); };
-    
     if (filters.search) params.set('search', filters.search);
     setArr('colorGroups', filters.colorGroups); setArr('colorVariations', filters.colorVariations);
     setArr('colorNuances', filters.colorNuances); setArr('colors', filters.colors);
@@ -128,18 +99,14 @@ export function useFiltersPageState() {
     if (filters.hasPersonalization) params.set('hasPersonalization', '1');
     if (filters.hasCommercialPackaging) params.set('hasCommercialPackaging', '1');
     if (filters.sortBy && filters.sortBy !== 'name') params.set('sortBy', filters.sortBy);
-    
-    // Sync active preset ID
-    if (activePresetId) params.set('preset', activePresetId);
-    
     setSearchParams(params, { replace: true });
-  }, [filters, activePresetId, setSearchParams]);
+  }, [filters, setSearchParams]);
 
   const { productIds: materialFilteredProductIds, hasFilter: hasMaterialFilter, isLoading: isLoadingMaterialFilter } = useProductsByMaterial({ materialGroupSlugs: filters.materialGroups || [], materialTypeSlugs: filters.materialTypes || [] });
   const { productIds: categoryFilteredProductIds, hasFilter: hasCategoryFilter, isLoading: isLoadingCategoryFilter } = useProductsByCategory({ categoryIds: filters.categories, includeDescendants: true });
   const { productIds: colorFilteredProductIds, hasFilter: hasColorFilter, isLoading: isLoadingColorFilter } = useProductsByColor({ colorGroups: filters.colorGroups || [], colorVariations: filters.colorVariations || [], colorNuances: filters.colorNuances || [], colors: filters.colors });
 
-  
+  const [activePresetId, setActivePresetId] = useState<string | undefined>();
   const [viewMode, setViewMode] = useState<"grid" | "list" | "table">("grid");
   const [selectionMode, setSelectionMode] = useState(false);
   const [gridColumns, setGridColumns] = useState<ColumnCount>(getDefaultColumns);
@@ -163,61 +130,19 @@ export function useFiltersPageState() {
   const [appliedFilters, setAppliedFilters] = useState<Array<{ type: "category" | "color" | "price" | "material" | "stock" | "featured" | "kit"; label: string }>>([]);
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const [isFiltering, setIsFiltering] = useState(false);
-  const [error, setError] = useState<Error | null>(null);
 
   const filtersJson = JSON.stringify(filters);
-  useEffect(() => { 
-    setIsFiltering(true); 
-    (window as any).__IS_FILTERING_GLOBAL__ = true;
-    const timer = setTimeout(() => {
-      setIsFiltering(false);
-      (window as any).__IS_FILTERING_GLOBAL__ = false;
-    }, 350); 
-    return () => {
-      clearTimeout(timer);
-      (window as any).__IS_FILTERING_GLOBAL__ = false;
-    };
-  }, [filtersJson]);
+  useEffect(() => { setIsFiltering(true); const timer = setTimeout(() => setIsFiltering(false), 350); return () => clearTimeout(timer); }, [filtersJson]);
 
   const sortBy = filters.sortBy || 'name';
   const setSortBy = useCallback((value: string) => { setFilters(prev => ({ ...prev, sortBy: value })); }, []);
-
-  // Sync error state from catalog data (catalogData/catalogError already destructured above)
-
-  useEffect(() => {
-    if (catalogError) {
-      console.error("[useFiltersPageState] catalog error:", catalogError);
-      setError(catalogError instanceof Error ? catalogError : new Error(String(catalogError)));
-    } else {
-      setError(null);
-    }
-  }, [catalogError]);
 
   // Promo Brindes sales ranking (lazy — only fetched when needed)
   const { data: promoSalesMap } = usePromoSalesRanking();
   const { data: supplierSalesMap } = useSupplierSalesRanking();
 
-  const handleApplyPreset = useCallback((presetFilters: FilterState, presetId?: string) => {
-    try {
-      if (!presetFilters) {
-        throw new Error("Filtros do preset não encontrados");
-      }
-      setFilters(presetFilters);
-      setActivePresetId(presetId);
-    } catch (err) {
-      console.error("[useFiltersPageState] Erro ao aplicar preset:", err);
-      toast.error("Erro ao aplicar filtros do preset");
-    }
-  }, []);
-
-  const handleFilterChange = useCallback((newFilters: FilterState) => {
-    try {
-      setFilters(newFilters);
-      setActivePresetId(undefined);
-    } catch (err) {
-      console.error("[useFiltersPageState] Erro ao alterar filtros:", err);
-    }
-  }, []);
+  const handleApplyPreset = (presetFilters: FilterState, presetId?: string) => { setFilters(presetFilters); setActivePresetId(presetId); };
+  const handleFilterChange = (newFilters: FilterState) => { setFilters(newFilters); setActivePresetId(undefined); };
 
   const activeFiltersCount = useMemo(() => {
     let count = 0;
@@ -259,12 +184,12 @@ export function useFiltersPageState() {
   // Apply filters
   const filteredProducts = useMemo(() => {
     let result = hasFuzzySearch ? [...fuzzySearchResults] : [...realProducts];
-    if (filters.search) { const s = filters.search.toLowerCase(); result = result.filter(p => p.name.toLowerCase().includes(s) || (p.sku && p.sku.toLowerCase().includes(s)) || (p.supplier_reference && p.supplier_reference.toLowerCase().includes(s)) || (p.description && p.description.toLowerCase().includes(s))); }
+    if (filters.search) { const s = filters.search.toLowerCase(); result = result.filter(p => p.name.toLowerCase().includes(s) || (p.sku && p.sku.toLowerCase().includes(s)) || (p.description && p.description.toLowerCase().includes(s))); }
     if (hasColorFilter && colorFilteredProductIds.size > 0) result = result.filter(p => colorFilteredProductIds.has(p.id));
     else if (hasColorFilter && colorFilteredProductIds.size === 0 && !isLoadingColorFilter) result = [];
     if (hasCategoryFilter && categoryFilteredProductIds.size > 0) result = result.filter(p => categoryFilteredProductIds.has(p.id));
     else if (hasCategoryFilter && categoryFilteredProductIds.size === 0 && !isLoadingCategoryFilter) result = [];
-    if (filters.suppliers.length > 0) result = result.filter(product => { const sId = product.supplier?.id || ''; const sName = (product.supplier?.name || product.brand || '').toLowerCase(); const sRef = (product.supplier_reference || '').toLowerCase(); return filters.suppliers.includes(sId) || filters.suppliers.some(s => sName.includes(s.toLowerCase())) || filters.suppliers.some(s => sRef.includes(s.toLowerCase())); });
+    if (filters.suppliers.length > 0) result = result.filter(product => { const sId = product.supplier?.id || ''; const sName = (product.supplier?.name || product.brand || '').toLowerCase(); return filters.suppliers.includes(sId) || filters.suppliers.some(s => sName.includes(s.toLowerCase())) || filters.suppliers.includes(product.supplier_reference || ''); });
     if (filters.publicoAlvo.length > 0) result = result.filter(product => { const tags = product.tags?.publicoAlvo || []; return filters.publicoAlvo.some(p => tags.some((t: string) => t.toLowerCase() === p.toLowerCase())); });
     if (filters.datasComemorativas.length > 0) result = result.filter(product => { const tags = product.tags?.datasComemorativas || []; return filters.datasComemorativas.some(d => tags.some((t: string) => t.toLowerCase().includes(d.toLowerCase()))); });
     if (filters.endomarketing.length > 0) result = result.filter(product => { const tags = product.tags?.endomarketing || []; return filters.endomarketing.some(e => tags.some((t: string) => t.toLowerCase() === e.toLowerCase())); });
@@ -370,6 +295,5 @@ export function useFiltersPageState() {
     appliedFilters, setAppliedFilters, mobileFiltersOpen, setMobileFiltersOpen,
     isFiltering, sortBy, setSortBy, filteredProducts: enrichedFilteredProducts, activeFiltersCount,
     activeFiltersSummary, clearSingleFilter, handleReset, handleFilterChange, handleApplyPreset,
-    error
   };
 }

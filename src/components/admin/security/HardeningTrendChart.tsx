@@ -64,7 +64,7 @@ export function HardeningTrendChart() {
               Atual {last.score}/{last.max_score}
             </Badge>
             {min !== null && min < (last?.max_score ?? 5) && (
-              <span className="text-[11px] text-muted-foreground">Mínimo 30d: {min}</span>
+              <span className="text-xs text-muted-foreground">Mínimo 30d: {min}</span>
             )}
           </div>
         )}

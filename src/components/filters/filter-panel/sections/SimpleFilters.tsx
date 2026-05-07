@@ -70,7 +70,7 @@ export function PublicoFilter({
   setPublicoSearch: (v: string) => void;
   toggleArrayFilter: (key: keyof FilterState, value: string) => void;
 }) {
-  if (publicoAlvoOptions.length === 0) return <p className="text-[11px] text-muted-foreground">Carregando opções dos produtos...</p>;
+  if (publicoAlvoOptions.length === 0) return <p className="text-xs text-muted-foreground">Carregando opções dos produtos...</p>;
   return (
     <SearchableCheckboxList
       items={publicoAlvoOptions.map(p => ({ id: `pub-${p}`, label: toTitleCase(p) }))}
@@ -97,7 +97,7 @@ export function EndomarketingFilter({
   setEndoSearch: (v: string) => void;
   toggleArrayFilter: (key: keyof FilterState, value: string) => void;
 }) {
-  if (endomarketingOptions.length === 0) return <p className="text-[11px] text-muted-foreground">Carregando opções dos produtos...</p>;
+  if (endomarketingOptions.length === 0) return <p className="text-xs text-muted-foreground">Carregando opções dos produtos...</p>;
   return (
     <SearchableCheckboxList
       items={endomarketingOptions.map(e => ({ id: `endo-${e}`, label: toTitleCase(e) }))}
@@ -249,7 +249,7 @@ export function QuickOptionsFilter({
         <Checkbox id="filter-inStock" checked={filters.inStock} onCheckedChange={() => toggleBooleanFilter('inStock')} />
         <Label htmlFor="filter-inStock" className="text-sm cursor-pointer">Em Estoque</Label>
       </div>
-      <div className="flex items-center gap-2 p-2 rounded-xl border border-warning/20 bg-warning/5">
+      <div className="flex items-center gap-2 p-2 rounded-lg border border-warning/20 bg-warning/5">
         <Checkbox
           id="has-commercial-packaging"
           checked={filters.hasCommercialPackaging}

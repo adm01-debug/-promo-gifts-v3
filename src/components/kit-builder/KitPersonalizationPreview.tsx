@@ -50,7 +50,7 @@ export function KitPersonalizationPreview({ kitState, className }: KitPersonaliz
         </div>
 
         {!hasAnyPersonalization && (
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Configure gravação na etapa de personalização para ver o preview aqui.
           </p>
         )}
@@ -60,7 +60,7 @@ export function KitPersonalizationPreview({ kitState, className }: KitPersonaliz
             {boxPers?.enabled && (
               <div
                 className={cn(
-                  'flex items-center justify-between rounded-xl border p-2 transition-opacity',
+                  'flex items-center justify-between rounded-md border p-2 transition-opacity',
                   !showPersonalization && 'opacity-30'
                 )}
               >
@@ -88,7 +88,7 @@ export function KitPersonalizationPreview({ kitState, className }: KitPersonaliz
                 <div
                   key={itemId}
                   className={cn(
-                    'flex items-center justify-between rounded-xl border p-2 transition-opacity',
+                    'flex items-center justify-between rounded-md border p-2 transition-opacity',
                     !showPersonalization && 'opacity-30'
                   )}
                 >

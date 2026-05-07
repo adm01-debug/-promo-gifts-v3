@@ -50,7 +50,7 @@ export function LogoSizeControls({
         {/* Width */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] text-muted-foreground">Largura</span>
+            <span className="text-xs text-muted-foreground">Largura</span>
             <div className="flex items-center gap-1">
               <Button variant="outline" size="icon" aria-label="Remover" className="h-7 w-7" disabled={logoWidth <= 1} onClick={() => onSizeChange(Math.max(1, logoWidth - 0.5), logoHeight)}>
                 <Minus className="h-3 w-3" />
@@ -67,7 +67,7 @@ export function LogoSizeControls({
         {/* Height */}
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] text-muted-foreground">Altura</span>
+            <span className="text-xs text-muted-foreground">Altura</span>
             <div className="flex items-center gap-1">
               <Button variant="outline" size="icon" aria-label="Remover" className="h-7 w-7" disabled={logoHeight <= 1} onClick={() => onSizeChange(logoWidth, Math.max(1, logoHeight - 0.5))}>
                 <Minus className="h-3 w-3" />
@@ -100,7 +100,7 @@ export function LogoSizeControls({
 
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <span className="text-[11px] text-muted-foreground">Escala</span>
+            <span className="text-xs text-muted-foreground">Escala</span>
             <div className="flex items-center gap-1">
               <Button variant="outline" size="icon" aria-label="Remover" className="h-7 w-7" disabled={!logoPreview || logoScale <= 10} onClick={() => onLogoScaleChange?.(Math.max(10, logoScale - 5))}>
                 <Minus className="h-3 w-3" />

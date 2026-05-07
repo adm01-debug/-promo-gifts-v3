@@ -114,7 +114,7 @@ export function CredentialCacheMetricsPanel() {
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="flex items-start gap-3">
-            <div className="h-9 w-9 rounded-xl bg-blue-500/10 flex items-center justify-center shrink-0">
+            <div className="h-9 w-9 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
               <Activity className="h-4.5 w-4.5 text-blue-600" aria-hidden="true" />
             </div>
             <div>
@@ -183,7 +183,7 @@ export function CredentialCacheMetricsPanel() {
                 Por credencial ({snapshot.per_name.length})
               </h4>
               {snapshot.per_name.length === 0 ? (
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   Nenhuma resolução registrada ainda. Atue na app para popular as métricas.
                 </p>
               ) : (
@@ -250,7 +250,7 @@ export function CredentialCacheMetricsPanel() {
                 {Math.round(snapshot.cache.ttl_ms / 1000)}s
               </h4>
               {snapshot.cache.entries.length === 0 ? (
-                <p className="text-[11px] text-muted-foreground">Cache vazio.</p>
+                <p className="text-xs text-muted-foreground">Cache vazio.</p>
               ) : (
                 <ul className="space-y-1 text-xs font-mono">
                   {snapshot.cache.entries.map((e) => (
@@ -314,7 +314,7 @@ function Kpi({
           ? "text-destructive"
           : "text-foreground";
   return (
-    <div className="rounded-xl border p-3 space-y-1.5">
+    <div className="rounded-lg border p-3 space-y-1.5">
       <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
         <span className={toneCls}>{icon}</span>
         <span>{label}</span>

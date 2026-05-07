@@ -1,10 +1,10 @@
 /**
  * DraggableQuoteItems - Lista de itens do orçamento com drag-and-drop
-  * Permite reordenar itens arrastando e soltando
-  */
- 
- import { useState, useMemo } from "react";
- import {
+ * Permite reordenar itens arrastando e soltando
+ */
+
+import { useState } from "react";
+import {
   DndContext,
   type DragEndEvent,
   DragOverlay,
@@ -46,8 +46,6 @@ interface QuoteItem {
   price_updated_at?: string | null;
   /** Janela em dias para alertar preço defasado (default 60). */
   price_freshness_threshold_days?: number | null;
-  /** ISO timestamp de quando o vendedor confirmou o preço com o fornecedor. */
-  price_confirmed_at?: string | null;
   personalizations?: any[];
 }
 
@@ -56,7 +54,6 @@ interface DraggableQuoteItemsProps {
   onReorder: (items: QuoteItem[]) => void;
   onUpdateQuantity: (index: number, quantity: number) => void;
   onUpdatePrice: (index: number, price: number) => void;
-  onConfirmPrice: (index: number) => void;
   onRemove: (index: number) => void;
   onTogglePersonalization?: (index: number) => void;
   expandedItems?: Set<number>;
@@ -70,7 +67,6 @@ interface SortableItemProps {
   isExpanded: boolean;
   onUpdateQuantity: (quantity: number) => void;
   onUpdatePrice: (price: number) => void;
-  onConfirmPrice: () => void;
   onRemove: () => void;
   onTogglePersonalization?: () => void;
   renderPersonalization?: () => React.ReactNode;
@@ -83,7 +79,6 @@ function SortableItem({
   isExpanded,
   onUpdateQuantity,
   onUpdatePrice,
-  onConfirmPrice,
   onRemove,
   onTogglePersonalization,
   renderPersonalization,
@@ -151,7 +146,7 @@ function SortableItem({
             </button>
 
             {/* Product Image */}
-            <div className="shrink-0 w-16 h-16 rounded-xl overflow-hidden bg-muted">
+            <div className="shrink-0 w-16 h-16 rounded-lg overflow-hidden bg-muted">
               {item.product_image_url ? (
                 <img
                   src={item.product_image_url}
@@ -210,7 +205,7 @@ function SortableItem({
               {/* Inputs Row */}
               <div className="flex items-center gap-3 flex-wrap">
                 <div className="flex items-center gap-2">
-                  <span className="text-[11px] text-muted-foreground">Qtd:</span>
+                  <span className="text-xs text-muted-foreground">Qtd:</span>
                   <Input
                     type="number"
                     min={1}
@@ -219,29 +214,19 @@ function SortableItem({
                     className="w-20 h-8 text-sm"
                   />
                 </div>
-                <div className="flex flex-col gap-1">
-                  <div className="flex items-center gap-2">
-                    <span className="text-[11px] text-muted-foreground">Preço:</span>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      min={0}
-                      value={item.unit_price}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => onUpdatePrice(parseFloat(e.target.value) || 0)}
-                      className="w-28 h-8 text-sm"
-                    />
-                  </div>
-                  <PriceFreshnessBadge
-                    priceUpdatedAt={item.price_updated_at}
-                    thresholdDays={item.price_freshness_threshold_days}
-                    confirmedAt={item.price_confirmed_at}
-                    onConfirm={onConfirmPrice}
-                    variant="compact"
-                    alwaysShow={true}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground">Preço:</span>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min={0}
+                    value={item.unit_price}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => onUpdatePrice(parseFloat(e.target.value) || 0)}
+                    className="w-28 h-8 text-sm"
                   />
                 </div>
                 <div className="ml-auto text-right">
-                  <p className="text-[11px] text-muted-foreground">Subtotal</p>
+                  <p className="text-xs text-muted-foreground">Subtotal</p>
                   <p className="font-semibold text-sm">{formatCurrency(itemTotal)}</p>
                 </div>
               </div>
@@ -255,7 +240,7 @@ function SortableItem({
                 variant="ghost"
                 size="sm"
                 className={cn(
-                  "w-full justify-between text-sm font-medium rounded-xl border transition-all",
+                  "w-full justify-between text-sm font-medium rounded-lg border transition-all",
                   isExpanded
                     ? "bg-primary/10 border-primary/30 text-primary hover:bg-primary/15"
                     : "bg-accent/50 border-border hover:bg-accent hover:border-primary/20"
@@ -294,7 +279,6 @@ export function DraggableQuoteItems({
   onReorder,
   onUpdateQuantity,
   onUpdatePrice,
-  onConfirmPrice,
   onRemove,
   onTogglePersonalization,
   expandedItems = new Set(),
@@ -314,11 +298,11 @@ export function DraggableQuoteItems({
     })
   );
 
-  // Gerar IDs únicos para items sem ID, garantindo estabilidade na renderização e DND
-  const itemsWithIds = useMemo(() => items.map((item, index) => ({
+  // Gerar IDs únicos para items sem ID
+  const itemsWithIds = items.map((item, index) => ({
     ...item,
-    id: item.id || `temp-${item.product_id}-${index}`,
-  })), [items]);
+    id: item.id || `item-${index}`,
+  }));
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id as string);
@@ -372,7 +356,6 @@ export function DraggableQuoteItems({
                 isExpanded={expandedItems.has(index)}
                 onUpdateQuantity={(qty) => onUpdateQuantity(index, qty)}
                 onUpdatePrice={(price) => onUpdatePrice(index, price)}
-                onConfirmPrice={() => onConfirmPrice(index)}
                 onRemove={() => onRemove(index)}
                 onTogglePersonalization={
                   onTogglePersonalization ? () => onTogglePersonalization(index) : undefined
@@ -393,19 +376,19 @@ export function DraggableQuoteItems({
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <GripVertical className="h-5 w-5 text-muted-foreground" />
-                <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center">
+                <div className="w-12 h-12 rounded-lg bg-muted flex items-center justify-center">
                   {activeItem.product_image_url ? (
                     <img
                       src={activeItem.product_image_url}
                       alt={activeItem.product_name}
-                      className="w-full h-full object-cover rounded-xl" loading="lazy" />
+                      className="w-full h-full object-cover rounded-lg" loading="lazy" />
                   ) : (
                     <Package className="h-5 w-5 text-muted-foreground" />
                   )}
                 </div>
                 <div>
                   <p className="font-medium text-sm">{activeItem.product_name}</p>
-                  <p className="text-[11px] text-muted-foreground">{activeItem.product_sku}</p>
+                  <p className="text-xs text-muted-foreground">{activeItem.product_sku}</p>
                 </div>
               </div>
             </CardContent>

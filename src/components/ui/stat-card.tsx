@@ -75,11 +75,11 @@ export function StatCard({
       <div className="flex items-start justify-between gap-4">
         <div className="flex-1 space-y-1">
           <p className="text-sm font-medium text-muted-foreground">{title}</p>
-          <p className="text-xl font-bold tracking-tight text-foreground">
+          <p className="text-2xl font-bold tracking-tight text-foreground">
             {value}
           </p>
           {subtitle && (
-            <p className="text-[11px] text-muted-foreground">{subtitle}</p>
+            <p className="text-xs text-muted-foreground">{subtitle}</p>
           )}
           {trend && (
             <div className="flex items-center gap-1 pt-1">
@@ -93,7 +93,7 @@ export function StatCard({
                 {trend.value}%
               </span>
               {trend.label && (
-                <span className="text-[11px] text-muted-foreground">
+                <span className="text-xs text-muted-foreground">
                   {trend.label}
                 </span>
               )}
@@ -104,7 +104,7 @@ export function StatCard({
         {/* Icon container with colored background */}
         <div
           className={cn(
-            "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-all duration-300",
+            "flex h-12 w-12 shrink-0 items-center justify-center rounded-lg transition-all duration-300",
             styles.bg,
             styles.glow
           )}
@@ -149,14 +149,14 @@ export function MiniStatCard({
   return (
     <div
       className={cn(
-        "flex items-center gap-3 rounded-xl border border-border bg-card p-3 transition-all duration-200",
+        "flex items-center gap-3 rounded-lg border border-border bg-card p-3 transition-all duration-200",
         "hover:border-border/80",
         className
       )}
     >
       <div
         className={cn(
-          "flex h-9 w-9 shrink-0 items-center justify-center rounded-xl",
+          "flex h-9 w-9 shrink-0 items-center justify-center rounded-lg",
           styles.bg
         )}
       >
@@ -164,7 +164,7 @@ export function MiniStatCard({
       </div>
       <div className="min-w-0 flex-1">
         <p className="truncate text-xs text-muted-foreground">{title}</p>
-        <p className="text-xl font-semibold text-foreground">{value}</p>
+        <p className="text-lg font-semibold text-foreground">{value}</p>
       </div>
     </div>
   );

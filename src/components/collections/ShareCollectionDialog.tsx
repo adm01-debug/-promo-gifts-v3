@@ -124,7 +124,7 @@ export function ShareCollectionDialog({
               </Button>
             </div>
             {shareExpiresAt && (
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 Expira em{" "}
                 {new Date(shareExpiresAt).toLocaleDateString("pt-BR", {
                   day: "2-digit",

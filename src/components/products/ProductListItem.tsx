@@ -266,7 +266,7 @@ export const ProductListItem = memo(function ProductListItem({
         onClick={handleClick}
       >
         {/* Thumbnail — compact square */}
-        <div className="relative shrink-0 w-14 h-14 sm:w-[72px] sm:h-[72px] rounded-xl overflow-hidden bg-muted/30 border border-border/30">
+        <div className="relative shrink-0 w-14 h-14 sm:w-[72px] sm:h-[72px] rounded-lg overflow-hidden bg-muted/30 border border-border/30">
           <img
             src={thumbUrl}
             alt={product.name}
@@ -304,7 +304,7 @@ export const ProductListItem = memo(function ProductListItem({
                   type="button"
                   tabIndex={i === safeVariantIdx ? 0 : -1}
                   aria-selected={i === safeVariantIdx}
-                  onClick={(e) => { e.stopPropagation(); e.preventDefault(); setActiveVariantIdx(i); }}
+                  onClick={(e) => { e.stopPropagation(); setActiveVariantIdx(i); }}
                   className={cn(
                     "w-3 h-3 rounded-full border transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                     i === safeVariantIdx ? "ring-1 ring-offset-1 ring-offset-card scale-110" : "opacity-60 border-border/50"
@@ -368,14 +368,13 @@ export const ProductListItem = memo(function ProductListItem({
             {/* Inline color dots */}
             {product.colors.length > 0 && (
               <div className="hidden md:flex items-center gap-1 ml-1">
-                {product.colors.slice(0, 5).map((color) => {
+                {product.colors.slice(0, 5).map((color, idx) => {
                   const isHighlighted = highlightColors.includes(color.group) ||
                     (activeColorFilter?.groups?.includes(color.groupSlug || '') ?? false) ||
                     (activeColorFilter?.variations?.includes(color.variationSlug || '') ?? false);
-                  const colorKey = `${color.groupSlug}-${color.variationSlug}-${color.hex}`;
                   return (
                     <div
-                      key={colorKey}
+                      key={idx}
                       className={cn(
                         "w-3 h-3 rounded-full border",
                         isHighlighted

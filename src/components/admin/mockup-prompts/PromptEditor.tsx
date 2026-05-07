@@ -57,7 +57,7 @@ export function PromptEditor({ config, edited, hasChanges, saving, changeNote, o
             <Select value={edited.ai_model} onValueChange={onChangeModel}>
               <SelectTrigger className="h-9"><SelectValue /></SelectTrigger>
               <SelectContent>{AI_MODELS.map((m) => (
-                <SelectItem key={m.value} value={m.value}><div className="flex items-center gap-2"><span>{m.label}</span><span className="text-[11px] text-muted-foreground">— {m.description}</span></div></SelectItem>
+                <SelectItem key={m.value} value={m.value}><div className="flex items-center gap-2"><span>{m.label}</span><span className="text-xs text-muted-foreground">— {m.description}</span></div></SelectItem>
               ))}</SelectContent>
             </Select>
           </div>

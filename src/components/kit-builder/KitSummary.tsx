@@ -57,7 +57,7 @@ export function KitSummary({ kitState, kitQuantity, kitName, onKitNameChange, on
             <h4 className="font-medium text-warning flex items-center gap-2 mb-3"><AlertTriangle className="h-4 w-4" />Alerta de Estoque ({stockAlerts.length} {stockAlerts.length === 1 ? 'item' : 'itens'})</h4>
             <ul className="space-y-2">
               {stockAlerts.map(alert => (
-                <li key={alert.itemId} className="text-sm flex items-center justify-between bg-background/50 rounded-xl p-2">
+                <li key={alert.itemId} className="text-sm flex items-center justify-between bg-background/50 rounded-lg p-2">
                   <div><p className="font-medium">{alert.isBox ? '📦 ' : ''}{alert.itemName}</p><p className="text-xs text-muted-foreground font-mono">{alert.sku}</p></div>
                   <div className="text-right"><p className="text-sm"><span className="text-destructive font-bold">{alert.available}</span><span className="text-muted-foreground"> / {alert.required} necessários</span></p><p className="text-xs text-destructive">Faltam {alert.deficit} un.</p></div>
                 </li>

@@ -231,7 +231,7 @@ export function FutureStockModal({
                           onClick={() => setSelectedColor(isSelected ? null : color.name)}
                           title={`${color.name}\nAtual: ${color.currentStock.toLocaleString("pt-BR")}\nPrevisto: +${color.incomingTotal.toLocaleString("pt-BR")}`}
                           className={cn(
-                            "relative rounded-xl overflow-hidden transition-all duration-200",
+                            "relative rounded-lg overflow-hidden transition-all duration-200",
                             "border bg-card hover:shadow-md hover:scale-105",
                             isSelected && "ring-2 ring-primary ring-offset-1 ring-offset-background",
                             !hasEntries && "opacity-40 grayscale"
@@ -316,7 +316,7 @@ export function FutureStockModal({
                     Previsões de reposição ({filteredAndSortedEntries.length})
                   </span>
                   {filteredAndSortedEntries.length === 0 && hasActiveFilters && (
-                    <span className="text-[11px] text-muted-foreground">
+                    <span className="text-xs text-muted-foreground">
                       Nenhum resultado para os filtros selecionados
                     </span>
                   )}
@@ -406,7 +406,7 @@ export function FutureStockModal({
                           <span className="text-xl font-bold text-primary">
                             +{entry.expectedQuantity.toLocaleString("pt-BR")}
                           </span>
-                          <p className="text-[11px] text-muted-foreground">unidades</p>
+                          <p className="text-xs text-muted-foreground">unidades</p>
                         </div>
                       </div>
                     );
@@ -420,7 +420,7 @@ export function FutureStockModal({
               <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center">
+                    <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
                       <Truck className="h-5 w-5 text-primary" />
                     </div>
                     <div>
@@ -433,10 +433,10 @@ export function FutureStockModal({
                     </div>
                   </div>
                   <div className="text-right">
-                    <span className="text-xl font-bold text-primary">
+                    <span className="text-2xl font-bold text-primary">
                       +{filteredAndSortedEntries.reduce((sum, e) => sum + e.expectedQuantity, 0).toLocaleString("pt-BR")}
                     </span>
-                    <p className="text-[11px] text-muted-foreground">unidades no total</p>
+                    <p className="text-xs text-muted-foreground">unidades no total</p>
                   </div>
                 </div>
               </div>

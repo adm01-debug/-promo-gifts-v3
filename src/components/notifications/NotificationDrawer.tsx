@@ -34,7 +34,7 @@ const typeConfig = {
  * (~50ms) and focus-ring bouncing during keyboard navigation. Override per
  * mount via `<NotificationBell prefetchDebounceMs={...} />`.
  */
-export const DEFAULT_PREFETCH_DEBOUNCE_MS = 400; // Aumentado de 200ms para 400ms para absorver micro-bursts de hover
+export const DEFAULT_PREFETCH_DEBOUNCE_MS = 200;
 
 export interface NotificationBellProps {
   /**
@@ -176,7 +176,7 @@ function NotificationItem({
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.2 }}
       className={cn(
-        "group flex gap-3 p-3 rounded-xl transition-all duration-200 cursor-pointer hover:bg-muted/50 hover:shadow-sm",
+        "group flex gap-3 p-3 rounded-lg transition-all duration-200 cursor-pointer hover:bg-muted/50 hover:shadow-sm",
         !notification.is_read && "bg-primary/5 border-l-2 border-primary"
       )}
       onClick={() => {
@@ -184,7 +184,7 @@ function NotificationItem({
         if (notification.action_url) onNavigate(notification.action_url);
       }}
     >
-      <div className={cn("mt-0.5 p-1.5 rounded-xl shrink-0", config.bg)}>
+      <div className={cn("mt-0.5 p-1.5 rounded-lg shrink-0", config.bg)}>
         <Icon className={cn("h-4 w-4", config.color)} />
       </div>
       <div className="flex-1 min-w-0">
@@ -361,7 +361,7 @@ export const NotificationBell = React.forwardRef<HTMLDivElement, NotificationBel
 
               </Button>
             </TooltipTrigger>
-            <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">
+            <TooltipContent className="bg-card border-border text-xs">
               Notificações {unreadCount > 0 && `(${unreadCount})`}
             </TooltipContent>
           </Tooltip>
@@ -382,7 +382,7 @@ export const NotificationBell = React.forwardRef<HTMLDivElement, NotificationBel
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={markAllAsRead} aria-label="CheckCheck"><CheckCheck className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Marcar todas como lidas</TooltipContent>
+                  <TooltipContent>Marcar todas como lidas</TooltipContent>
                 </Tooltip>
               )}
               {notifications.length > 0 && (
@@ -391,7 +391,7 @@ export const NotificationBell = React.forwardRef<HTMLDivElement, NotificationBel
                     <Button variant="ghost" size="icon" className="h-8 w-8 text-muted-foreground hover:text-destructive" onClick={clearAll} aria-label="Excluir"><Trash2 className="h-4 w-4" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Limpar todas</TooltipContent>
+                  <TooltipContent>Limpar todas</TooltipContent>
                 </Tooltip>
               )}
             </div>
@@ -403,7 +403,7 @@ export const NotificationBell = React.forwardRef<HTMLDivElement, NotificationBel
             <div className="space-y-3 p-4">
               {[...Array(4)].map((_, i) => (
                 <div key={i} className="flex gap-3 animate-pulse">
-                  <div className="w-9 h-9 rounded-xl bg-muted" />
+                  <div className="w-9 h-9 rounded-lg bg-muted" />
                   <div className="flex-1 space-y-2">
                     <div className="h-3 bg-muted rounded w-3/4" />
                     <div className="h-3 bg-muted rounded w-1/2" />

@@ -61,7 +61,7 @@ export function ComponentAccordionItem({
 
   return (
     <SortableItem key={component.id} id={component.id}>
-      <AccordionItem value={component.id} className="border rounded-xl px-4">
+      <AccordionItem value={component.id} className="border rounded-lg px-4">
         <AccordionTrigger className="hover:no-underline">
           <div className="flex items-center gap-3 flex-1">
             <Badge variant="outline" className="font-mono">{component.component_code}</Badge>
@@ -74,13 +74,13 @@ export function ComponentAccordionItem({
         </AccordionTrigger>
         <AccordionContent className="pt-4 pb-2">
           {/* Component fields */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-muted/30 rounded-xl mb-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-muted/30 rounded-lg mb-4">
             <div>
-              <Label className="text-[11px] text-muted-foreground">Código</Label>
+              <Label className="text-xs text-muted-foreground">Código</Label>
               <InlineEditField value={component.component_code} onSave={(v) => updateComponent({ id: component.id, component_code: v.toUpperCase() })} className="font-mono" />
             </div>
             <div>
-              <Label className="text-[11px] text-muted-foreground">Nome</Label>
+              <Label className="text-xs text-muted-foreground">Nome</Label>
               <InlineEditField value={component.component_name} onSave={(v) => updateComponent({ id: component.id, component_name: v })} />
             </div>
             <div className="flex items-center gap-2">
@@ -125,13 +125,13 @@ export function ComponentAccordionItem({
             ) : (
               <div className="space-y-3 pl-6">
                 {compLocations.map((location) => (
-                  <div key={location.id} className="border rounded-xl p-3 bg-muted/30">
+                  <div key={location.id} className="border rounded-lg p-3 bg-muted/30">
                     <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-3">
-                      <div><Label className="text-[11px] text-muted-foreground">Código</Label><InlineEditField value={location.location_code} onSave={(v) => updateLocation({ id: location.id, location_code: v.toUpperCase() })} className="font-mono text-xs" /></div>
-                      <div><Label className="text-[11px] text-muted-foreground">Nome</Label><InlineEditField value={location.location_name} onSave={(v) => updateLocation({ id: location.id, location_name: v })} /></div>
-                      <div><Label className="text-[11px] text-muted-foreground">Larg. (cm)</Label><InlineEditField value={location.max_width_cm?.toString() || ""} onSave={(v) => updateLocation({ id: location.id, max_width_cm: v ? parseFloat(v) : null })} type="number" placeholder="—" /></div>
-                      <div><Label className="text-[11px] text-muted-foreground">Alt. (cm)</Label><InlineEditField value={location.max_height_cm?.toString() || ""} onSave={(v) => updateLocation({ id: location.id, max_height_cm: v ? parseFloat(v) : null })} type="number" placeholder="—" /></div>
-                      <div><Label className="text-[11px] text-muted-foreground">Área (cm²)</Label><InlineEditField value={location.max_area_cm2?.toString() || ""} onSave={(v) => updateLocation({ id: location.id, max_area_cm2: v ? parseFloat(v) : null })} type="number" placeholder="—" /></div>
+                      <div><Label className="text-xs text-muted-foreground">Código</Label><InlineEditField value={location.location_code} onSave={(v) => updateLocation({ id: location.id, location_code: v.toUpperCase() })} className="font-mono text-xs" /></div>
+                      <div><Label className="text-xs text-muted-foreground">Nome</Label><InlineEditField value={location.location_name} onSave={(v) => updateLocation({ id: location.id, location_name: v })} /></div>
+                      <div><Label className="text-xs text-muted-foreground">Larg. (cm)</Label><InlineEditField value={location.max_width_cm?.toString() || ""} onSave={(v) => updateLocation({ id: location.id, max_width_cm: v ? parseFloat(v) : null })} type="number" placeholder="—" /></div>
+                      <div><Label className="text-xs text-muted-foreground">Alt. (cm)</Label><InlineEditField value={location.max_height_cm?.toString() || ""} onSave={(v) => updateLocation({ id: location.id, max_height_cm: v ? parseFloat(v) : null })} type="number" placeholder="—" /></div>
+                      <div><Label className="text-xs text-muted-foreground">Área (cm²)</Label><InlineEditField value={location.max_area_cm2?.toString() || ""} onSave={(v) => updateLocation({ id: location.id, max_area_cm2: v ? parseFloat(v) : null })} type="number" placeholder="—" /></div>
                       <div className="flex items-end gap-2">
                         <div className="flex items-center gap-1"><Switch checked={location.is_active} onCheckedChange={(c) => updateLocation({ id: location.id, is_active: c })} /><Label className="text-xs">Ativo</Label></div>
                         <ImageUploadButton currentImageUrl={location.area_image_url} onUpload={(url) => updateLocation({ id: location.id, area_image_url: url })} onRemove={() => updateLocation({ id: location.id, area_image_url: null })} folder={`products/${selectedProduct}`} />
@@ -142,7 +142,7 @@ export function ComponentAccordionItem({
                     {/* Techniques */}
                     <div className="border-t pt-2 mt-2">
                       <div className="flex items-center justify-between mb-2">
-                        <span className="text-[11px] text-muted-foreground">Técnicas permitidas:</span>
+                        <span className="text-xs text-muted-foreground">Técnicas permitidas:</span>
                         <Dialog open={isAddTechniqueOpen && selectedLocationId === location.id} onOpenChange={(open) => { setIsAddTechniqueOpen(open); if (open) setSelectedLocationId(location.id); }}>
                           <DialogTrigger asChild><Button size="sm" variant="ghost" className="h-6 px-2"><Plus className="h-3 w-3 mr-1" /><span className="text-xs">Técnica</span></Button></DialogTrigger>
                           <DialogContent>
@@ -177,7 +177,7 @@ export function ComponentAccordionItem({
                             <TooltipContent><p>Clique para {lt.is_default ? "remover" : "definir"} como padrão</p></TooltipContent>
                           </Tooltip>
                         ))}
-                        {getLocationTechniques(location.id).length === 0 && <span className="text-[11px] text-muted-foreground">Nenhuma técnica associada</span>}
+                        {getLocationTechniques(location.id).length === 0 && <span className="text-xs text-muted-foreground">Nenhuma técnica associada</span>}
                       </div>
                     </div>
                   </div>

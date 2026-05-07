@@ -96,23 +96,13 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
     }, [selectedPreset, deletePreset]);
 
     const handleApplyPreset = useCallback((preset: FilterPreset) => {
-      try {
-        onApplyPreset(preset.filters, preset.id);
-        toast.success(`Preset "${preset.name}" aplicado`);
-      } catch (err) {
-        console.error("[PresetsBar] Erro ao aplicar preset:", err);
-        toast.error("Falha ao aplicar preset", { description: "Tente novamente ou recarregue a página." });
-      }
+      onApplyPreset(preset.filters, preset.id);
+      toast.success(`Preset "${preset.name}" aplicado`);
     }, [onApplyPreset]);
 
     const handleClearPreset = useCallback(() => {
-      try {
-        onApplyPreset(defaultFilters, undefined);
-        toast.info("Preset desativado");
-      } catch (err) {
-        console.error("[PresetsBar] Erro ao desativar preset:", err);
-        toast.error("Falha ao desativar preset");
-      }
+      onApplyPreset(defaultFilters, undefined);
+      toast.info("Preset desativado");
     }, [onApplyPreset]);
 
     const handleDuplicatePreset = useCallback(async (preset: FilterPreset) => {
@@ -198,13 +188,13 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
                       <Plus className="h-3.5 w-3.5" />
                     </Button>
                   </TooltipTrigger>
-                  <TooltipContent side="top" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Salvar combinação atual como preset</TooltipContent>
+                  <TooltipContent>Salvar combinação atual como preset</TooltipContent>
                 </Tooltip>
               </div>
 
               {/* Active preset indicator with clear */}
               {activePresetId && presets.find(p => p.id === activePresetId) && (
-                <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-xl bg-primary/10 border border-primary/20 text-xs">
+                <div className="flex items-center gap-2 px-2.5 py-1.5 rounded-md bg-primary/10 border border-primary/20 text-xs">
                   <Check className="h-3 w-3 text-primary shrink-0" />
                   <span className="text-primary font-medium truncate flex-1">
                     {presets.find(p => p.id === activePresetId)?.name}
@@ -256,7 +246,7 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
                             aria-label={`Aplicar preset ${preset.name}`}
                             aria-pressed={isActive}
                             className={cn(
-                              "group flex items-center gap-2 pl-0 pr-2 py-2 rounded-xl transition-all cursor-pointer hover:bg-accent",
+                              "group flex items-center gap-2 pl-0 pr-2 py-2 rounded-lg transition-all cursor-pointer hover:bg-accent",
                               isActive ? "bg-primary/10 border border-primary/30" : "border border-transparent"
                             )}
                             onClick={() => isActive ? handleClearPreset() : handleApplyPreset(preset)}
@@ -269,7 +259,7 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
                             />
                             {/* Icon */}
                             <div
-                              className="w-7 h-7 rounded-xl flex items-center justify-center shrink-0 text-sm"
+                              className="w-7 h-7 rounded-md flex items-center justify-center shrink-0 text-sm"
                               style={{ backgroundColor: presetColor + "20" }}
                             >
                               {preset.icon || "🔖"}
@@ -323,7 +313,7 @@ export const PresetsBar = React.forwardRef<HTMLDivElement, PresetsBarProps>(
                             </DropdownMenu>
                           </div>
                         </TooltipTrigger>
-                        <TooltipContent side="left" className="max-w-52 bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">
+                        <TooltipContent side="left" className="max-w-52 text-xs">
                           {summary}
                         </TooltipContent>
                       </Tooltip>

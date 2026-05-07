@@ -84,7 +84,7 @@ export function BoxSelector({
       <Card className="border-primary bg-primary/5">
         <CardContent className="p-6">
           <div className="flex items-start gap-4">
-            <div className="w-24 h-24 rounded-xl bg-secondary overflow-hidden flex-shrink-0">
+            <div className="w-24 h-24 rounded-lg bg-secondary overflow-hidden flex-shrink-0">
               {selectedBox.imageUrl ? (
                 
 <img src={selectedBox.imageUrl} alt={selectedBox.name} className="w-full h-full object-cover"  loading="lazy" />
@@ -174,7 +174,7 @@ export function BoxSelector({
               {/* Dimension sliders */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-2">
-                  <Label className="text-[11px] text-muted-foreground">
+                  <Label className="text-xs text-muted-foreground">
                     Largura mín: <span className="font-semibold text-foreground">{filters.minWidth || 0}cm</span>
                   </Label>
                   <Slider
@@ -186,7 +186,7 @@ export function BoxSelector({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[11px] text-muted-foreground">
+                  <Label className="text-xs text-muted-foreground">
                     Altura mín: <span className="font-semibold text-foreground">{filters.minHeight || 0}cm</span>
                   </Label>
                   <Slider
@@ -198,7 +198,7 @@ export function BoxSelector({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label className="text-[11px] text-muted-foreground">
+                  <Label className="text-xs text-muted-foreground">
                     Profundidade mín: <span className="font-semibold text-foreground">{filters.minDepth || 0}cm</span>
                   </Label>
                   <Slider
@@ -214,7 +214,7 @@ export function BoxSelector({
               {/* Material filter */}
               {materials.length > 0 && (
                 <div className="space-y-2">
-                  <Label className="text-[11px] text-muted-foreground">Material</Label>
+                  <Label className="text-xs text-muted-foreground">Material</Label>
                   <Select
                     value={filters.material || '_all'}
                     onValueChange={(v) => onFiltersChange({ ...filters, material: v === '_all' ? undefined : v })}
@@ -269,7 +269,7 @@ export function BoxSelector({
               >
                 <CardContent className="p-4">
                   <div className="flex gap-3">
-                    <div className="w-20 h-20 rounded-xl bg-secondary overflow-hidden flex-shrink-0">
+                    <div className="w-20 h-20 rounded-lg bg-secondary overflow-hidden flex-shrink-0">
                       {box.imageUrl ? (
                         <img
                           src={box.imageUrl}

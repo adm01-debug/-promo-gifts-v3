@@ -14,7 +14,7 @@ export function KitIdentificationCard({ kitName, kitQuantity, onKitNameChange, o
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-xl flex items-center gap-2"><FileText className="h-5 w-5" />Identificação do Kit</CardTitle>
+        <CardTitle className="text-lg flex items-center gap-2"><FileText className="h-5 w-5" />Identificação do Kit</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

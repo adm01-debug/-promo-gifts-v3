@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ArrowLeft, Copy, CreditCard, Edit2, Eye, FileText, History, Loader2, Monitor, MoreHorizontal, Package, RefreshCw, Shield, Truck, Undo2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { formatPaymentTerms, formatDeliveryTime } from "@/components/pdf/ProposalHtmlTemplate";
 import { Button } from "@/components/ui/button";
@@ -58,18 +59,18 @@ export default function QuoteViewPage() {
 
   if (isLoadingQuote) {
     return (
-      <>
+      <MainLayout>
         <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
           <Skeleton className="h-10 w-48" />
           <Skeleton className="h-[600px] w-full" />
         </div>
-      </>
+      </MainLayout>
     );
   }
 
   if (!quote) {
     return (
-      <>
+      <MainLayout>
         <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
           <div className="text-center py-12">
             <FileText className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
@@ -80,7 +81,7 @@ export default function QuoteViewPage() {
             </Button>
           </div>
         </div>
-      </>
+      </MainLayout>
     );
   }
 
@@ -88,7 +89,7 @@ export default function QuoteViewPage() {
 
   return (
     <>
-    <>
+    <MainLayout>
       <PageSEO title={`Orçamento ${quote.quote_number}`} description={`Visualização do orçamento ${quote.quote_number}`} path={`/orcamentos/${id}`} noIndex />
       <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in print:py-0 print:max-w-none print:px-0">
         {/* Header */}
@@ -230,8 +231,7 @@ export default function QuoteViewPage() {
               discountPercent={quote.discount_percent}
               discountAmount={quote.discount_amount}
               shippingType={quote.shipping_type}
-               shippingCost={quote.shipping_cost}
-              negotiationMarkupPercent={quote.negotiation_markup_percent}
+              shippingCost={quote.shipping_cost}
             />
 
             {(quote.payment_terms || quote.delivery_time) && (
@@ -303,7 +303,7 @@ export default function QuoteViewPage() {
         onShare={handleShareLink}
         isGeneratingPDF={isGeneratingPDF}
       />
-    </>
+    </MainLayout>
 
     {showPresentation && quote?.items && quote.items.length > 0 && (
       <PresentationMode

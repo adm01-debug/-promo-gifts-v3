@@ -211,12 +211,12 @@ export default function AdminSegurancaAcessoPage() {
                 <CardTitle className="flex items-center gap-2"><Siren className="h-5 w-5" /> Como interpretar</CardTitle>
                 <CardDescription>Indicadores em vermelho exigem investigação imediata</CardDescription>
               </CardHeader>
-              <CardContent className="text-[11px] text-muted-foreground space-y-2 font-medium">
-                <p>• <strong className="text-foreground">Falhas de login &gt; 50/24h</strong>: possível brute-force — verifique aba "Bot Detection" e use blocklist.</p>
-                <p>• <strong className="text-foreground">Bots bloqueados &gt; 100</strong>: scraping ativo — confirme padrão de IPs e bloqueie em massa.</p>
-                <p>• <strong className="text-foreground">Falhas de token &gt; 20</strong>: tentativa de adivinhação — token é auto-expirado após 5 falhas/hora.</p>
-                <p>• <strong className="text-foreground">IPs distintos em tokens &gt; 30</strong>: possível link vazado — revogue tokens do recurso afetado.</p>
-                <p className="pt-2 border-t border-border/50 text-[10px] font-bold uppercase tracking-wider text-primary">Em caso de comprometimento confirmado, use <span className="underline decoration-primary/40 underline-offset-2">Forçar logout global</span> no topo da página.</p>
+              <CardContent className="text-sm text-muted-foreground space-y-1.5">
+                <p>• <strong>Falhas de login &gt; 50/24h</strong>: possível brute-force — verifique aba "Bot Detection" e use blocklist.</p>
+                <p>• <strong>Bots bloqueados &gt; 100</strong>: scraping ativo — confirme padrão de IPs e bloqueie em massa.</p>
+                <p>• <strong>Falhas de token &gt; 20</strong>: tentativa de adivinhação — token é auto-expirado após 5 falhas/hora.</p>
+                <p>• <strong>IPs distintos em tokens &gt; 30</strong>: possível link vazado — revogue tokens do recurso afetado.</p>
+                <p className="pt-2 border-t border-border/50">Em caso de comprometimento confirmado, use <strong>Forçar logout global</strong> no topo da página.</p>
               </CardContent>
             </Card>
           </TabsContent>

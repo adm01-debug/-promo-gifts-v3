@@ -52,7 +52,7 @@ export function FavoritesViewHeader({
     <div className="space-y-3"><div className="flex flex-wrap items-center justify-between gap-3 px-1">
       <div className="flex items-center gap-3 min-w-0">
         <div
-          className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+          className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0"
           style={{ backgroundColor: list ? `${color}20` : undefined, color }}
         >
           <Heart className="h-4 w-4" fill="currentColor" />
@@ -76,7 +76,7 @@ export function FavoritesViewHeader({
               </Badge>
             )}
           </div>
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             {itemCount} {itemCount === 1 ? "item" : "itens"}
             {fallbackSubtitle && ` • ${fallbackSubtitle}`}
           </p>
@@ -113,7 +113,7 @@ export function FavoritesViewHeader({
             <FileText className="h-3.5 w-3.5" />
             Gerar Orçamento
           </Button>
-          <div className="text-[11px] text-muted-foreground">
+          <div className="text-xs text-muted-foreground">
             Valor potencial: <span className="font-semibold text-foreground">{formatCurrency(potentialValue)}</span>
           </div>
         </div>

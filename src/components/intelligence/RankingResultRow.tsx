@@ -58,7 +58,7 @@ export function RankingResultRow({ product, index, topRevenue, searchQuery, form
       </div>
 
       {/* Image */}
-      <div className="w-9 h-9 rounded-xl overflow-hidden bg-muted border border-border/50 flex-shrink-0">
+      <div className="w-9 h-9 rounded-md overflow-hidden bg-muted border border-border/50 flex-shrink-0">
         {product.productImage ? (
           <img src={product.productImage} alt="Imagem do produto" className="w-full h-full object-contain" loading="lazy" />
         ) : (
@@ -101,7 +101,7 @@ export function RankingResultRow({ product, index, topRevenue, searchQuery, form
 
       {/* Avg unit price — desktop */}
       <div className="hidden sm:block text-right">
-        <p className="text-[11px] text-muted-foreground">{formatCurrency(avgUnit)}</p>
+        <p className="text-xs text-muted-foreground">{formatCurrency(avgUnit)}</p>
         <p className="text-[9px] text-muted-foreground/70">p/ un.</p>
       </div>
 

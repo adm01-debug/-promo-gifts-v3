@@ -38,7 +38,7 @@ export function QuantityCalculator({
           <ArrowRight className="h-4 w-4 text-muted-foreground/40 mt-5 shrink-0" />
           <div className="space-y-1 flex-[1.5]">
             <Label className="text-[10px] text-muted-foreground uppercase tracking-wider">Resultado</Label>
-            <div className="h-11 px-3 rounded-xl bg-success/10 border border-success/20 flex items-center gap-2">
+            <div className="h-11 px-3 rounded-lg bg-success/10 border border-success/20 flex items-center gap-2">
               <span className="font-bold text-base text-success whitespace-nowrap">{formatPrice(total)}</span>
               <span className="text-[11px] text-muted-foreground/60 whitespace-nowrap">({formatPrice(unitPrice)}/un)</span>
             </div>
@@ -66,7 +66,7 @@ export function QuantityCalculator({
         <div className="flex items-end"><ArrowRight className="h-5 w-5 text-muted-foreground mb-4 hidden sm:block" /></div>
         <div className="flex-1 space-y-2">
           <Label className="text-sm">Resultado</Label>
-          <div className="h-12 px-4 rounded-xl bg-success/10 border border-success/20 flex items-center justify-between">
+          <div className="h-12 px-4 rounded-lg bg-success/10 border border-success/20 flex items-center justify-between">
             <div>
               <span className="font-bold text-lg text-success">{formatPrice(total)}</span>
               {discount > 0 && <Badge variant="secondary" className="ml-2 bg-success/20 text-success text-xs">-{discount}%</Badge>}

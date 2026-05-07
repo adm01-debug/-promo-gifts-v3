@@ -81,7 +81,7 @@ export function SalesGoalsCard() {
     return (
       <Card className="bg-gradient-to-br from-muted/50 to-muted/30 border-dashed">
         <CardContent className="flex flex-col items-center justify-center py-8 text-center">
-          <div className="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-4">
+          <div className="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
             <Target className="h-7 w-7 text-primary" />
           </div>
           <h3 className="font-display font-semibold text-foreground mb-1">Defina sua Meta</h3>
@@ -209,7 +209,7 @@ export function SalesGoalsCard() {
         <CardTitle className="flex items-center gap-2 text-lg">
           <div
             className={cn(
-              "p-2 rounded-xl",
+              "p-2 rounded-lg",
               activeGoal.is_achieved ? "bg-success/20" : "bg-primary/20"
             )}
           >
@@ -230,7 +230,7 @@ export function SalesGoalsCard() {
           <div className="flex items-end justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Faturamento</p>
-              <p className="text-xl font-bold text-foreground">
+              <p className="text-2xl font-bold text-foreground">
                 {formatCurrency(activeGoal.current_value)}
               </p>
             </div>
@@ -253,10 +253,10 @@ export function SalesGoalsCard() {
         {/* Secondary Metrics */}
         <div className="grid grid-cols-2 gap-3">
           {activeGoal.target_quotes > 0 && (
-            <div className="p-3 rounded-xl bg-background/50">
+            <div className="p-3 rounded-lg bg-background/50">
               <div className="flex items-center gap-2 mb-1">
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                <span className="text-[11px] text-muted-foreground">Orçamentos</span>
+                <span className="text-xs text-muted-foreground">Orçamentos</span>
               </div>
               <p className="font-semibold">
                 {activeGoal.current_quotes}/{activeGoal.target_quotes}
@@ -265,10 +265,10 @@ export function SalesGoalsCard() {
             </div>
           )}
           {activeGoal.target_conversions > 0 && (
-            <div className="p-3 rounded-xl bg-background/50">
+            <div className="p-3 rounded-lg bg-background/50">
               <div className="flex items-center gap-2 mb-1">
                 <Sparkles className="h-4 w-4 text-muted-foreground" />
-                <span className="text-[11px] text-muted-foreground">Conversões</span>
+                <span className="text-xs text-muted-foreground">Conversões</span>
               </div>
               <p className="font-semibold">
                 {activeGoal.current_conversions}/{activeGoal.target_conversions}

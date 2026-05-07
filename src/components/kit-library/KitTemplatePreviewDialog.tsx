@@ -66,10 +66,10 @@ export function KitTemplatePreviewDialog({
 
         <div className="space-y-4">
           {box && (
-            <div className="p-3 rounded-xl border bg-muted/30">
+            <div className="p-3 rounded-lg border bg-muted/30">
               <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1">Embalagem</p>
               <p className="font-medium text-sm">{box.name || 'Caixa selecionada'}</p>
-              {box.sku && <p className="text-[11px] text-muted-foreground">SKU: {box.sku}</p>}
+              {box.sku && <p className="text-xs text-muted-foreground">SKU: {box.sku}</p>}
             </div>
           )}
 
@@ -77,7 +77,7 @@ export function KitTemplatePreviewDialog({
             <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-2">
               Itens ({items.length})
             </p>
-            <ScrollArea className="max-h-64 rounded-xl border">
+            <ScrollArea className="max-h-64 rounded-lg border">
               <ul className="divide-y">
                 {items.length === 0 ? (
                   <li className="p-3 text-xs text-muted-foreground">Sem itens cadastrados.</li>
@@ -87,10 +87,10 @@ export function KitTemplatePreviewDialog({
                     <li key={i} className="p-3 flex items-center justify-between gap-3 text-sm">
                       <div className="min-w-0">
                         <p className="font-medium truncate">{item.name || `Item ${i + 1}`}</p>
-                        {item.sku && <p className="text-[11px] text-muted-foreground">{item.sku}</p>}
+                        {item.sku && <p className="text-xs text-muted-foreground">{item.sku}</p>}
                       </div>
                       <div className="text-right shrink-0">
-                        <p className="text-[11px] text-muted-foreground">x{item.quantity ?? 1}</p>
+                        <p className="text-xs text-muted-foreground">x{item.quantity ?? 1}</p>
                         {typeof item.price === 'number' && (
                           <p className="text-xs font-medium">{formatCurrency(item.price)}</p>
                         )}
@@ -102,7 +102,7 @@ export function KitTemplatePreviewDialog({
             </ScrollArea>
           </div>
 
-          <div className="flex items-center justify-between p-3 rounded-xl border bg-primary/5">
+          <div className="flex items-center justify-between p-3 rounded-lg border bg-primary/5">
             <span className="text-sm text-muted-foreground">Total estimado</span>
             <span className="text-xl font-bold text-primary">{formatCurrency(Number(template.total_price))}</span>
           </div>

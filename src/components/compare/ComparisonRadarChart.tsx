@@ -2,7 +2,7 @@
  * ComparisonRadarChart — Radar visual de até 5 dimensões para múltiplos produtos.
  * Eixos: Preço (invertido), Estoque, Variedade de cores, Qtd mínima (invertido), Lead time (invertido).
  */
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
   Radar,
   RadarChart,
@@ -61,31 +61,17 @@ export function ComparisonRadarChart({ products, className }: ComparisonRadarCha
     return axes.map(axis => {
       const row: any = { axis: axis.key };
       products.forEach((p, i) => {
-        // Normalizamos para 0-100; se todos forem iguais, fica no topo (100)
         row[String(p.id)] = Math.max(0, Math.min(100, axis.values[i]));
       });
       return row;
     });
   }, [products]);
 
-  const chartId = useMemo(() => `radar-${Math.random().toString(36).substr(2, 9)}`, []);
-
-  const [opacity, setOpacity] = useState<Record<string, number>>({});
-
-  const handleMouseEnter = (o: any) => {
-    const { dataKey } = o;
-    setOpacity({ [dataKey]: 0.8 });
-  };
-
-  const handleMouseLeave = () => {
-    setOpacity({});
-  };
-
   if (products.length < 2) return null;
 
   return (
     <div className={className}>
-      <div className="rounded-xl border bg-card p-4">
+      <div className="rounded-2xl border bg-card p-4">
         <h3 className="text-sm font-semibold mb-2 flex items-center gap-2">
           <span className="inline-block w-1 h-4 bg-primary rounded-full" />
           Radar comparativo (0–100, maior é melhor)
@@ -109,8 +95,6 @@ export function ComparisonRadarChart({ products, className }: ComparisonRadarCha
             />
             <Legend
               wrapperStyle={{ fontSize: 12 }}
-              onMouseEnter={handleMouseEnter}
-              onMouseLeave={handleMouseLeave}
               formatter={(value) => {
                 const p = products.find(x => String(x.id) === value);
                 return p?.name?.slice(0, 28) ?? value;
@@ -119,16 +103,12 @@ export function ComparisonRadarChart({ products, className }: ComparisonRadarCha
             {products.map((p, i) => (
               <Radar
                 key={String(p.id)}
-                id={`${chartId}-${String(p.id)}`}
                 name={String(p.id)}
                 dataKey={String(p.id)}
                 stroke={COLORS[i % COLORS.length]}
                 fill={COLORS[i % COLORS.length]}
-                fillOpacity={opacity[String(p.id)] ?? 0.18}
-                strokeOpacity={opacity[String(p.id)] ? 1 : 0.8}
+                fillOpacity={0.18}
                 strokeWidth={2}
-                animationBegin={i * 100}
-                animationDuration={800}
               />
             ))}
           </RadarChart>

@@ -18,7 +18,7 @@ export function UserStatsCards({ total, devCount, supervisorCount, agenteCount, 
           <Users className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-xl font-bold">{total}</div>
+          <div className="text-2xl font-bold">{total}</div>
         </CardContent>
       </Card>
       <Card className="border-border/50">
@@ -27,7 +27,7 @@ export function UserStatsCards({ total, devCount, supervisorCount, agenteCount, 
           <Code2 className="h-4 w-4 text-purple-600" />
         </CardHeader>
         <CardContent>
-          <div className="text-xl font-bold text-purple-600">{devCount}</div>
+          <div className="text-2xl font-bold text-purple-600">{devCount}</div>
         </CardContent>
       </Card>
       <Card className="border-border/50">
@@ -36,7 +36,7 @@ export function UserStatsCards({ total, devCount, supervisorCount, agenteCount, 
           <ShieldCheck className="h-4 w-4 text-primary" />
         </CardHeader>
         <CardContent>
-          <div className="text-xl font-bold text-primary">{supervisorCount}</div>
+          <div className="text-2xl font-bold text-primary">{supervisorCount}</div>
         </CardContent>
       </Card>
       <Card className="border-border/50">
@@ -45,7 +45,7 @@ export function UserStatsCards({ total, devCount, supervisorCount, agenteCount, 
           <Shield className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-xl font-bold">{agenteCount}</div>
+          <div className="text-2xl font-bold">{agenteCount}</div>
         </CardContent>
       </Card>
       <Card className="border-border/50">
@@ -54,7 +54,7 @@ export function UserStatsCards({ total, devCount, supervisorCount, agenteCount, 
           <KeyRound className="h-4 w-4 text-warning" />
         </CardHeader>
         <CardContent>
-          <div className="text-xl font-bold text-warning">{pendingCount}</div>
+          <div className="text-2xl font-bold text-warning">{pendingCount}</div>
         </CardContent>
       </Card>
     </div>

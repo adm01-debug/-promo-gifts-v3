@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { useParams, useNavigate, useSearchParams } from "react-router-dom";
 import { Helmet } from "react-helmet-async";
 import { getCdnUrl } from "@/utils/image-utils";
+import { MainLayout } from "@/components/layout/MainLayout";
 import { ProductStickyHeader } from "@/components/products/ProductStickyHeader";
 import { SimilarProducts } from "@/components/products/SimilarProducts";
 import { SmartRecommendations } from "@/components/products/SmartRecommendations";
@@ -113,17 +114,17 @@ export default function ProductDetail() {
     setSearchParams(newParams, { replace: true });
   }, [selectedVariation, colorAutoSelected]);
 
-  if (isLoading) return <><ProductDetailSkeleton /></>;
+  if (isLoading) return <MainLayout><ProductDetailSkeleton /></MainLayout>;
 
   if (isError || !product) {
     return (
-      <>
+      <MainLayout>
         <EmptyState variant="products"
           title={isError ? "Erro ao carregar produto" : "Produto não encontrado"}
           description={isError ? "Não foi possível carregar os dados do produto." : "O produto não existe ou foi removido."}
           action={{ label: isError ? "Tentar novamente" : "Voltar para Vitrine", onClick: () => isError ? window.location.reload() : navigate("/") }}
         />
-      </>
+      </MainLayout>
     );
   }
 
@@ -140,7 +141,7 @@ export default function ProductDetail() {
   };
 
   return (
-    <>
+    <MainLayout>
       <Helmet>
         <title>{product.name} | Promo Gifts</title>
         <meta name="description" content={product.description || `${product.name} - Brinde Promocional`} />
@@ -227,6 +228,6 @@ export default function ProductDetail() {
           productName={product.name} mode="favorite" onComplete={handleFavoriteVariantSelected}
         />
       )}
-    </>
+    </MainLayout>
   );
 }

@@ -227,7 +227,7 @@ export function TechniqueTooltip({ technique, children, className }: TechniqueTo
 
           {/* Visual Style Preview */}
           <div className="pt-2 border-t mt-2">
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               <span className="font-medium">Aparência:</span> {info.visualStyle}
             </p>
           </div>

@@ -91,9 +91,9 @@ export function FavoritesClientPicker({ selectedClientId, selectedClientName, on
   // Quando já tem cliente selecionado, mostra chip e permite remover
   if (selectedClientId && selectedClientName) {
     return (
-      <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-xl border border-primary/30 bg-primary/5">
+      <div className="flex items-center justify-between gap-2 px-3 py-2 rounded-lg border border-primary/30 bg-primary/5">
         <div className="flex items-center gap-2 min-w-0">
-          <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+          <div className="w-8 h-8 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
             <Building2 className="h-4 w-4 text-primary" />
           </div>
           <div className="min-w-0">
@@ -125,14 +125,14 @@ export function FavoritesClientPicker({ selectedClientId, selectedClientName, on
       </div>
 
       {searchTerm && (
-        <ScrollArea className="h-[180px] rounded-xl border border-border bg-background/50">
+        <ScrollArea className="h-[180px] rounded-md border border-border bg-background/50">
           <div className="space-y-0.5 p-1">
             {list.map((company) => (
               <button
                 key={company.id}
                 type="button"
                 className={cn(
-                  "w-full flex items-center gap-2 px-2 py-1.5 rounded-xl text-left",
+                  "w-full flex items-center gap-2 px-2 py-1.5 rounded-md text-left",
                   "hover:bg-accent transition-colors text-sm",
                 )}
                 onClick={() => onSelect({ id: company.id, name: company.name })}

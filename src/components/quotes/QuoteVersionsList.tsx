@@ -37,7 +37,7 @@ export function QuoteVersionsList({ quoteId, parentQuoteId }: QuoteVersionsListP
       {data.map((v) => (
         <li
           key={v.id}
-          className="flex items-center justify-between rounded-xl border p-3 text-sm"
+          className="flex items-center justify-between rounded-lg border p-3 text-sm"
         >
           <div className="flex items-center gap-2">
             <GitBranch className="h-4 w-4 text-muted-foreground" />
@@ -46,7 +46,7 @@ export function QuoteVersionsList({ quoteId, parentQuoteId }: QuoteVersionsListP
           </div>
           <div className="flex items-center gap-2">
             {v.is_latest_version && <Badge variant="default">Atual</Badge>}
-            <span className="text-[11px] text-muted-foreground">
+            <span className="text-xs text-muted-foreground">
               {new Date(v.created_at).toLocaleDateString("pt-BR")}
             </span>
           </div>

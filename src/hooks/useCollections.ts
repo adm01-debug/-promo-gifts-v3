@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { type Product } from "@/hooks/useProducts";
-import { useToast } from "@/hooks/use-toast";
 
 const LEGACY_STORAGE_KEY = "product-collections";
 
@@ -87,7 +86,6 @@ function dbToCollection(
 }
 
 export function useCollections() {
-  const { toast } = useToast();
   const [collections, setCollections] = useState<Collection[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
   const { user } = useAuth();
@@ -147,59 +145,49 @@ export function useCollections() {
         if (stored) {
           const legacyCollections = JSON.parse(stored);
           if (Array.isArray(legacyCollections) && legacyCollections.length > 0) {
-            // Guard: só migra se o usuário ainda não tem coleções no DB (evita duplicação)
+            // Check if user already has DB collections
             const { count } = await supabase
               .from("collections")
               .select("*", { count: "exact", head: true })
               .eq("user_id", user.id);
 
             if (count === 0) {
-              console.log(`Migrating ${legacyCollections.length} legacy collections for user ${user.id}`);
+              // Migrate each collection
               for (const col of legacyCollections) {
-                try {
-                  const { data: newCol, error: colError } = await supabase
-                    .from("collections")
-                    .insert({
-                      user_id: user.id,
-                      name: col.name,
-                      description: col.description || null,
-                      is_featured: false,
-                      icon_color: col.color || DEFAULT_COLORS[0],
-                      icon: col.icon || "📁",
-                    })
-                    .select()
-                    .single();
+                const { data: newCol } = await supabase
+                  .from("collections")
+                  .insert({
+                    user_id: user.id,
+                    name: col.name,
+                    description: col.description || null,
+                    is_featured: false,
+                    icon_color: col.color || DEFAULT_COLORS[0],
+                  })
+                  .select()
+                  .single();
 
-                  if (newCol) {
-                    const items = (col.productItems || col.productIds?.map((id: string) => ({ productId: id })) || []);
-                    if (items.length > 0) {
-                      const { error: itemError } = await supabase.from("collection_items").upsert(
-                        items.map((item: any, idx: number) => ({
-                          collection_id: newCol.id,
-                          product_id: item.productId || item,
-                          color_name: item.variant?.color_name || null,
-                          color_hex: item.variant?.color_hex || null,
-                          thumbnail_url: item.variant?.thumbnail || null,
-                          sort_order: idx,
-                        })),
-                        { onConflict: "collection_id,product_id,color_name" }
-                      );
-                      if (itemError) console.error("Error migrating collection items:", itemError);
-                    }
-                  } else if (colError) {
-                    console.error("Error migrating collection:", colError);
+                if (newCol) {
+                  const items = (col.productItems || col.productIds?.map((id: string) => ({ productId: id })) || []);
+                  if (items.length > 0) {
+                    await supabase.from("collection_items").insert(
+                      items.map((item: any, idx: number) => ({
+                        collection_id: newCol.id,
+                        product_id: item.productId || item,
+                        color_name: item.variant?.color_name || null,
+                        color_hex: item.variant?.color_hex || null,
+                        thumbnail_url: item.variant?.thumbnail || null,
+                        sort_order: idx,
+                      }))
+                    );
                   }
-                } catch (colErr) {
-                  console.error("Failed to migrate individual collection:", colErr);
                 }
               }
-              toast({
-                title: "Migração Concluída",
-                description: "Suas coleções locais foram sincronizadas com sua conta.",
-              });
+              // Clear localStorage after successful migration
+              localStorage.removeItem(LEGACY_STORAGE_KEY);
+            } else {
+              // User already has DB collections, just clear legacy
+              localStorage.removeItem(LEGACY_STORAGE_KEY);
             }
-            // Limpa legado em qualquer cenário (já migrado ou já tem dados no DB)
-            localStorage.removeItem(LEGACY_STORAGE_KEY);
           }
         }
       } catch (e) {
@@ -210,7 +198,7 @@ export function useCollections() {
     };
 
     migrateAndLoad();
-  }, [user?.id, loadCollections, toast]);
+  }, [user?.id, loadCollections]);
 
   const createCollection = useCallback(
     (name: string, description?: string, color?: string, icon?: string, clientId?: string | null, clientName?: string | null): Collection => {
@@ -305,8 +293,7 @@ export function useCollections() {
   }, []);
 
   const addProductToCollection = useCallback(
-    async (collectionId: string, productId: string, variant?: CollectionVariantInfo, priceAtSave?: number | null) => {
-      // Optimistic update
+    (collectionId: string, productId: string, variant?: CollectionVariantInfo, priceAtSave?: number | null) => {
       setCollections((prev) =>
         prev.map((col) => {
           if (col.id !== collectionId) return col;
@@ -320,10 +307,9 @@ export function useCollections() {
         })
       );
 
-      const addedAt = new Date().toISOString();
-      const { error } = await supabase
+      supabase
         .from("collection_items")
-        .upsert({
+        .insert({
           collection_id: collectionId,
           product_id: productId,
           color_name: variant?.color_name || null,
@@ -331,27 +317,10 @@ export function useCollections() {
           thumbnail_url: variant?.thumbnail || null,
           price_at_save: priceAtSave ?? null,
           sort_order: 0,
-          added_at: addedAt,
-        }, {
-          onConflict: "collection_id,product_id,color_name"
-        });
-
-      if (error) {
-        console.error("Error adding product to collection:", error);
-        toast({
-          title: "Erro ao adicionar produto",
-          description: "Não foi possível salvar o produto na coleção. Tente novamente.",
-          variant: "destructive",
-        });
-        // Rollback optimistic update
-        try {
-          await loadCollections();
-        } catch (rollbackErr) {
-          console.error("Rollback failed:", rollbackErr);
-        }
-      }
+        } as never)
+        .then();
     },
-    [loadCollections, toast]
+    []
   );
 
   const restoreFromTrash = useCallback(async (collectionId: string, productId: string) => {
@@ -381,8 +350,7 @@ export function useCollections() {
   }, [loadCollections]);
 
   const removeProductFromCollection = useCallback(
-    async (collectionId: string, productId: string) => {
-      // Optimistic
+    (collectionId: string, productId: string) => {
       setCollections((prev) =>
         prev.map((col) =>
           col.id === collectionId
@@ -396,27 +364,14 @@ export function useCollections() {
         )
       );
 
-      const { error } = await supabase
+      supabase
         .from("collection_items")
         .delete()
         .eq("collection_id", collectionId)
-        .eq("product_id", productId);
-
-      if (error) {
-        console.error("Error removing product from collection:", error);
-        toast({
-          title: "Erro ao remover produto",
-          description: "Não foi possível remover o produto da coleção.",
-          variant: "destructive",
-        });
-        try {
-          await loadCollections();
-        } catch (rollbackErr) {
-          console.error("Rollback failed:", rollbackErr);
-        }
-      }
+        .eq("product_id", productId)
+        .then();
     },
-    [loadCollections, toast]
+    []
   );
 
   const addProductToMultipleCollections = useCallback(

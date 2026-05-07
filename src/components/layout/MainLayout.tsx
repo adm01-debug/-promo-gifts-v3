@@ -1,4 +1,4 @@
-import { useState, Suspense, useEffect, useRef, useMemo } from "react";
+import { useState, Suspense, useEffect, useRef } from "react";
 import { useLocation } from "react-router-dom";
 import { useScrollLockFix } from "@/hooks/useScrollLockFix";
 import { useGlobalShortcuts } from "@/hooks/useGlobalShortcuts";
@@ -28,7 +28,6 @@ interface MainLayoutProps {
 export function MainLayout({ children }: MainLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isDebouncingSearch, setIsDebouncingSearch] = useState(false);
   const location = useLocation();
   const isMockupGenerator = location.pathname === "/mockup-generator";
   const isHome = location.pathname === "/";
@@ -60,7 +59,7 @@ export function MainLayout({ children }: MainLayoutProps) {
     }
   }, [location.pathname]);
 
-  const layoutContent = useMemo(() => (
+  const layoutContent = (
     <div className="min-h-screen bg-background print:min-h-0" role="document">
       <GlobalOverlay />
       <div className="print:hidden">
@@ -82,14 +81,7 @@ export function MainLayout({ children }: MainLayoutProps) {
             <Header 
               onMenuToggle={() => setSidebarOpen(!sidebarOpen)}
               searchQuery={searchQuery}
-              onSearchChange={(q) => {
-                setSearchQuery(q);
-                if (location.pathname === "/filtros") {
-                  setIsDebouncingSearch(true);
-                  setTimeout(() => setIsDebouncingSearch(false), 300);
-                }
-              }}
-              isFiltering={(location.pathname === "/filtros" || isDebouncingSearch) && (window as any).__IS_FILTERING_GLOBAL__}
+              onSearchChange={setSearchQuery}
             />
           </Suspense>
 
@@ -101,7 +93,7 @@ export function MainLayout({ children }: MainLayoutProps) {
 
           <div
             className={cn(
-              "sticky z-[10] print:hidden transition-all duration-300",
+              "sticky z-30 print:hidden transition-all duration-300",
               "bg-background/85 backdrop-blur-md",
               "border-b border-border/40",
               isHome && "hidden",
@@ -124,14 +116,16 @@ export function MainLayout({ children }: MainLayoutProps) {
             role="main"
             aria-label="Conteúdo principal"
           >
-            <PageTransition variant="fade-slide" duration={0.2}>
-              {children}
-            </PageTransition>
+            <Suspense fallback={<div>{children}</div>}>
+              <PageTransition variant="fade-slide" duration={0.2}>
+                {children}
+              </PageTransition>
+            </Suspense>
           </main>
         </div>
       </div>
     </div>
-  ), [sidebarOpen, searchQuery, isDebouncingSearch, location.pathname, isHome, children]);
+  );
 
   return (
     <OnboardingProvider>

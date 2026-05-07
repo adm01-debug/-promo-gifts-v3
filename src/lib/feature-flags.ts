@@ -30,9 +30,8 @@ interface FlagConfig {
 
 const FLAG_REGISTRY: Record<FeatureFlag, FlagConfig> = {
   mfa: {
-    enabled: true,
+    enabled: false,
     description: 'Autenticação multifator (TOTP)',
-    allowedRoles: ['admin', 'manager', 'seller'],
   },
   ai_recommendations: {
     enabled: true,
@@ -60,8 +59,8 @@ const FLAG_REGISTRY: Record<FeatureFlag, FlagConfig> = {
     allowedRoles: ['admin', 'manager'],
   },
   custom_kits_v2: {
-    enabled: true,
-    description: 'Nova versão do montador de kits (Kit Maker 10/10)',
+    enabled: false,
+    description: 'Nova versão do montador de kits',
   },
 };
 

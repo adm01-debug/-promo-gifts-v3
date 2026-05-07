@@ -1,5 +1,6 @@
 // Catálogo de Produtos - Index Page (v3 - refactored)
 import { useState, useRef, useMemo } from "react";
+import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { FloatingCompareBar } from "@/components/compare/FloatingCompareBar";
 import { SharePreviewDialog } from "@/components/products/share/SharePreviewDialog";
@@ -38,7 +39,7 @@ export default function Index() {
   }), [catalog.searchQuery, catalog.filteredProducts.length, catalog.totalEstimate, catalog.paginatedProducts]);
 
   return (
-    <>
+    <MainLayout>
       <PageSEO
         title={catalog.searchQuery ? `Busca: ${catalog.searchQuery}` : "Catálogo de Produtos"}
         description={catalog.searchQuery 
@@ -62,7 +63,6 @@ export default function Index() {
               onReset={catalog.resetFilters}
               searchHistory={catalog.searchHistory}
               onClearHistory={catalog.clearHistory}
-              filters={catalog.filters}
               onSelect={(result) => {
                 if (result.type === "product") {
                   catalog.navigate(`/produto/${result.id}`);
@@ -74,8 +74,6 @@ export default function Index() {
                   catalog.handleSearch(result.label);
                 }
               }}
-              onApplyPreset={catalog.setFiltersWithPreset}
-              activePresetId={catalog.activePresetId}
             />
 
             {/* Toolbar: Filters + Sort + Stats + Layout — sticky abaixo do Header global.
@@ -187,6 +185,6 @@ export default function Index() {
           } : null}
         />
       )}
-    </>
+    </MainLayout>
   );
 }

@@ -114,12 +114,12 @@ export function ClientLookalikes({ clientId, ramoAtividade }: Props) {
       <CardContent className="p-5 space-y-4">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-xl bg-blue-500/10 flex items-center justify-center">
+            <div className="h-8 w-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
               <Users className="h-4 w-4 text-blue-600 dark:text-blue-400" />
             </div>
             <div>
               <h2 className="font-display font-semibold">Clientes parecidos também compram</h2>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 Produtos comprados por outras {data.lookalikeCount} empresas de{" "}
                 <span className="font-medium">{ramoAtividade}</span> · que este cliente ainda NÃO leva
               </p>
@@ -149,10 +149,10 @@ export function ClientLookalikes({ clientId, ramoAtividade }: Props) {
           {data.products.map((p) => (
             <div
               key={`${p.product_id}-${p.product_name}`}
-              className="p-3 rounded-xl border bg-card hover:border-primary/30 hover:shadow-sm transition-all"
+              className="p-3 rounded-lg border bg-card hover:border-primary/30 hover:shadow-sm transition-all"
             >
               {p.product_image_url ? (
-                <div className="aspect-square rounded-xl overflow-hidden bg-muted/40 mb-2 border">
+                <div className="aspect-square rounded-md overflow-hidden bg-muted/40 mb-2 border">
                   <img
                     src={p.product_image_url}
                     alt={p.product_name}
@@ -164,7 +164,7 @@ export function ClientLookalikes({ clientId, ramoAtividade }: Props) {
                   />
                 </div>
               ) : (
-                <div className="aspect-square rounded-xl bg-muted/40 flex items-center justify-center mb-2">
+                <div className="aspect-square rounded-md bg-muted/40 flex items-center justify-center mb-2">
                   <Package className="h-6 w-6 text-muted-foreground" />
                 </div>
               )}

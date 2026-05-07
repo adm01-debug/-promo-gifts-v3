@@ -64,13 +64,13 @@ export function FilterSection({
               <span className="inline-flex items-center justify-center h-5 min-w-5 px-1.5 text-[10px] font-bold rounded-full bg-orange text-orange-foreground shrink-0 animate-scale-in">{activeCount}</span>
             )}
             {tooltip && (
-              <Tooltip >
+              <Tooltip delayDuration={300}>
                 <TooltipTrigger asChild>
                   <span className="opacity-0 group-hover:opacity-40 transition-opacity text-muted-foreground shrink-0 cursor-help">
                     <SlidersHorizontal className="h-3 w-3" />
                   </span>
                 </TooltipTrigger>
-                <TooltipContent side="right" className="max-w-48 bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none z-[100]">{tooltip}</TooltipContent>
+                <TooltipContent side="right" className="max-w-48 text-xs bg-card border-border z-[100]">{tooltip}</TooltipContent>
               </Tooltip>
             )}
           </div>

@@ -64,7 +64,7 @@ export function RecentlyViewedBar({ className, maxVisible = 6 }: RecentlyViewedB
                     <button
                       onClick={() => navigate(`/produto/${product.id}`)}
                       className={cn(
-                        "w-10 h-10 rounded-xl overflow-hidden border-2 border-border/50",
+                        "w-10 h-10 rounded-lg overflow-hidden border-2 border-border/50",
                         "bg-muted cursor-pointer hover:border-primary/50 transition-all duration-200",
                         "hover:scale-110 hover:shadow-md"
                       )}
@@ -75,9 +75,9 @@ export function RecentlyViewedBar({ className, maxVisible = 6 }: RecentlyViewedB
                         className="w-full h-full object-cover" loading="lazy" />
                     </button>
                   </TooltipTrigger>
-                  <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none max-w-[200px]">
+                  <TooltipContent side="bottom" className="max-w-[200px]">
                     <p className="font-medium truncate">{product.name}</p>
-                    <p className="text-xs text-primary-foreground/80">
+                    <p className="text-xs text-muted-foreground">
                       {new Intl.NumberFormat("pt-BR", {
                         style: "currency",
                         currency: "BRL",
@@ -108,7 +108,7 @@ export function RecentlyViewedBar({ className, maxVisible = 6 }: RecentlyViewedB
             {itemCount > maxVisible && (
               <button
                 onClick={() => navigate("/favoritos")}
-                className="w-10 h-10 rounded-xl border-2 border-dashed border-border/50 flex items-center justify-center flex-shrink-0 hover:border-primary/50 transition-colors"
+                className="w-10 h-10 rounded-lg border-2 border-dashed border-border/50 flex items-center justify-center flex-shrink-0 hover:border-primary/50 transition-colors"
               >
                 <span className="text-xs font-medium text-muted-foreground">
                   +{itemCount - maxVisible}
@@ -129,7 +129,7 @@ export function RecentlyViewedBar({ className, maxVisible = 6 }: RecentlyViewedB
                  aria-label="Excluir"><Trash2 className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Limpar histórico</TooltipContent>
+              <TooltipContent>Limpar histórico</TooltipContent>
             </Tooltip>
           </div>
         </div>

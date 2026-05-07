@@ -66,7 +66,7 @@ function BulkTestProgressPanel({
 }) {
   const pct = progress.total > 0 ? Math.round((progress.done / progress.total) * 100) : 0;
   return (
-    <div className="flex items-center gap-3 rounded-xl border bg-muted/30 px-3 py-2">
+    <div className="flex items-center gap-3 rounded-md border bg-muted/30 px-3 py-2">
       <div className="flex-1 space-y-1.5">
         <div
           role="status"
@@ -291,7 +291,7 @@ export function ConnectionsOverviewTable({ refreshSignal }: ConnectionsOverviewT
             <RefreshCw className={cn("h-3.5 w-3.5", refreshing && "animate-spin")} />
             Atualizar
           </Button>
-          <TooltipProvider >
+          <TooltipProvider delayDuration={200}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <div className="flex items-center gap-1.5">
@@ -356,7 +356,7 @@ export function ConnectionsOverviewTable({ refreshSignal }: ConnectionsOverviewT
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center justify-center gap-2 rounded-xl border border-dashed py-10 text-center">
+          <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed py-10 text-center">
             <Clock className="h-6 w-6 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">
               {activeCount > 0
@@ -370,7 +370,7 @@ export function ConnectionsOverviewTable({ refreshSignal }: ConnectionsOverviewT
             )}
           </div>
         ) : (
-          <TooltipProvider >
+          <TooltipProvider delayDuration={200}>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -454,7 +454,7 @@ export function ConnectionsOverviewTable({ refreshSignal }: ConnectionsOverviewT
                       </TableCell>
                       <TableCell>
                         {failCount === 0 ? (
-                          <span className="text-[11px] text-muted-foreground">—</span>
+                          <span className="text-xs text-muted-foreground">—</span>
                         ) : (
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -526,7 +526,7 @@ export function ConnectionsOverviewTable({ refreshSignal }: ConnectionsOverviewT
                             </TooltipContent>
                           </Tooltip>
                         ) : (
-                          <span className="text-[11px] text-muted-foreground">—</span>
+                          <span className="text-xs text-muted-foreground">—</span>
                         )}
                       </TableCell>
                       <TableCell className="text-right">

@@ -138,7 +138,7 @@ export function RoleAuditLogPanel() {
     <Card className="border-border/50">
       <CardHeader className="flex flex-row items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-primary/10">
+          <div className="p-2 rounded-lg bg-primary/10">
             <History className="h-5 w-5 text-primary" />
           </div>
           <div>
@@ -190,7 +190,7 @@ export function RoleAuditLogPanel() {
             Nenhuma alteração de role registrada {search ? "para esta busca" : "ainda"}.
           </div>
         ) : (
-          <div className="rounded-xl border border-border overflow-x-auto">
+          <div className="rounded-md border border-border overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
@@ -215,7 +215,7 @@ export function RoleAuditLogPanel() {
                       <TableCell>
                         <Tooltip>
                           <TooltipTrigger asChild>
-                            <span className="text-[11px] text-muted-foreground">
+                            <span className="text-xs text-muted-foreground">
                               {formatDistanceToNow(new Date(entry.created_at), { addSuffix: true, locale: ptBR })}
                             </span>
                           </TooltipTrigger>
@@ -231,9 +231,9 @@ export function RoleAuditLogPanel() {
                       <TableCell>{renderUser(target)}</TableCell>
                       <TableCell>
                         <div className="flex items-center gap-1.5 flex-wrap">
-                          {oldRole ? <RoleBadge role={oldRole} /> : <span className="text-[11px] text-muted-foreground">—</span>}
+                          {oldRole ? <RoleBadge role={oldRole} /> : <span className="text-xs text-muted-foreground">—</span>}
                           <ArrowRight className="h-3 w-3 text-muted-foreground" />
-                          {newRole ? <RoleBadge role={newRole} /> : <span className="text-[11px] text-muted-foreground">—</span>}
+                          {newRole ? <RoleBadge role={newRole} /> : <span className="text-xs text-muted-foreground">—</span>}
                           {reason && (
                             <Tooltip>
                               <TooltipTrigger asChild>

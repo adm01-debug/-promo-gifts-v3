@@ -219,7 +219,7 @@ export const ProductTableView = memo(function ProductTableView({
             if (!product) {
               return (
                 <div key="loader" style={{ position: "absolute", top: 0, left: 0, width: "100%", transform: `translateY(${vr.start}px)` }} className="py-8 flex flex-col items-center gap-2">
-                  <p className="text-[11px] text-muted-foreground">Mostrando {sorted.length} de {(totalEstimate ?? filteredCount ?? sorted.length).toLocaleString("pt-BR")} produtos</p>
+                  <p className="text-xs text-muted-foreground">Mostrando {sorted.length} de {(totalEstimate ?? filteredCount ?? sorted.length).toLocaleString("pt-BR")} produtos</p>
                   {isLoadingMore && <Loader2 className="h-5 w-5 animate-spin text-primary" />}
                   <div ref={loadMoreRef} className="h-1" />
                 </div>
@@ -245,7 +245,7 @@ export const ProductTableView = memo(function ProductTableView({
                 {selectionMode && <div className="w-10 px-2 flex justify-center"><SelectionCheckbox checked={!!isSelected} onChange={() => onToggleSelect?.(product.id)} size="sm" /></div>}
                 
                 <div className="w-12 px-2">
-                  <div className="w-10 h-10 rounded-xl overflow-hidden bg-muted/30 border border-border/30">
+                  <div className="w-10 h-10 rounded-md overflow-hidden bg-muted/30 border border-border/30">
                     <img src={thumbUrl} alt="" className="w-full h-full object-contain" loading="lazy" />
                   </div>
                 </div>

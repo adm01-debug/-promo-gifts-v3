@@ -10,13 +10,13 @@ export function HeroSkeleton() {
     <Card className="border-[1.5px] overflow-hidden">
       <CardContent className="p-6 space-y-4">
         <div className="flex items-start gap-4">
-          <Skeleton className="h-16 w-16 rounded-xl" />
+          <Skeleton className="h-16 w-16 rounded-2xl" />
           <div className="flex-1 space-y-2">
             <Skeleton className="h-5 w-48" />
             <Skeleton className="h-4 w-72" />
             <Skeleton className="h-4 w-64" />
           </div>
-          <Skeleton className="h-10 w-32 rounded-xl" />
+          <Skeleton className="h-10 w-32 rounded-md" />
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-2">
           {[0, 1, 2, 3].map((i) => (
@@ -59,7 +59,7 @@ export function TimelineSkeleton() {
       </CardHeader>
       <CardContent className="space-y-3">
         {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="flex items-start gap-3 p-3 rounded-xl border">
+          <div key={i} className="flex items-start gap-3 p-3 rounded-lg border">
             <Skeleton className="h-8 w-8 rounded-full shrink-0" />
             <div className="flex-1 space-y-2">
               <div className="flex items-center justify-between">
@@ -84,9 +84,9 @@ export function ProductGridSkeleton({ rows = 5 }: { rows?: number }) {
       </CardHeader>
       <CardContent className="space-y-2">
         {Array.from({ length: rows }).map((_, i) => (
-          <div key={i} className="flex items-center gap-3 p-2.5 rounded-xl">
-            <Skeleton className="h-7 w-7 rounded-xl shrink-0" />
-            <Skeleton className="h-9 w-9 rounded-xl shrink-0" />
+          <div key={i} className="flex items-center gap-3 p-2.5 rounded-lg">
+            <Skeleton className="h-7 w-7 rounded-md shrink-0" />
+            <Skeleton className="h-9 w-9 rounded-md shrink-0" />
             <div className="flex-1 space-y-1.5">
               <Skeleton className="h-4 w-3/4 max-w-xs" />
               <Skeleton className="h-3 w-1/3" />
@@ -114,16 +114,16 @@ export function HeatmapSkeleton() {
           ))}
           <Skeleton className="h-4 w-16" />
           {Array.from({ length: 12 }).map((_, i) => (
-            <Skeleton key={`c-${i}`} className="h-12 w-full rounded-xl" />
+            <Skeleton key={`c-${i}`} className="h-12 w-full rounded-md" />
           ))}
           <Skeleton className="h-4 w-16" />
           {Array.from({ length: 12 }).map((_, i) => (
-            <Skeleton key={`s-${i}`} className="h-12 w-full rounded-xl" />
+            <Skeleton key={`s-${i}`} className="h-12 w-full rounded-md" />
           ))}
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
-          <Skeleton className="h-20 rounded-xl" />
-          <Skeleton className="h-20 rounded-xl" />
+          <Skeleton className="h-20 rounded-lg" />
+          <Skeleton className="h-20 rounded-lg" />
         </div>
       </CardContent>
     </Card>
@@ -139,7 +139,7 @@ export function ComparisonSkeleton() {
       </CardHeader>
       <CardContent className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {[0, 1, 2, 3, 4].map((i) => (
-          <div key={i} className="p-3 rounded-xl border space-y-2">
+          <div key={i} className="p-3 rounded-lg border space-y-2">
             <div className="flex items-center justify-between">
               <Skeleton className="h-3 w-20" />
               <Skeleton className="h-4 w-12 rounded-full" />

@@ -273,7 +273,7 @@ export function AccessibleModal({
         className={cn(
           "fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2",
           "w-full max-w-lg max-h-[85vh] overflow-auto",
-          "bg-background border rounded-xl shadow-lg",
+          "bg-background border rounded-lg shadow-lg",
           "p-6",
           className
         )}

@@ -162,13 +162,6 @@ export function useNoveltiesSelectionMode({ selectionMode, filteredProducts }: U
   const firstSelectedId = selectedIds.size > 0 ? Array.from(selectedIds)[0] : "";
   const firstSelectedProduct = filteredProducts.find(p => p.product_id === firstSelectedId);
 
-  /** Volta do BulkAddToCartModal para o wizard preservando seleções. */
-  const handleBackToWizard = useCallback(() => {
-    setCartModalOpen(false);
-    setWizardMode('cart');
-    setVariantWizardOpen(true);
-  }, []);
-
   return {
     selectedIds, selectedCount, toggleSelect, selectAll, clearSelection,
     collectionModalOpen, setCollectionModalOpen,
@@ -176,7 +169,7 @@ export function useNoveltiesSelectionMode({ selectionMode, filteredProducts }: U
     variantWizardOpen, setVariantWizardOpen,
     wizardMode, wizardSelections,
     handleBulkFavorite, handleBulkCompare, handleBulkCollection, handleBulkCart, handleBulkQuote,
-    handleWizardComplete, handleBackToWizard, bulkCartProducts, selectedProducts,
+    handleWizardComplete, bulkCartProducts, selectedProducts,
     firstSelectedId, firstSelectedProduct,
     noveltyToProduct,
   };

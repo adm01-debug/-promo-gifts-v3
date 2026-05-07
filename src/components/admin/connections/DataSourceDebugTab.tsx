@@ -288,11 +288,11 @@ export function DataSourceDebugTab() {
       {/* Header */}
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-start gap-3">
-          <div className="h-10 w-10 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0">
+          <div className="h-10 w-10 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
             <Bug className="h-5 w-5 text-amber-600" aria-hidden="true" />
           </div>
           <div>
-            <h2 className="text-xl font-semibold">Debug de Origem de Dados</h2>
+            <h2 className="text-lg font-semibold">Debug de Origem de Dados</h2>
             <p className="text-sm text-muted-foreground max-w-2xl">
               Compara as duas fontes que alimentam esta tela: <code className="text-xs px-1 py-0.5 rounded bg-muted">integration_credentials</code> (SSOT, valores secretos) e <code className="text-xs px-1 py-0.5 rounded bg-muted">external_connections</code> (espelho operacional, histórico de testes).
             </p>
@@ -408,7 +408,7 @@ export function DataSourceDebugTab() {
                   >
                     <td className="py-2 pr-3">
                       <div className="font-medium">{row.field}</div>
-                      <div className="text-[11px] text-muted-foreground">{row.description}</div>
+                      <div className="text-xs text-muted-foreground">{row.description}</div>
                     </td>
                     <td className="py-2 pr-3">
                       <Badge
@@ -487,9 +487,9 @@ export function DataSourceDebugTab() {
             {secretsLoading ? (
               <Skeleton className="h-32 w-full" />
             ) : secrets.length === 0 ? (
-              <p className="text-[11px] text-muted-foreground">Nenhuma credencial encontrada.</p>
+              <p className="text-xs text-muted-foreground">Nenhuma credencial encontrada.</p>
             ) : filteredSecrets.length === 0 ? (
-              <p className="text-[11px] text-muted-foreground">Nenhum resultado para “{credFilter}”.</p>
+              <p className="text-xs text-muted-foreground">Nenhum resultado para “{credFilter}”.</p>
             ) : (
               <ul className="space-y-1.5 text-xs font-mono">
                 {filteredSecrets.map((s) => (
@@ -548,9 +548,9 @@ export function DataSourceDebugTab() {
             ) : extError ? (
               <p className="text-xs text-destructive">Erro: {extError}</p>
             ) : !extConns || extConns.length === 0 ? (
-              <p className="text-[11px] text-muted-foreground">Nenhuma linha encontrada.</p>
+              <p className="text-xs text-muted-foreground">Nenhuma linha encontrada.</p>
             ) : filteredExtConns.length === 0 ? (
-              <p className="text-[11px] text-muted-foreground">Nenhum resultado para “{extFilter}”.</p>
+              <p className="text-xs text-muted-foreground">Nenhum resultado para “{extFilter}”.</p>
             ) : (
               <ul className="space-y-1.5 text-xs font-mono">
                 {filteredExtConns.map((c) => (

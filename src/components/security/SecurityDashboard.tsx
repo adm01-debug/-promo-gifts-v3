@@ -100,7 +100,7 @@ export function SecurityDashboard() {
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-6">
-              <div className="flex flex-col items-center justify-center p-4 bg-muted rounded-xl">
+              <div className="flex flex-col items-center justify-center p-4 bg-muted rounded-lg">
                 {getScoreIcon(metrics.score)}
                 <span className={`text-3xl font-bold mt-2 ${getScoreColor(metrics.score)}`}>{metrics.score}%</span>
                 <Badge variant={metrics.score >= 60 ? 'default' : 'destructive'} className="mt-1">{getScoreLabel(metrics.score)}</Badge>
@@ -127,7 +127,7 @@ export function SecurityDashboard() {
           <CardHeader className="pb-2"><CardTitle className="text-sm font-medium flex items-center gap-2"><Key className="h-4 w-4" />MFA</CardTitle></CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              {is2FAEnabled ? <><Lock className="h-5 w-5 text-success" /><span className="text-xl font-semibold text-success">Ativo</span></> : <><Unlock className="h-5 w-5 text-destructive" /><span className="text-xl font-semibold text-destructive">Inativo</span></>}
+              {is2FAEnabled ? <><Lock className="h-5 w-5 text-success" /><span className="text-lg font-semibold text-success">Ativo</span></> : <><Unlock className="h-5 w-5 text-destructive" /><span className="text-lg font-semibold text-destructive">Inativo</span></>}
             </div>
             <p className="text-xs text-muted-foreground mt-1">{is2FAEnabled ? 'Proteção extra ativada' : 'Recomendado ativar'}</p>
           </CardContent>
@@ -137,7 +137,7 @@ export function SecurityDashboard() {
           <CardHeader className="pb-2"><CardTitle className="text-sm font-medium flex items-center gap-2"><Bell className="h-4 w-4" />Alertas</CardTitle></CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              {metrics.securityAlerts > 0 ? <><AlertTriangle className="h-5 w-5 text-warning" /><span className="text-xl font-semibold text-warning">{metrics.securityAlerts}</span></> : <><CheckCircle2 className="h-5 w-5 text-success" /><span className="text-xl font-semibold text-success">0</span></>}
+              {metrics.securityAlerts > 0 ? <><AlertTriangle className="h-5 w-5 text-warning" /><span className="text-lg font-semibold text-warning">{metrics.securityAlerts}</span></> : <><CheckCircle2 className="h-5 w-5 text-success" /><span className="text-lg font-semibold text-success">0</span></>}
             </div>
             <p className="text-xs text-muted-foreground mt-1">{metrics.securityAlerts > 0 ? 'Alertas não lidos' : 'Nenhum alerta pendente'}</p>
           </CardContent>
@@ -151,9 +151,9 @@ export function SecurityDashboard() {
           <CardContent>
             <div className="space-y-3">
               {recommendations.map((rec, idx) => (
-                <div key={idx} className="flex items-start gap-3 p-3 rounded-xl bg-background">
+                <div key={idx} className="flex items-start gap-3 p-3 rounded-lg bg-background">
                   <div className={`p-2 rounded-full ${rec.priority === 'high' ? 'bg-destructive/10 text-destructive' : 'bg-orange/10 text-orange'}`}>{rec.icon}</div>
-                  <div className="flex-1"><h4 className="font-medium text-sm">{rec.title}</h4><p className="text-[11px] text-muted-foreground">{rec.description}</p></div>
+                  <div className="flex-1"><h4 className="font-medium text-sm">{rec.title}</h4><p className="text-xs text-muted-foreground">{rec.description}</p></div>
                   <Badge variant={rec.priority === 'high' ? 'destructive' : 'secondary'}>{rec.priority === 'high' ? 'Alta' : 'Média'}</Badge>
                 </div>
               ))}
@@ -183,12 +183,12 @@ export function SecurityDashboard() {
                 <ScrollArea className="h-[300px]">
                   <div className="space-y-3">
                     {loginAttempts.slice(0, 10).map((attempt) => (
-                      <div key={attempt.id} className="flex items-center justify-between p-2 rounded-xl border">
+                      <div key={attempt.id} className="flex items-center justify-between p-2 rounded-lg border">
                         <div className="flex items-center gap-3">
                           {attempt.success ? <CheckCircle2 className="h-4 w-4 text-success" /> : <XCircle className="h-4 w-4 text-destructive" />}
                           <div>
                             <p className="text-sm font-medium">{attempt.ip_address}</p>
-                            <p className="text-[11px] text-muted-foreground">{formatDistanceToNow(new Date(attempt.created_at), { addSuffix: true, locale: ptBR })}</p>
+                            <p className="text-xs text-muted-foreground">{formatDistanceToNow(new Date(attempt.created_at), { addSuffix: true, locale: ptBR })}</p>
                           </div>
                         </div>
                         <Badge variant={attempt.success ? 'default' : 'destructive'}>{attempt.success ? 'Sucesso' : 'Falha'}</Badge>
@@ -206,7 +206,7 @@ export function SecurityDashboard() {
                 <ScrollArea className="h-[300px]">
                   <div className="space-y-3">
                     {notifications.map((notif) => (
-                      <div key={notif.id} className={`p-3 rounded-xl border ${!notif.is_read ? 'bg-primary/5 border-primary/20' : ''}`}>
+                      <div key={notif.id} className={`p-3 rounded-lg border ${!notif.is_read ? 'bg-primary/5 border-primary/20' : ''}`}>
                         <div className="flex items-start gap-3">
                           <AlertTriangle className="h-4 w-4 text-orange mt-0.5" />
                           <div className="flex-1">
@@ -222,7 +222,7 @@ export function SecurityDashboard() {
                       <div className="text-center py-8">
                         <CheckCircle2 className="h-12 w-12 text-success mx-auto mb-2" />
                         <p className="text-sm font-medium">Tudo seguro!</p>
-                        <p className="text-[11px] text-muted-foreground">Nenhum alerta de segurança pendente</p>
+                        <p className="text-xs text-muted-foreground">Nenhum alerta de segurança pendente</p>
                       </div>
                     )}
                   </div>
@@ -249,7 +249,7 @@ export function SecurityDashboard() {
               <ScrollArea className="h-[400px]">
                 <div className="space-y-2">
                   {loginAttempts.map((attempt) => (
-                    <div key={attempt.id} className={`flex items-center justify-between p-3 rounded-xl border ${!attempt.success ? 'border-destructive/20 bg-destructive/5' : ''}`}>
+                    <div key={attempt.id} className={`flex items-center justify-between p-3 rounded-lg border ${!attempt.success ? 'border-destructive/20 bg-destructive/5' : ''}`}>
                       <div className="flex items-center gap-4">
                         {attempt.success ? (
                           <div className="p-2 rounded-full bg-success/10"><CheckCircle2 className="h-4 w-4 text-success" /></div>

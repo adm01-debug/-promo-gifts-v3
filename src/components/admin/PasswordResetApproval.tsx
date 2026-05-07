@@ -88,7 +88,7 @@ export function PasswordResetApproval() {
               {pendingRequests.map((request) => (
                 <div
                   key={request.id}
-                  className="flex items-center justify-between p-4 rounded-xl border border-border bg-card hover:bg-muted/50 transition-colors"
+                  className="flex items-center justify-between p-4 rounded-lg border border-border bg-card hover:bg-muted/50 transition-colors"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
@@ -136,7 +136,7 @@ export function PasswordResetApproval() {
       {processedRequests.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle className="text-xl">Histórico</CardTitle>
+            <CardTitle className="text-lg">Histórico</CardTitle>
             <CardDescription>
               Solicitações já processadas
             </CardDescription>
@@ -146,14 +146,14 @@ export function PasswordResetApproval() {
               {processedRequests.slice(0, 10).map((request) => (
                 <div
                   key={request.id}
-                  className="flex items-center justify-between p-3 rounded-xl border border-border/50 bg-muted/30"
+                  className="flex items-center justify-between p-3 rounded-lg border border-border/50 bg-muted/30"
                 >
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="text-sm">{request.email}</span>
                       {getStatusBadge(request.status)}
                     </div>
-                    <p className="text-[11px] text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       Processado em {request.reviewed_at && format(new Date(request.reviewed_at), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
                     </p>
                     {request.reviewer_notes && (

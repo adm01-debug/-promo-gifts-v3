@@ -108,13 +108,13 @@ export function AnomalyCards() {
     <div className="space-y-3">
       <div className="grid gap-3 md:grid-cols-4">
         {cards.map((c) => (
-          <Card key={c.label} className="border-[1.5px] glass-premium bg-card/40 hover:bg-card/60 transition-colors">
-            <CardContent className="p-4 py-5">
+          <Card key={c.label} className="border-[1.5px]">
+            <CardContent className="p-4">
               <div className="flex items-center justify-between">
-                <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/80">{c.label}</p>
+                <p className="text-xs font-medium text-muted-foreground">{c.label}</p>
                 <div
                   className={cn(
-                    "rounded-xl p-1.5",
+                    "rounded-md p-1.5",
                     c.severity === "high" && "bg-destructive/10 text-destructive",
                     c.severity === "medium" && "bg-warning/10 text-warning",
                     c.severity === "low" && "bg-muted text-muted-foreground"
@@ -132,17 +132,17 @@ export function AnomalyCards() {
               >
                 {stats.loading ? "—" : c.value}
               </p>
-              <p className="mt-1.5 text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground/60">Últimas 24h</p>
+              <p className="mt-1 text-[10px] uppercase tracking-wide text-muted-foreground">Últimas 24h</p>
             </CardContent>
           </Card>
         ))}
       </div>
 
       {showQuickBlock && (
-        <div className="flex items-center justify-between gap-3 rounded-xl border border-warning/40 bg-warning/5 p-3">
+        <div className="flex items-center justify-between gap-3 rounded-lg border border-warning/40 bg-warning/5 p-3">
           <div className="text-sm">
             <p className="font-medium">Atividade suspeita detectada nas últimas 24h</p>
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Identifique o IP nas tabelas abaixo e bloqueie temporariamente.
             </p>
           </div>

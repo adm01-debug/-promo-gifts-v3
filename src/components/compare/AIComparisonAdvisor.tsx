@@ -98,7 +98,7 @@ export function AIComparisonAdvisor({ products }: AIComparisonAdvisorProps) {
   if (products.length < 2) return null;
 
   return (
-    <div className="rounded-xl border-[1.5px] border-accent/40 bg-gradient-to-br from-accent/10 via-background to-background p-4">
+    <div className="rounded-2xl border-[1.5px] border-accent/40 bg-gradient-to-br from-accent/10 via-background to-background p-4">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-accent to-primary shadow-md">
@@ -111,7 +111,7 @@ export function AIComparisonAdvisor({ products }: AIComparisonAdvisorProps) {
                 <Sparkles className="h-2.5 w-2.5" /> Lovable AI
               </Badge>
             </div>
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Análise contextual da sua comparação
             </p>
           </div>
@@ -171,7 +171,7 @@ export function AIComparisonAdvisor({ products }: AIComparisonAdvisorProps) {
 
 function BestForCard({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl border bg-card p-2.5">
+    <div className="rounded-lg border bg-card p-2.5">
       <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-medium">
         {label}
       </p>

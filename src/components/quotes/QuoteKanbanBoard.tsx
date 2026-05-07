@@ -169,7 +169,7 @@ function QuoteCard({ quote, isDragging }: QuoteCardProps) {
         </div>
 
         {quote.valid_until && (
-          <div className="text-[11px] text-muted-foreground">
+          <div className="text-xs text-muted-foreground">
             Válido até: {format(new Date(quote.valid_until), "dd/MM/yyyy", { locale: ptBR })}
           </div>
         )}
@@ -235,7 +235,7 @@ function KanbanColumn({ column, quotes, totalValue }: KanbanColumnProps) {
               {quotes.length}
             </Badge>
           </div>
-          <div className="text-[11px] text-muted-foreground">
+          <div className="text-xs text-muted-foreground">
             {formatCurrency(totalValue)}
           </div>
         </CardHeader>
@@ -251,7 +251,7 @@ function KanbanColumn({ column, quotes, totalValue }: KanbanColumnProps) {
               <SortableQuoteCard key={quote.id} quote={quote} />
             ))}
             {quotes.length === 0 && (
-              <div className="text-center text-muted-foreground text-sm py-8 border border-dashed border-border/50 rounded-xl">
+              <div className="text-center text-muted-foreground text-sm py-8 border border-dashed border-border/50 rounded-lg">
                 Nenhum orçamento
               </div>
             )}

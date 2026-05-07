@@ -145,7 +145,7 @@ export function StockBadge({
 
   return (
     <TooltipProvider>
-      <Tooltip >
+      <Tooltip delayDuration={200}>
         <TooltipTrigger asChild>
           <Badge
             variant="outline"
@@ -176,7 +176,7 @@ export function StockBadge({
               Estoque: {stockInfo.available} disponíveis
             </p>
             {stockInfo.reserved > 0 && (
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {stockInfo.reserved} unidades reservadas
               </p>
             )}

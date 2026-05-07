@@ -199,7 +199,7 @@ export function ClientCategoryRadar({ clientId, ramoAtividade, clientName }: Pro
                 <h2 className="font-display font-bold text-base sm:text-lg leading-tight">
                   Mapa de Categorias — {clientName || "este cliente"}
                 </h2>
-                <TooltipProvider >
+                <TooltipProvider delayDuration={150}>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <button
@@ -395,7 +395,7 @@ export function ClientCategoryRadar({ clientId, ramoAtividade, clientName }: Pro
                               {row.clientCat.topProducts.slice(0, 3).map((p, i) => (
                                 <div
                                   key={`${p.productId ?? i}`}
-                                  className="p-2 rounded-xl bg-muted/40 border text-xs"
+                                  className="p-2 rounded-md bg-muted/40 border text-xs"
                                 >
                                   <div className="font-medium line-clamp-2 leading-tight min-h-[2rem]">
                                     {p.productName}
@@ -423,7 +423,7 @@ export function ClientCategoryRadar({ clientId, ramoAtividade, clientName }: Pro
                               {row.industryCat.topProducts.slice(0, 3).map((p, i) => (
                                 <div
                                   key={`${p.productId ?? i}-ind`}
-                                  className="p-2 rounded-xl bg-violet-500/5 border border-violet-500/20 text-xs"
+                                  className="p-2 rounded-md bg-violet-500/5 border border-violet-500/20 text-xs"
                                 >
                                   <div className="font-medium line-clamp-2 leading-tight min-h-[2rem]">
                                     {p.productName}

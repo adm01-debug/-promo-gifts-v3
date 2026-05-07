@@ -152,7 +152,7 @@ export function FailedDeliveriesPanel() {
                       )}
                     </TableCell>
                     <TableCell className="text-xs">{d.attempt}</TableCell>
-                    <TableCell className="text-[11px] text-muted-foreground">
+                    <TableCell className="text-xs text-muted-foreground">
                       {formatDistanceToNow(new Date(d.delivered_at), { locale: ptBR, addSuffix: true })}
                     </TableCell>
                     <TableCell className="text-right">

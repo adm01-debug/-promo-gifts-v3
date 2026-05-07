@@ -81,7 +81,7 @@ export function MagicUpResultPanel({ m }: MagicUpResultPanelProps) {
           >
             <ChevronLeft className="h-4 w-4" />
           </Button>
-          <TooltipProvider >
+          <TooltipProvider delayDuration={300}>
             <div
               className="flex gap-3 items-center justify-center flex-wrap"
               role="tablist"

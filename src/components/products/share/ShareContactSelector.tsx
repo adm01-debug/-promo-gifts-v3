@@ -152,12 +152,12 @@ export function ShareContactSelector({ onSelect, selection }: ShareContactSelect
     return (
       <div className="space-y-2">
         {/* Company badge */}
-        <div className="flex items-center gap-2 p-2 rounded-xl bg-secondary/50 border border-border">
+        <div className="flex items-center gap-2 p-2 rounded-lg bg-secondary/50 border border-border">
           <Building2 className="h-4 w-4 text-muted-foreground shrink-0" />
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium truncate">{selectedCompany.name}</p>
             {selectedCompany.cnpj && (
-              <p className="text-[11px] text-muted-foreground">{selectedCompany.cnpj}</p>
+              <p className="text-xs text-muted-foreground">{selectedCompany.cnpj}</p>
             )}
           </div>
           <button type="button" onClick={handleClear} className="text-muted-foreground hover:text-foreground" aria-label="Fechar">
@@ -181,7 +181,7 @@ export function ShareContactSelector({ onSelect, selection }: ShareContactSelect
                     type="button"
                     onClick={() => handleSelectContact(contact)}
                     className={cn(
-                      "w-full flex items-center gap-2 p-2 rounded-xl text-left text-sm transition-colors",
+                      "w-full flex items-center gap-2 p-2 rounded-md text-left text-sm transition-colors",
                       isSelected ? "bg-primary/10 border border-primary/30" : "hover:bg-accent"
                     )}
                   >
@@ -235,7 +235,7 @@ export function ShareContactSelector({ onSelect, selection }: ShareContactSelect
       </div>
 
       {showDropdown && debouncedSearch.length >= 2 && (
-        <div className="absolute z-50 w-full mt-1 rounded-xl border bg-popover shadow-md">
+        <div className="absolute z-50 w-full mt-1 rounded-md border bg-popover shadow-md">
           {loadingCompanies ? (
             <div className="flex items-center gap-2 p-3 text-sm text-muted-foreground">
               <Loader2 className="h-3.5 w-3.5 animate-spin" /> Buscando...
@@ -252,7 +252,7 @@ export function ShareContactSelector({ onSelect, selection }: ShareContactSelect
                   <Building2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="font-medium truncate">{c.name}</p>
-                    {c.cnpj && <p className="text-[11px] text-muted-foreground">{c.cnpj}</p>}
+                    {c.cnpj && <p className="text-xs text-muted-foreground">{c.cnpj}</p>}
                   </div>
                 </button>
               ))}

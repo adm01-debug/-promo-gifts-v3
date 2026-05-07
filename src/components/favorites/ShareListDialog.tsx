@@ -68,7 +68,7 @@ export function ShareListDialog({ open, onOpenChange, list, onShare, onRevoke }:
               </div>
             </div>
             {list.shared_expires_at && (
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 Expira em {new Date(list.shared_expires_at).toLocaleDateString("pt-BR")}
               </p>
             )}

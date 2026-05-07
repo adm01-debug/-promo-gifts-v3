@@ -147,7 +147,7 @@ export default function RlsDenialsAdminPage() {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           <Card><CardContent className="p-4">
             <p className="text-xs text-muted-foreground">Total na janela</p>
-            <p className="text-xl font-bold">{stats.total}</p>
+            <p className="text-2xl font-bold">{stats.total}</p>
           </CardContent></Card>
           <Card><CardContent className="p-4">
             <p className="text-xs text-muted-foreground">Últimas 24h</p>
@@ -155,11 +155,11 @@ export default function RlsDenialsAdminPage() {
           </CardContent></Card>
           <Card><CardContent className="p-4">
             <p className="text-xs text-muted-foreground">Tabelas distintas</p>
-            <p className="text-xl font-bold">{stats.topTables.length}</p>
+            <p className="text-2xl font-bold">{stats.topTables.length}</p>
           </CardContent></Card>
           <Card><CardContent className="p-4">
             <p className="text-xs text-muted-foreground">Usuários distintos</p>
-            <p className="text-xl font-bold">{stats.topUsers.length}</p>
+            <p className="text-2xl font-bold">{stats.topUsers.length}</p>
           </CardContent></Card>
         </div>
 

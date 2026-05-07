@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Dialog,
   DialogContent,
@@ -55,17 +54,10 @@ export function SaveAsTemplateButton({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         {trigger || (
-          <TooltipProvider >
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <BookmarkPlus className="h-4 w-4 mr-2" />
-                  Salvar como Template
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Transformar este orçamento em um modelo para uso futuro</TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Button variant="outline" size="sm">
+            <BookmarkPlus className="h-4 w-4 mr-2" />
+            Salvar como Template
+          </Button>
         )}
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">

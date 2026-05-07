@@ -205,7 +205,7 @@ export function SecretsManagerHealthPanel({ className }: { className?: string })
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-2">
-            <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center">
+            <div className="h-9 w-9 rounded-md bg-primary/10 flex items-center justify-center">
               <Activity className="h-4 w-4 text-primary" aria-hidden="true" />
             </div>
             <div>
@@ -227,7 +227,7 @@ export function SecretsManagerHealthPanel({ className }: { className?: string })
 
       <CardContent className="space-y-4">
         {/* Linha de status do boot */}
-        <div className="flex items-center gap-3 flex-wrap rounded-xl border bg-muted/20 px-3 py-2">
+        <div className="flex items-center gap-3 flex-wrap rounded-lg border bg-muted/20 px-3 py-2">
           <Badge
             variant="outline"
             className={`text-[10px] font-mono uppercase ${bootBadge.cls}`}
@@ -315,7 +315,7 @@ function SampleRow({ sample }: { sample: SecretsManagerCallSample }) {
     : "border-destructive/40 bg-destructive/5";
   return (
     <li
-      className={`flex items-center gap-2 rounded-xl border ${tone} px-2 py-1.5 text-xs flex-wrap`}
+      className={`flex items-center gap-2 rounded-md border ${tone} px-2 py-1.5 text-xs flex-wrap`}
     >
       <Badge
         variant="outline"

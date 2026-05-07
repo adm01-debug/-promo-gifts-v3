@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { WifiOff, X } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipTrigger, TooltipContent } from '@/components/ui/tooltip';
 
 /**
  * Global component to detect and display browser-level offline status.
@@ -37,7 +36,7 @@ export function GlobalOfflineAlert() {
         exit={{ y: 50, opacity: 0 }}
         className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[100] w-[calc(100%-2rem)] max-w-md"
       >
-        <div className="bg-destructive text-destructive-foreground p-4 rounded-xl shadow-2xl border border-white/10 flex items-center gap-4">
+        <div className="bg-destructive text-destructive-foreground p-4 rounded-2xl shadow-2xl border border-white/10 flex items-center gap-4">
           <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
             <WifiOff className="h-5 w-5" />
           </div>
@@ -45,20 +44,15 @@ export function GlobalOfflineAlert() {
             <p className="font-semibold text-sm">Você está offline</p>
             <p className="text-xs opacity-90 truncate">Algumas funcionalidades podem não estar disponíveis.</p>
           </div>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button 
-                size="icon" 
-                variant="ghost" 
-                className="h-8 w-8 text-white hover:bg-white/10 rounded-full"
-                onClick={() => setDismissed(true)}
-                aria-label="Dispensar aviso de offline"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Dispensar alerta</TooltipContent>
-          </Tooltip>
+          <Button 
+            size="icon" 
+            variant="ghost" 
+            className="h-8 w-8 text-white hover:bg-white/10 rounded-full"
+            onClick={() => setDismissed(true)}
+            aria-label="Dispensar aviso de offline"
+          >
+            <X className="h-4 w-4" />
+          </Button>
         </div>
       </motion.div>
     </AnimatePresence>

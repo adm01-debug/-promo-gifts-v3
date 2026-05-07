@@ -90,7 +90,7 @@ export function SalesHistoryChart({ productId, productSku, productName }: SalesH
           <div className="flex flex-col items-center justify-center py-6 gap-2 text-center">
             <ShoppingCart className="h-6 w-6 text-destructive" />
             <p className="text-sm font-medium text-destructive">Erro ao carregar dados de vendas</p>
-            <p className="text-[11px] text-muted-foreground">Tente novamente em alguns instantes</p>
+            <p className="text-xs text-muted-foreground">Tente novamente em alguns instantes</p>
             <Button variant="outline" size="sm" onClick={() => refetch()} className="gap-1.5 mt-1">
               <RefreshCw className="h-3.5 w-3.5" />
               Tentar novamente
@@ -301,7 +301,7 @@ function SellerRow({ seller, rank }: { seller: SellerRanking; rank: number }) {
     .toUpperCase() || '??';
 
   return (
-    <div className="flex items-center gap-2 text-xs p-1.5 rounded-xl hover:bg-muted/50 transition-colors">
+    <div className="flex items-center gap-2 text-xs p-1.5 rounded-md hover:bg-muted/50 transition-colors">
       <span className={cn(
         "w-4 text-center font-bold",
         rank === 1 ? "text-warning" : "text-muted-foreground"
@@ -335,7 +335,7 @@ function SalesTooltip({ active, payload }: any) {
   const hasAnyActivity = (data.quotedQty > 0) || (data.orderedQty > 0) || (data.quoteCount > 0) || (data.orderCount > 0);
 
   return (
-    <div className="bg-popover border border-border rounded-xl p-3 shadow-lg min-w-[180px]">
+    <div className="bg-popover border border-border rounded-lg p-3 shadow-lg min-w-[180px]">
       <p className="text-xs font-medium text-foreground">{data.fullDate}</p>
       <div className="mt-2 space-y-1.5">
         {!hasAnyActivity && (

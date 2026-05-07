@@ -159,7 +159,7 @@ export function MarketIntelligenceChart({ days: defaultDays = 30, supplierId, pr
         <CardContent className="flex flex-col items-center justify-center py-8 gap-2 text-center">
           <AlertCircle className="h-6 w-6 text-destructive" />
           <p className="text-sm text-destructive">Erro ao carregar dados de mercado</p>
-          <p className="text-[11px] text-muted-foreground">Verifique a conexão e tente novamente</p>
+          <p className="text-xs text-muted-foreground">Verifique a conexão e tente novamente</p>
         </CardContent>
       </Card>
     );
@@ -288,7 +288,7 @@ export function MarketIntelligenceChart({ days: defaultDays = 30, supplierId, pr
 
         {/* Insight */}
         {kpis?.topDepletionDay && (
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             📊 Pico de saídas: <span className="font-medium text-foreground">{kpis.topDepletionDay.value.toLocaleString('pt-BR')} un</span> em{' '}
             {new Date(kpis.topDepletionDay.date + 'T00:00:00').toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })}
             {isDemo && ' (demo)'}
@@ -325,7 +325,7 @@ function MacroSupplierComparison({ suppliers, supplierNames }: { suppliers: Macr
             <div
               key={s.supplierId}
               className={cn(
-                "flex flex-col gap-1 p-2 rounded-xl bg-muted/40 border-l-2",
+                "flex flex-col gap-1 p-2 rounded-md bg-muted/40 border-l-2",
                 COLORS[idx % COLORS.length]
               )}
             >
@@ -388,7 +388,7 @@ function MarketMacroTooltip({ active, payload }: any) {
   if (!data) return null;
 
   return (
-    <div className="bg-popover border border-border rounded-xl p-3 shadow-lg min-w-[180px]">
+    <div className="bg-popover border border-border rounded-lg p-3 shadow-lg min-w-[180px]">
       <p className="text-xs font-medium text-foreground">{data.fullDate}</p>
       <div className="mt-2 space-y-1.5">
         {data.stockClose > 0 && (

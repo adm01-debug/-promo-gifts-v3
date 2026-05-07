@@ -79,7 +79,7 @@ export const SocialLoginButtons = forwardRef<HTMLDivElement, SocialLoginButtonsP
       <Button
         type="button"
         variant="outline"
-        className="w-full h-12 gap-3 font-bold uppercase tracking-widest border-border/60 bg-background hover:bg-muted/50 transition-all shadow-sm"
+        className="w-full h-11 gap-3 font-medium border-border/60 hover:border-border hover:bg-muted/50 transition-all"
         onClick={handleGoogleLogin}
         disabled={!!isLoading}
       >
@@ -93,7 +93,7 @@ export const SocialLoginButtons = forwardRef<HTMLDivElement, SocialLoginButtonsP
             <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
           </svg>
         )}
-        CONTINUAR COM GOOGLE
+        Continuar com Google
       </Button>
     </div>
   );

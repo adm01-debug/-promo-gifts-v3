@@ -20,7 +20,7 @@ export function Skeleton({ className, animate = true }: SkeletonProps) {
   return (
     <div 
       className={cn(
-        "relative overflow-hidden rounded-xl bg-muted",
+        "relative overflow-hidden rounded-md bg-muted",
         className
       )}
     >
@@ -92,14 +92,14 @@ export function QuoteCardSkeleton() {
       {/* Items preview */}
       <div className="flex gap-2">
         {[1, 2, 3].map((i) => (
-          <Skeleton key={i} className="h-12 w-12 rounded-xl" />
+          <Skeleton key={i} className="h-12 w-12 rounded-lg" />
         ))}
       </div>
       
       {/* Footer */}
       <div className="flex items-center justify-between pt-2 border-t border-border">
         <Skeleton className="h-6 w-24" />
-        <Skeleton className="h-8 w-20 rounded-xl" />
+        <Skeleton className="h-8 w-20 rounded-lg" />
       </div>
     </div>
   );
@@ -155,7 +155,7 @@ export function StatCardSkeleton() {
     <div className="rounded-xl border border-border bg-card p-4 space-y-3">
       <div className="flex items-center justify-between">
         <Skeleton className="h-4 w-24" />
-        <Skeleton className="h-8 w-8 rounded-xl" />
+        <Skeleton className="h-8 w-8 rounded-lg" />
       </div>
       <Skeleton className="h-8 w-20" />
       <Skeleton className="h-3 w-32" />
@@ -233,11 +233,11 @@ export function DashboardSkeleton() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="rounded-xl border border-border bg-card p-4">
           <Skeleton className="h-6 w-40 mb-4" />
-          <Skeleton className="h-64 w-full rounded-xl" />
+          <Skeleton className="h-64 w-full rounded-lg" />
         </div>
         <div className="rounded-xl border border-border bg-card p-4">
           <Skeleton className="h-6 w-40 mb-4" />
-          <Skeleton className="h-64 w-full rounded-xl" />
+          <Skeleton className="h-64 w-full rounded-lg" />
         </div>
       </div>
       

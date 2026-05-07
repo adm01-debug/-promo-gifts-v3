@@ -169,7 +169,7 @@ function ItemPersonalizationCard({
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-secondary overflow-hidden flex-shrink-0">
+              <div className="w-10 h-10 rounded-md bg-secondary overflow-hidden flex-shrink-0">
                 {imageUrl ? (
                   
 <img src={imageUrl} alt={displayName} className="w-full h-full object-cover"  loading="lazy" />
@@ -232,7 +232,7 @@ function ItemPersonalizationCard({
               <div className="space-y-2">
                 <Label>Técnica de Gravação</Label>
                 {loadingTechniques ? (
-                  <div className="flex items-center gap-2 h-10 px-3 border rounded-xl bg-secondary/50">
+                  <div className="flex items-center gap-2 h-10 px-3 border rounded-md bg-secondary/50">
                     <Loader2 className="h-4 w-4 animate-spin" />
                     <span className="text-sm text-muted-foreground">Carregando...</span>
                   </div>
@@ -282,7 +282,7 @@ function ItemPersonalizationCard({
             {currentTech?.usa_dimensao && (
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Largura (cm) <span className="text-[11px] text-muted-foreground">máx {currentTech.efetiva_largura_max}</span></Label>
+                  <Label>Largura (cm) <span className="text-xs text-muted-foreground">máx {currentTech.efetiva_largura_max}</span></Label>
                   <Input
                     type="number"
                     step="0.1"
@@ -296,7 +296,7 @@ function ItemPersonalizationCard({
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Altura (cm) <span className="text-[11px] text-muted-foreground">máx {currentTech.efetiva_altura_max}</span></Label>
+                  <Label>Altura (cm) <span className="text-xs text-muted-foreground">máx {currentTech.efetiva_altura_max}</span></Label>
                   <Input
                     type="number"
                     step="0.1"
@@ -314,7 +314,7 @@ function ItemPersonalizationCard({
 
             {/* Preço detalhado */}
             {priceData?.success && (
-              <div className="bg-secondary/50 rounded-xl p-3 space-y-1 text-sm">
+              <div className="bg-secondary/50 rounded-lg p-3 space-y-1 text-sm">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Preço unitário</span>
                   <span>{formatCurrency(priceData.preco_unitario)}</span>
@@ -382,11 +382,11 @@ export function PersonalizationConfig({
 
       {/* Alerta de quantidade mínima */}
       {kitQuantity < 50 && totalPersonalizations > 0 && (
-        <div className="flex items-center gap-2.5 text-sm bg-warning/10 border border-warning/20 rounded-xl p-3">
+        <div className="flex items-center gap-2.5 text-sm bg-warning/10 border border-warning/20 rounded-lg p-3">
           <AlertTriangle className="h-4 w-4 text-warning flex-shrink-0" />
           <div>
             <p className="font-medium text-warning">Quantidade baixa para personalização</p>
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               A maioria das técnicas de gravação exige lote mínimo de 50 unidades.
               Com {kitQuantity} {kitQuantity === 1 ? 'kit' : 'kits'}, o custo por unidade pode ser significativamente maior.
             </p>

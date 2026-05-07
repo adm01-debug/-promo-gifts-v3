@@ -102,7 +102,7 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
     <div className="max-w-5xl mx-auto space-y-8">
       {/* Header */}
       <div className="flex items-center gap-4">
-        <div className="p-3 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5">
+        <div className="p-3 rounded-2xl bg-gradient-to-br from-primary/20 to-primary/5">
           <SlidersHorizontal className="h-6 w-6 text-primary" />
         </div>
         <div>
@@ -210,7 +210,7 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
                   <Button
                     variant="outline"
                     size="icon"
-                    className="h-7 w-7 rounded-xl"
+                    className="h-7 w-7 rounded-lg"
                     onClick={() => wizard.updateSpecs({ width: Math.max(0.5, engravingSpecs.width - 0.5) })}
                     disabled={engravingSpecs.width <= 0.5}
                     aria-label="Diminuir largura"
@@ -227,12 +227,12 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
                     min={0.5}
                     max={maxWidth}
                     step={0.5}
-                    className="w-20 h-7 text-center text-sm font-bold rounded-xl"
+                    className="w-20 h-7 text-center text-sm font-bold rounded-lg"
                   />
                   <Button
                     variant="outline"
                     size="icon"
-                    className="h-7 w-7 rounded-xl"
+                    className="h-7 w-7 rounded-lg"
                     onClick={() => wizard.updateSpecs({ width: Math.min(maxWidth, engravingSpecs.width + 0.5) })}
                     disabled={engravingSpecs.width >= maxWidth}
                     aria-label="Aumentar largura"
@@ -260,7 +260,7 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
                   <Button
                     variant="outline"
                     size="icon"
-                    className="h-7 w-7 rounded-xl"
+                    className="h-7 w-7 rounded-lg"
                     onClick={() => wizard.updateSpecs({ height: Math.max(0.5, engravingSpecs.height - 0.5) })}
                     disabled={engravingSpecs.height <= 0.5}
                     aria-label="Diminuir altura"
@@ -277,12 +277,12 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
                     min={0.5}
                     max={maxHeight}
                     step={0.5}
-                    className="w-20 h-7 text-center text-sm font-bold rounded-xl"
+                    className="w-20 h-7 text-center text-sm font-bold rounded-lg"
                   />
                   <Button
                     variant="outline"
                     size="icon"
-                    className="h-7 w-7 rounded-xl"
+                    className="h-7 w-7 rounded-lg"
                     onClick={() => wizard.updateSpecs({ height: Math.min(maxHeight, engravingSpecs.height + 0.5) })}
                     disabled={engravingSpecs.height >= maxHeight}
                     aria-label="Aumentar altura"
@@ -315,7 +315,7 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
 
             {/* Area */}
             <div className={cn(
-              'p-4 rounded-xl border transition-colors',
+              'p-4 rounded-2xl border transition-colors',
               areaExceeded ? 'bg-warning/10 border-warning' : 'bg-muted/50'
             )}>
               <div className="flex items-center justify-between">
@@ -352,7 +352,7 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-4 rounded-xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20"
+          className="p-4 rounded-2xl bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20"
         >
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -379,7 +379,7 @@ export function StepSpecs({ wizard }: StepSpecsProps) {
                 <p className="font-bold text-primary">
                   {formatCurrency(estimate.totalPrice)}
                 </p>
-                <p className="text-[11px] text-muted-foreground">total gravação</p>
+                <p className="text-xs text-muted-foreground">total gravação</p>
               </div>
             )}
           </div>

@@ -32,12 +32,12 @@ export function ClientAffinityProducts({ clientId }: Props) {
       <CardContent className="p-5 space-y-4">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center">
+            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
               <Heart className="h-4 w-4 text-primary" />
             </div>
             <div>
               <h2 className="font-display font-semibold">Produtos das categorias favoritas</h2>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {data?.isMock
                   ? "Categorias preferidas + sugestões dentro de cada uma"
                   : `Baseado em ${data?.realProductsCount} produtos já orçados · agrupados por categoria`}

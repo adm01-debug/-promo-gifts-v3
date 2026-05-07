@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
+import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,18 +21,18 @@ export default function ClientDetailPage() {
 
   if (loadingClient) {
     return (
-      <>
+      <MainLayout>
         <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-4">
           <Skeleton className="h-20" />
           <Skeleton className="h-24" />
         </div>
-      </>
+      </MainLayout>
     );
   }
 
   if (!client) {
     return (
-      <>
+      <MainLayout>
         <div className="w-full max-w-[1920px] mx-auto px-4 py-8">
           <Card>
             <CardContent className="py-16 text-center text-muted-foreground">
@@ -39,7 +40,7 @@ export default function ClientDetailPage() {
             </CardContent>
           </Card>
         </div>
-      </>
+      </MainLayout>
     );
   }
 
@@ -48,7 +49,7 @@ export default function ClientDetailPage() {
     new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(n);
 
   return (
-    <>
+    <MainLayout>
       <PageSEO
         title={`${name} | Clientes`}
         description={`Visão 360° de ${name}: histórico de pedidos, LTV e produtos mais comprados.`}
@@ -125,6 +126,6 @@ export default function ClientDetailPage() {
           </Card>
         </div>
       </div>
-    </>
+    </MainLayout>
   );
 }

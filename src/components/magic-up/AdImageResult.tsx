@@ -159,7 +159,7 @@ export function AdImageResult({
                 role="button"
                 tabIndex={0}
                 key={item.id}
-                className="relative group rounded-xl overflow-hidden border cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="relative group rounded-lg overflow-hidden border cursor-pointer hover:ring-2 hover:ring-primary/30 transition-all text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 onClick={() => onSelectHistory?.(item)}
                 onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); onSelectHistory?.(item); } }}
                 aria-label={`Selecionar histórico ${item.product_name}`}
@@ -302,14 +302,14 @@ export function AdImageResult({
               </>
             )}
             {copyPack && (
-              <div className="rounded-xl border bg-muted/30 p-3 space-y-2">
+              <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
                 <div className="flex items-center justify-between">
                   <p className="text-sm font-semibold">Copy comercial</p>
                   <Button size="sm" variant="ghost" className="h-7 gap-1 text-xs" onClick={() => navigator.clipboard?.writeText(copyPack.whatsapp)}>
                     <Copy className="h-3.5 w-3.5" /> Copiar WhatsApp
                   </Button>
                 </div>
-                <p className="text-[11px] text-muted-foreground">{copyPack.whatsapp}</p>
+                <p className="text-xs text-muted-foreground">{copyPack.whatsapp}</p>
               </div>
             )}
           </div>

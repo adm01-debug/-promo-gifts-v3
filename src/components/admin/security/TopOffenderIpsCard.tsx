@@ -80,7 +80,7 @@ export function TopOffenderIpsCard() {
       </CardHeader>
       <CardContent className="pt-0">
         {!loading && rows.length === 0 && (
-          <p className="text-[11px] text-muted-foreground">Nenhuma atividade ofensiva nas últimas 24h.</p>
+          <p className="text-xs text-muted-foreground">Nenhuma atividade ofensiva nas últimas 24h.</p>
         )}
         {rows.length > 0 && (
           <div className="space-y-1.5">
@@ -88,7 +88,7 @@ export function TopOffenderIpsCard() {
               <div
                 key={r.ip}
                 className={cn(
-                  "flex items-center justify-between gap-2 rounded-xl border px-2.5 py-1.5 text-xs",
+                  "flex items-center justify-between gap-2 rounded-md border px-2.5 py-1.5 text-xs",
                   r.total >= 20 && "border-destructive/40 bg-destructive/5",
                   r.total >= 10 && r.total < 20 && "border-warning/40 bg-warning/5"
                 )}

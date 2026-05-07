@@ -157,9 +157,9 @@ export function MockupHistoryPanel({
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-muted/30 rounded-xl">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-4 bg-muted/30 rounded-lg">
           <div className="space-y-1.5">
-            <Label className="text-[11px] text-muted-foreground">Cliente</Label>
+            <Label className="text-xs text-muted-foreground">Cliente</Label>
             <Select value={filterClient} onValueChange={(v) => { setFilterClient(v); setCurrentPage(1); }}>
               <SelectTrigger className="h-9"><SelectValue placeholder="Todos" /></SelectTrigger>
               <SelectContent>
@@ -170,12 +170,12 @@ export function MockupHistoryPanel({
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label className="text-[11px] text-muted-foreground">Produto</Label>
+            <Label className="text-xs text-muted-foreground">Produto</Label>
             <Input placeholder="Buscar por nome ou SKU..." value={filterProduct}
               onChange={(e) => { setFilterProduct(e.target.value); setCurrentPage(1); }} className="h-9" />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-[11px] text-muted-foreground">Técnica</Label>
+            <Label className="text-xs text-muted-foreground">Técnica</Label>
             <Select value={filterTechnique} onValueChange={(v) => { setFilterTechnique(v); setCurrentPage(1); }}>
               <SelectTrigger className="h-9"><SelectValue placeholder="Todas" /></SelectTrigger>
               <SelectContent>
@@ -290,7 +290,7 @@ const MockupGridCard = memo(({ mockup, isCompareSelected, onToggleCompare, onOpe
     <div className={cn("group relative border border-border/30 rounded-xl overflow-hidden hover:ring-2 hover:ring-primary/30 hover:shadow-lg transition-all duration-300 bg-card",
       isCompareSelected && "ring-2 ring-primary shadow-lg")}>
       <div className="absolute top-2 left-2 z-10">
-        <div className={cn("flex items-center justify-center w-6 h-6 rounded-xl border-2 bg-background/80 backdrop-blur-sm cursor-pointer transition-all",
+        <div className={cn("flex items-center justify-center w-6 h-6 rounded-md border-2 bg-background/80 backdrop-blur-sm cursor-pointer transition-all",
           isCompareSelected ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/30 opacity-0 group-hover:opacity-100")}
           onClick={(e) => { e.stopPropagation(); onToggleCompare(mockup.id); }}>
           {isCompareSelected && <span className="text-xs font-bold">✓</span>}
@@ -307,7 +307,7 @@ const MockupGridCard = memo(({ mockup, isCompareSelected, onToggleCompare, onOpe
       </div>
       <div className="p-3 space-y-1.5 border-t bg-gradient-to-t from-muted/50 to-transparent">
         <Tooltip><TooltipTrigger asChild><span className="font-medium text-sm truncate cursor-default block">{mockup.product_name}</span></TooltipTrigger>
-          <TooltipContent><p>{mockup.product_name}</p>{mockup.product_sku && <p className="text-[11px] text-muted-foreground">SKU: {mockup.product_sku}</p>}</TooltipContent></Tooltip>
+          <TooltipContent><p>{mockup.product_name}</p>{mockup.product_sku && <p className="text-xs text-muted-foreground">SKU: {mockup.product_sku}</p>}</TooltipContent></Tooltip>
         {mockup.product_sku && <span className="text-[10px] text-muted-foreground font-mono">{mockup.product_sku}</span>}
         <div className="flex flex-wrap items-center gap-1">
           <Badge variant="secondary" className="text-[10px] px-1.5 py-0">{mockup.technique_name}</Badge>
@@ -340,14 +340,14 @@ const MockupListRow = memo(({ mockup, isCompareSelected, onToggleCompare, onLoad
   onDownload: (url: string) => void; onDelete: (id: string) => void;
 }) => {
   return (
-    <div className={cn("group flex items-center gap-4 p-3 border border-border/30 rounded-xl hover:ring-2 hover:ring-primary/30 hover:shadow-md transition-all duration-200 bg-card",
+    <div className={cn("group flex items-center gap-4 p-3 border border-border/30 rounded-lg hover:ring-2 hover:ring-primary/30 hover:shadow-md transition-all duration-200 bg-card",
       isCompareSelected && "ring-2 ring-primary shadow-lg")}>
       <div className={cn("flex-shrink-0 flex items-center justify-center w-5 h-5 rounded border-2 cursor-pointer transition-all",
         isCompareSelected ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/30")}
         onClick={(e) => { e.stopPropagation(); onToggleCompare(mockup.id); }}>
         {isCompareSelected && <span className="text-[10px] font-bold">✓</span>}
       </div>
-      <div className="flex-shrink-0 w-16 h-20 rounded-xl bg-muted/30 overflow-hidden border">
+      <div className="flex-shrink-0 w-16 h-20 rounded-md bg-muted/30 overflow-hidden border">
         <img src={mockup.layout_url || mockup.mockup_url} alt={mockup.product_name} className="w-full h-full object-contain" loading="lazy" />
       </div>
       <div className="flex-1 min-w-0 space-y-1">

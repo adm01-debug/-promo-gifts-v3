@@ -5,7 +5,7 @@
 import { motion } from "framer-motion";
 import { Flame, Zap, Package, Rocket, AlertTriangle, Sparkles, Star, Tag } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import type { IntelligenceBadge, IntelligenceBadgeType } from "@/hooks/useProductIntelligenceBadges";
 
@@ -63,7 +63,6 @@ export function IntelligenceBadges({ badges, turnoverScore, isDemo, className }:
 
   return (
     <div className={cn("flex flex-wrap items-center gap-2", className)}>
-      <TooltipProvider >
       {badges.map((badge, i) => {
         const config = badgeConfig[badge.type];
         const Icon = config.icon;
@@ -89,8 +88,8 @@ export function IntelligenceBadges({ badges, turnoverScore, isDemo, className }:
                 </Badge>
               </motion.div>
             </TooltipTrigger>
-            <TooltipContent side="bottom" className="max-w-[220px] text-center bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-              <p>{badge.tooltip}</p>
+            <TooltipContent side="bottom" className="max-w-[220px] text-center">
+              <p className="text-xs">{badge.tooltip}</p>
             </TooltipContent>
           </Tooltip>
         );
@@ -109,8 +108,8 @@ export function IntelligenceBadges({ badges, turnoverScore, isDemo, className }:
               </Badge>
             </motion.div>
           </TooltipTrigger>
-          <TooltipContent side="bottom" className="max-w-[200px] text-center bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-            <p>
+          <TooltipContent side="bottom" className="max-w-[200px] text-center">
+            <p className="text-xs">
               {turnoverScore >= 80 ? 'Alto potencial comercial' :
                turnoverScore >= 50 ? 'Bom potencial comercial' :
                turnoverScore >= 20 ? 'Potencial moderado' : 'Potencial baixo'}
@@ -118,7 +117,6 @@ export function IntelligenceBadges({ badges, turnoverScore, isDemo, className }:
           </TooltipContent>
         </Tooltip>
       )}
-      </TooltipProvider>
 
       {isDemo && (
         <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-muted-foreground border-border">

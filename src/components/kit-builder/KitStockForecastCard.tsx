@@ -25,7 +25,7 @@ export function KitStockForecastCard({ items, kitQuantity }: Props) {
           <CheckCircle2 className="h-5 w-5 text-success" />
           <div className="text-sm">
             <p className="font-medium text-success">Estoque suficiente para fechamento imediato</p>
-            <p className="text-[11px] text-muted-foreground">Todos os itens disponíveis na quantidade necessária.</p>
+            <p className="text-xs text-muted-foreground">Todos os itens disponíveis na quantidade necessária.</p>
           </div>
         </CardContent>
       </Card>
@@ -50,7 +50,7 @@ export function KitStockForecastCard({ items, kitQuantity }: Props) {
       </CardHeader>
       <CardContent className="space-y-2">
         {data.idealClosingDate ? (
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Data ideal de fechamento considera reposição prevista + buffer de {data.bufferDays} dias.
           </p>
         ) : (

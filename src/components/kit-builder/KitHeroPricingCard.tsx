@@ -21,11 +21,11 @@ export function KitHeroPricingCard({ unitPrice, total, kitQuantity, isValid, has
     return (
       <Card className="border-dashed border-2 border-border/60 bg-gradient-to-br from-muted/30 to-transparent">
         <CardContent className="p-5 text-center space-y-2">
-          <div className="mx-auto w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+          <div className="mx-auto w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center">
             <Sparkles className="h-5 w-5 text-primary" />
           </div>
           <p className="text-sm font-display font-semibold">Comece seu kit</p>
-          <p className="text-[11px] text-muted-foreground">Selecione uma caixa para ver o preço</p>
+          <p className="text-xs text-muted-foreground">Selecione uma caixa para ver o preço</p>
         </CardContent>
       </Card>
     );

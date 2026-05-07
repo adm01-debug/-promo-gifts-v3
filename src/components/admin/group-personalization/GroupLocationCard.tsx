@@ -50,10 +50,10 @@ export function GroupLocationCard({
   };
 
   return (
-    <div className="border rounded-xl p-3 bg-muted/30">
+    <div className="border rounded-lg p-3 bg-muted/30">
       <div className="grid grid-cols-2 md:grid-cols-6 gap-3 mb-3">
         <div>
-          <Label className="text-[11px] text-muted-foreground">Código</Label>
+          <Label className="text-xs text-muted-foreground">Código</Label>
           <InlineEditField
             value={location.location_code}
             onSave={(value) => onUpdateLocation({ id: location.id, location_code: value.toUpperCase() })}
@@ -61,14 +61,14 @@ export function GroupLocationCard({
           />
         </div>
         <div>
-          <Label className="text-[11px] text-muted-foreground">Nome</Label>
+          <Label className="text-xs text-muted-foreground">Nome</Label>
           <InlineEditField
             value={location.location_name}
             onSave={(value) => onUpdateLocation({ id: location.id, location_name: value })}
           />
         </div>
         <div>
-          <Label className="text-[11px] text-muted-foreground">Larg. (cm)</Label>
+          <Label className="text-xs text-muted-foreground">Larg. (cm)</Label>
           <InlineEditField
             value={location.max_width_cm?.toString() || ""}
             onSave={(value) => onUpdateLocation({ id: location.id, max_width_cm: value ? parseFloat(value) : null })}
@@ -77,7 +77,7 @@ export function GroupLocationCard({
           />
         </div>
         <div>
-          <Label className="text-[11px] text-muted-foreground">Alt. (cm)</Label>
+          <Label className="text-xs text-muted-foreground">Alt. (cm)</Label>
           <InlineEditField
             value={location.max_height_cm?.toString() || ""}
             onSave={(value) => onUpdateLocation({ id: location.id, max_height_cm: value ? parseFloat(value) : null })}
@@ -86,7 +86,7 @@ export function GroupLocationCard({
           />
         </div>
         <div>
-          <Label className="text-[11px] text-muted-foreground">Área (cm²)</Label>
+          <Label className="text-xs text-muted-foreground">Área (cm²)</Label>
           <InlineEditField
             value={location.max_area_cm2?.toString() || ""}
             onSave={(value) => onUpdateLocation({ id: location.id, max_area_cm2: value ? parseFloat(value) : null })}
@@ -122,7 +122,7 @@ export function GroupLocationCard({
       {/* Techniques */}
       <div className="border-t pt-2 mt-2">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-[11px] text-muted-foreground">Técnicas permitidas:</span>
+          <span className="text-xs text-muted-foreground">Técnicas permitidas:</span>
           <Dialog open={isAddTechniqueOpen} onOpenChange={setIsAddTechniqueOpen}>
             <DialogTrigger asChild>
               <Button size="sm" variant="ghost" className="h-6 px-2">
@@ -200,7 +200,7 @@ export function GroupLocationCard({
             </Tooltip>
           ))}
           {locationTechniques.length === 0 && (
-            <span className="text-[11px] text-muted-foreground">Nenhuma técnica associada</span>
+            <span className="text-xs text-muted-foreground">Nenhuma técnica associada</span>
           )}
         </div>
       </div>

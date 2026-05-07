@@ -4,6 +4,7 @@
  */
 import { useState, useMemo } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { Brain, Building2, MapPin, Tag, FileText, Info, Sparkles, MessageSquare, Bot, GitCompare, HelpCircle, X } from "lucide-react";
 import { toast } from "sonner";
@@ -11,7 +12,6 @@ import { BICategoryFocusProvider, useBICategoryFocus } from "@/contexts/BICatego
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { ClientSelector } from "@/components/bi/ClientSelector";
 import { DEMO_CLIENT_ID, isDemoClient } from "@/lib/bi/demoClient";
 import { ClientOverview360 } from "@/components/bi/ClientOverview360";
@@ -77,7 +77,7 @@ export default function BusinessIntelligencePage() {
 
 
   return (
-    <>
+    <MainLayout>
       <PageSEO
         title="Business Analytic"
         description="Inteligência comercial 360° por cliente: histórico, afinidade, tendências do setor e recomendações."
@@ -88,7 +88,7 @@ export default function BusinessIntelligencePage() {
         {/* Header compacto */}
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-700 flex items-center justify-center shadow-lg shadow-primary/25">
+            <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-700 flex items-center justify-center shadow-lg shadow-violet-500/25">
               <Brain className="h-5 w-5 text-primary-foreground" />
             </div>
             <div>
@@ -100,65 +100,32 @@ export default function BusinessIntelligencePage() {
           </div>
           {clientId && (
             <div className="flex items-center gap-2 flex-wrap">
-              <TooltipProvider >
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button size="sm" variant="ghost" className="gap-1.5" onClick={() => setTourForce(true)}>
-                      <HelpCircle className="h-4 w-4" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-                    Tour guiado pelo BI
-                  </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button size="sm" variant="outline" className="gap-1.5" onClick={() => navigate(`/ferramentas/bi/comparar?ids=${clientId}`)}>
-                      <GitCompare className="h-4 w-4" />
-                      Comparar
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-                    Comparar com média do setor
-                  </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="gap-1.5"
-                      onClick={() => setBriefingOpen(true)}
-                    >
-                      <MessageSquare className="h-4 w-4" />
-                      Briefing
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-                    Abrir modo briefing
-                  </TooltipContent>
-                </Tooltip>
-
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="gap-1.5 border-violet-500/30 hover:bg-violet-500/10"
-                      onClick={() => setCopilotOpen(true)}
-                      data-tour="copilot"
-                    >
-                      <Bot className="h-4 w-4 text-violet-500" />
-                      Pergunte ao BI
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-                    Inicie o Copilot AI
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Button size="sm" variant="ghost" className="gap-1.5" onClick={() => setTourForce(true)} title="Tour guiado">
+                <HelpCircle className="h-4 w-4" />
+              </Button>
+              <Button size="sm" variant="outline" className="gap-1.5" onClick={() => navigate(`/ferramentas/bi/comparar?ids=${clientId}`)}>
+                <GitCompare className="h-4 w-4" />
+                Comparar
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5"
+                onClick={() => setBriefingOpen(true)}
+              >
+                <MessageSquare className="h-4 w-4" />
+                Briefing
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="gap-1.5 border-violet-500/30 hover:bg-violet-500/10"
+                onClick={() => setCopilotOpen(true)}
+                data-tour="copilot"
+              >
+                <Bot className="h-4 w-4 text-violet-500" />
+                Pergunte ao BI
+              </Button>
               <ExecutiveSummaryButton clientId={clientId} clientName={clientName} ramoAtividade={ramoAtividade} />
             </div>
           )}
@@ -321,7 +288,7 @@ export default function BusinessIntelligencePage() {
           />
         </>
       )}
-    </>
+    </MainLayout>
   );
 }
 
@@ -339,19 +306,10 @@ function CategoryFocusBar() {
         <span className="text-muted-foreground">Painel focado em:</span>
         <span className="font-semibold text-violet-700 dark:text-violet-300">{focusedLabel ?? focusedSlug}</span>
       </div>
-      <TooltipProvider >
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button size="sm" variant="ghost" className="gap-1.5 h-7" onClick={clear}>
-              <X className="h-3.5 w-3.5" />
-              Limpar foco
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-            Remover filtro de categoria e ver visão geral
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <Button size="sm" variant="ghost" className="gap-1.5 h-7" onClick={clear}>
+        <X className="h-3.5 w-3.5" />
+        Limpar foco
+      </Button>
     </div>
   );
 }

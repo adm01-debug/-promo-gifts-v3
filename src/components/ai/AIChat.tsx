@@ -274,7 +274,7 @@ export function AIChat({
   return (
     <div
       className={cn(
-        "flex flex-col rounded-xl border-[1.5px] border-border bg-background overflow-hidden",
+        "flex flex-col rounded-2xl border-[1.5px] border-border bg-background overflow-hidden",
         className
       )}
     >

@@ -25,62 +25,33 @@ import {
 // Re-export types for backward compatibility
 export type { Quote, QuoteItem, QuoteItemPersonalization, PersonalizationTechnique } from "./quotes/quoteTypes";
 
-export interface QuotesListFilters {
-  search?: string;
-  status?: string;
-  page?: number;
-  pageSize?: number;
-}
-
-export function useQuotes(filters: QuotesListFilters = {}) {
+export function useQuotes() {
   const { user } = useAuth();
   const { currentOrg } = useOrganization();
   const orgId = currentOrg?.id || null;
   const scope = useSalesScope();
   const [quotes, setQuotes] = useState<Quote[]>([]);
-  const [totalCount, setTotalCount] = useState(0);
   const [techniques, setTechniques] = useState<PersonalizationTechnique[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  const { search, status, page = 1, pageSize = 20 } = filters;
 
   const fetchQuotes = async () => {
     if (!user) return;
     setIsLoading(true);
     setError(null);
     try {
+      // Defesa em profundidade: vendedor (scope === "self") só pede os
+      // próprios orçamentos. RLS garante o resto, mas evitamos rodar uma
+      // query potencialmente ampla que será cortada pelo banco.
       let q = supabase
-        .from("quotes")
-        .select("*", { count: "exact" });
-      
+        // rls-allow: applySellerScope chamado dinamicamente; mutações por id com RLS
+        .from("quotes").select("*").order("created_at", { ascending: false }).limit(500);
       q = applySellerScope(q, { scope, userId: user.id });
-
-      if (status && status !== "all") {
-        q = q.eq("status", status);
-      }
-
-      if (search) {
-        q = q.or(`quote_number.ilike.%${search}%,client_name.ilike.%${search}%,client_company.ilike.%${search}%`);
-      }
-
-      // Ordenação consistente: orçamentos recentes no topo
-      q = q.order("created_at", { ascending: false });
-
-      const from = (page - 1) * pageSize;
-      const to = from + pageSize - 1;
-      q = q.range(from, to);
-
-      const { data, error: qErr, count } = await q;
-      if (qErr) {
-        throw qErr;
-      }
-      
+      const { data, error: qErr } = await q;
+      if (qErr) throw new Error(qErr.message);
       setQuotes((data || []) as Quote[]);
-      setTotalCount(count ?? 0);
     } catch (err) {
-      console.error("Error fetching quotes:", err);
-      const message = err instanceof Error ? err.message : (err as any)?.message || "Erro ao buscar orçamentos";
+      const message = err instanceof Error ? err.message : "Erro ao buscar orçamentos";
       setError(message);
       toast.error("Erro ao carregar orçamentos", { description: message });
     } finally {
@@ -101,14 +72,11 @@ export function useQuotes(filters: QuotesListFilters = {}) {
         .from("quote_items").select("*").eq("quote_id", quoteId).order("sort_order", { ascending: true });
 
       const itemIds = (itemsData || []).map((i) => i.id);
-      let allPersonalizations: QuoteItemPersonalization[] = [];
+      let allPersonalizations: any[] = [];
       if (itemIds.length > 0) {
-        const { data: persData, error: persErr } = await supabase
+        const { data: persData } = await supabase
           .from("quote_item_personalizations").select("*").in("quote_item_id", itemIds);
-        if (persErr) {
-          console.error("Erro ao carregar personalizações:", persErr);
-        }
-        allPersonalizations = (persData || []) as QuoteItemPersonalization[];
+        allPersonalizations = persData || [];
       }
 
       const items: QuoteItem[] = (itemsData || []).map((item) => ({
@@ -118,9 +86,7 @@ export function useQuotes(filters: QuotesListFilters = {}) {
 
       return { ...quoteData, items } as Quote;
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Erro desconhecido";
-      console.error("Error in fetchQuote:", err);
-      toast.error("Erro ao carregar orçamento", { description: message });
+      toast.error("Erro ao carregar orçamento", { description: err instanceof Error ? err.message : "Erro" });
       return null;
     } finally {
       setIsLoading(false);
@@ -128,22 +94,18 @@ export function useQuotes(filters: QuotesListFilters = {}) {
   };
 
   const logQuoteHistory = async (
-    quote_id: string, action: string, description: string,
+    quoteId: string, action: string, description: string,
     options?: { fieldChanged?: string; oldValue?: string; newValue?: string; metadata?: Record<string, unknown> }
   ) => {
     if (!user) return;
     try {
-      const { error: histErr } = await supabase.from("quote_history").insert({
-        quote_id, 
-        user_id: user.id, 
-        action, 
-        description,
+      await supabase.from("quote_history").insert({
+        quote_id: quoteId, user_id: user.id, action, description,
         field_changed: options?.fieldChanged || null,
         old_value: options?.oldValue || null,
         new_value: options?.newValue || null,
         metadata: options?.metadata || {},
       });
-      if (histErr) throw histErr;
     } catch (err) {
       console.error("Error logging history:", err);
     }
@@ -158,20 +120,14 @@ export function useQuotes(filters: QuotesListFilters = {}) {
     }));
     const { data: insertedItems, error: itemsErr } = await supabase
       .from("quote_items").insert(itemsPayload).select("*");
-    if (itemsErr) throw itemsErr;
-
-    if (!insertedItems) return;
+    if (itemsErr) throw new Error(itemsErr.message);
 
     for (let i = 0; i < items.length; i++) {
       const item = items[i];
-      const insertedItem = insertedItems[i];
+      const insertedItem = insertedItems?.[i];
       if (item.personalizations?.length && insertedItem) {
         const persPayload = buildPersonalizationsInsertPayload(item.personalizations, insertedItem.id);
-        const { error: persErr } = await supabase.from("quote_item_personalizations").insert(persPayload);
-        if (persErr) {
-          console.error("Erro ao inserir personalizações para item:", insertedItem.id, persErr);
-          throw persErr;
-        }
+        await supabase.from("quote_item_personalizations").insert(persPayload);
       }
     }
   }
@@ -181,10 +137,6 @@ export function useQuotes(filters: QuotesListFilters = {}) {
     setIsLoading(true);
     try {
       const totals = calculateQuoteTotals(quote, items);
-      // Validar integridade dos cálculos se houver markup
-      if (totals.markup > 0 && totals.subtotal < totals.realSubtotal) {
-        throw new Error("Falha na integridade dos cálculos: subtotal apresentado menor que subtotal real.");
-      }
       const insertPayload = buildInsertPayload(quote, user.id, orgId, totals);
       // rls-allow: applySellerScope chamado dinamicamente; mutações por id com RLS
       const { data: inserted, error: insErr } = await supabase.from("quotes").insert(insertPayload).select("*");
@@ -208,29 +160,18 @@ export function useQuotes(filters: QuotesListFilters = {}) {
   const updateQuoteStatus = async (quoteId: string, status: Quote["status"]): Promise<boolean> => {
     try {
       const oldStatus = quotes.find(q => q.id === quoteId)?.status || "draft";
-      if (oldStatus === status) return true;
-
       // rls-allow: applySellerScope chamado dinamicamente; mutações por id com RLS
-      const { error: updErr } = await supabase
-        .from("quotes")
-        .update({ status, updated_at: new Date().toISOString() })
-        .eq("id", quoteId);
-
+      const { error: updErr } = await supabase.from("quotes").update({ status }).eq("id", quoteId);
       if (updErr) throw new Error(updErr.message);
-
       await logQuoteHistory(quoteId, "status_changed",
-        `Status alterado de "${STATUS_LABELS[oldStatus] || oldStatus}" para "${STATUS_LABELS[status] || status}"`,
+        `Status alterado de "${STATUS_LABELS[oldStatus]}" para "${STATUS_LABELS[status]}"`,
         { fieldChanged: "status", oldValue: oldStatus, newValue: status }
       );
-      
       toast.success("Status atualizado");
       await fetchQuotes();
       return true;
-    } catch (err) {
-      console.error("Error updating quote status:", err);
-      toast.error("Erro ao atualizar status", { 
-        description: err instanceof Error ? err.message : "Erro desconhecido" 
-      });
+    } catch {
+      toast.error("Erro ao atualizar status");
       return false;
     }
   };
@@ -239,55 +180,12 @@ export function useQuotes(filters: QuotesListFilters = {}) {
     try {
       // rls-allow: applySellerScope chamado dinamicamente; mutações por id com RLS
       const { error: delErr } = await supabase.from("quotes").delete().eq("id", quoteId);
-      if (delErr) throw delErr;
+      if (delErr) throw new Error(delErr.message);
       toast.success("Orçamento excluído");
       await fetchQuotes();
       return true;
-    } catch (err) {
-      console.error("Error deleting quote:", err);
+    } catch {
       toast.error("Erro ao excluir orçamento");
-      return false;
-    }
-  };
-  const bulkUpdateStatus = async (quoteIds: string[], status: Quote["status"]): Promise<boolean> => {
-    if (quoteIds.length === 0) return true;
-    try {
-      const { error: updErr } = await supabase
-        .from("quotes")
-        .update({ status, updated_at: new Date().toISOString() })
-        .in("id", quoteIds);
-        
-      if (updErr) throw updErr;
-      
-      // Log history for each quote (in parallel to save time, but carefully)
-      await Promise.allSettled(
-        quoteIds.map(quoteId => 
-          logQuoteHistory(quoteId, "status_changed", `Status alterado em massa para ${STATUS_LABELS[status] || status}`)
-        )
-      );
-
-      toast.success(`${quoteIds.length} orçamento(s) atualizado(s)`);
-      await fetchQuotes();
-      return true;
-    } catch (err) {
-      console.error("Error in bulk update status:", err);
-      toast.error("Erro ao atualizar orçamentos em massa", {
-        description: err instanceof Error ? err.message : "Erro desconhecido"
-      });
-      return false;
-    }
-  };
-
-  const bulkDeleteQuotes = async (quoteIds: string[]): Promise<boolean> => {
-    try {
-      const { error: delErr } = await supabase.from("quotes").delete().in("id", quoteIds);
-      if (delErr) throw delErr;
-      toast.success(`${quoteIds.length} orçamento(s) excluído(s)`);
-      await fetchQuotes();
-      return true;
-    } catch (err) {
-      console.error("Error in bulk delete:", err);
-      toast.error("Erro ao excluir orçamentos em massa");
       return false;
     }
   };
@@ -297,10 +195,6 @@ export function useQuotes(filters: QuotesListFilters = {}) {
     setIsLoading(true);
     try {
       const totals = calculateQuoteTotals(quote, items);
-      // Validar integridade dos cálculos se houver markup
-      if (totals.markup > 0 && totals.subtotal < totals.realSubtotal) {
-        throw new Error("Falha na integridade dos cálculos: subtotal apresentado menor que subtotal real.");
-      }
       const updatePayload = buildUpdatePayload(quote, totals);
       const { data: updated, error: updErr } = await supabase
         // rls-allow: applySellerScope chamado dinamicamente; mutações por id com RLS
@@ -415,47 +309,23 @@ export function useQuotes(filters: QuotesListFilters = {}) {
   const fetchTechniques = async () => {
     try {
       const result = await invokeExternalDb<PersonalizationTechnique>({
-        table: "personalization_techniques", 
-        operation: "select",
-        filters: { is_active: true }, 
-        orderBy: { column: "name", ascending: true }, 
-        limit: 100,
+        table: "personalization_techniques", operation: "select",
+        filters: { is_active: true }, orderBy: { column: "name", ascending: true }, limit: 100,
       });
-      if (result.error) {
-        throw new Error(result.error);
-      }
       setTechniques(result.records || []);
     } catch (err) {
       console.error("Error fetching techniques:", err);
-      toast.error("Erro ao carregar técnicas de personalização");
     }
   };
 
   useEffect(() => {
-    if (user) { 
-      fetchQuotes(); 
-      fetchTechniques(); 
-    }
-  }, [user, search, status, page, pageSize]);
+    if (user) { fetchQuotes(); fetchTechniques(); }
+  }, [user]);
 
   return {
-    quotes, 
-    totalCount,
-    techniques, 
-    isLoading, 
-    error,
-    fetchQuotes, 
-    fetchQuote, 
-    createQuote, 
-    updateQuote, 
-    updateQuoteStatus,
-    deleteQuote, 
-    duplicateQuote, 
-    fetchTechniques, 
-    syncQuoteToBitrix,
-    testWebhookConnection, 
-    logQuoteHistory, 
-    bulkUpdateStatus, 
-    bulkDeleteQuotes,
+    quotes, techniques, isLoading, error,
+    fetchQuotes, fetchQuote, createQuote, updateQuote, updateQuoteStatus,
+    deleteQuote, duplicateQuote, fetchTechniques, syncQuoteToBitrix,
+    testWebhookConnection, logQuoteHistory,
   };
 }

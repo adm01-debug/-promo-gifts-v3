@@ -153,7 +153,7 @@ export function QuantityRangeComparison({
     <motion.div
       initial={{ opacity: 0, height: 0 }}
       animate={{ opacity: 1, height: 'auto' }}
-      className="rounded-xl border bg-card p-6 space-y-5"
+      className="rounded-2xl border bg-card p-6 space-y-5"
     >
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -162,7 +162,7 @@ export function QuantityRangeComparison({
           </div>
           <div>
             <h4 className="font-bold">Comparativo por Quantidade</h4>
-            <p className="text-[11px] text-muted-foreground">Veja como o preço muda em diferentes tiragens</p>
+            <p className="text-xs text-muted-foreground">Veja como o preço muda em diferentes tiragens</p>
           </div>
         </div>
         <Button variant="ghost" size="icon" aria-label="Fechar" onClick={() => setIsOpen(false)}>

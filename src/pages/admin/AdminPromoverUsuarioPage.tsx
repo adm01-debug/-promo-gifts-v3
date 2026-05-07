@@ -20,7 +20,6 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import {
   Avatar,
@@ -99,7 +98,7 @@ export default function AdminPromoverUsuarioPage() {
         />
         <div className="max-w-2xl mx-auto py-12 text-center">
           <Shield className="h-12 w-12 mx-auto text-muted-foreground mb-3" />
-          <h1 className="text-xl font-bold">Acesso restrito</h1>
+          <h1 className="text-2xl font-bold">Acesso restrito</h1>
           <p className="text-muted-foreground">
             Apenas supervisores podem promover agentes.
           </p>
@@ -118,20 +117,11 @@ export default function AdminPromoverUsuarioPage() {
       />
       <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
         <div className="flex items-center gap-3">
-          <TooltipProvider >
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="ghost" size="icon" asChild aria-label="Voltar">
-                  <Link to="/admin/usuarios">
-                    <ChevronLeft className="h-5 w-5" />
-                  </Link>
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-                Voltar para gestão de usuários
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
+          <Button variant="ghost" size="icon" asChild aria-label="Voltar">
+            <Link to="/admin/usuarios">
+              <ChevronLeft className="h-5 w-5" />
+            </Link>
+          </Button>
           <div className="p-3 rounded-xl bg-primary/10">
             <ShieldCheck className="h-7 w-7 text-primary" />
           </div>
@@ -224,23 +214,14 @@ export default function AdminPromoverUsuarioPage() {
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
                         <Badge variant="secondary">Agente</Badge>
-                        <TooltipProvider >
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                size="sm"
-                                onClick={() => setTarget(u)}
-                                className="gap-1"
-                              >
-                                Promover
-                                <ArrowRight className="h-3.5 w-3.5" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-                              Iniciar processo de promoção para Supervisor
-                            </TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                        <Button
+                          size="sm"
+                          onClick={() => setTarget(u)}
+                          className="gap-1"
+                        >
+                          Promover
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </Button>
                       </div>
                     </li>
                   ))}

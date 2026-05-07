@@ -222,7 +222,7 @@ export function ConnectionTestDetailsDialog({
             <Skeleton className="h-20 w-full" />
           </div>
         ) : !details ? (
-          <div className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">
+          <div className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
             Nenhum teste registrado para esta conexão ainda.
           </div>
         ) : (
@@ -238,7 +238,7 @@ export function ConnectionTestDetailsDialog({
             <TabsContent value="resumo" className="space-y-3">
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
-                  <div className="text-[11px] text-muted-foreground">Status</div>
+                  <div className="text-xs text-muted-foreground">Status</div>
                   <div className="flex items-center gap-1.5 mt-0.5">
                     {details.ok ? (
                       <>
@@ -254,25 +254,25 @@ export function ConnectionTestDetailsDialog({
                   </div>
                 </div>
                 <div>
-                  <div className="text-[11px] text-muted-foreground">Latência total</div>
+                  <div className="text-xs text-muted-foreground">Latência total</div>
                   <div className="font-mono mt-0.5">
                     {totalLatency != null ? `${totalLatency}ms` : "—"}
                   </div>
                 </div>
                 <div>
-                  <div className="text-[11px] text-muted-foreground">Quando</div>
+                  <div className="text-xs text-muted-foreground">Quando</div>
                   <div className="mt-0.5" title={details.tested_at}>
                     {formatAbsolute(details.tested_at)}
                     <span className="text-muted-foreground ml-1">({formatRelative(details.tested_at)})</span>
                   </div>
                 </div>
                 <div>
-                  <div className="text-[11px] text-muted-foreground">Disparado por</div>
+                  <div className="text-xs text-muted-foreground">Disparado por</div>
                   <div className="mt-0.5 flex items-center gap-1.5">
                     <TriggerIcon className="h-3.5 w-3.5 text-muted-foreground" />
                     <span>{triggerLabel}</span>
                     {details.triggered_by_user_email && (
-                      <span className="text-[11px] text-muted-foreground">
+                      <span className="text-xs text-muted-foreground">
                         · {details.triggered_by_user_email}
                       </span>
                     )}
@@ -292,7 +292,7 @@ export function ConnectionTestDetailsDialog({
                 return (
                   <div
                     role="alert"
-                    className="rounded-xl border border-destructive/30 bg-destructive/5 p-3 space-y-2"
+                    className="rounded-md border border-destructive/30 bg-destructive/5 p-3 space-y-2"
                   >
                     <div className="flex items-start gap-2">
                       <ErrIcon className="h-4 w-4 text-destructive mt-0.5 shrink-0" aria-hidden />
@@ -348,34 +348,34 @@ export function ConnectionTestDetailsDialog({
             {/* HTTP */}
             <TabsContent value="http" className="space-y-3 text-sm">
               <div className="grid grid-cols-[80px_1fr] gap-2 items-baseline">
-                <div className="text-[11px] text-muted-foreground">Método</div>
+                <div className="text-xs text-muted-foreground">Método</div>
                 <Badge variant="outline" className="font-mono w-fit">
                   {details.request.method ?? "—"}
                 </Badge>
-                <div className="text-[11px] text-muted-foreground">URL</div>
+                <div className="text-xs text-muted-foreground">URL</div>
                 <code className="text-xs break-all rounded bg-muted px-1.5 py-1">
                   {maskedUrl ?? "—"}
                 </code>
-                <div className="text-[11px] text-muted-foreground">Status</div>
+                <div className="text-xs text-muted-foreground">Status</div>
                 <span
                   className={cn(
-                    "inline-flex items-center rounded-xl border px-1.5 py-0.5 text-xs font-mono w-fit",
+                    "inline-flex items-center rounded-md border px-1.5 py-0.5 text-xs font-mono w-fit",
                     statusClass(details.response.status),
                   )}
                 >
                   {details.response.status ?? "— (network error)"}
                 </span>
-                <div className="text-[11px] text-muted-foreground">Content-Type</div>
+                <div className="text-xs text-muted-foreground">Content-Type</div>
                 <span className="text-xs font-mono">
                   {details.response.headers?.["content-type"] ?? details.response.headers?.["Content-Type"] ?? "—"}
                 </span>
-                <div className="text-[11px] text-muted-foreground">Tamanho</div>
+                <div className="text-xs text-muted-foreground">Tamanho</div>
                 <span className="text-xs font-mono">{bytesOf(details.response.body)}</span>
               </div>
               {details.response.headers && Object.keys(details.response.headers).length > 0 && (
                 <div>
                   <div className="text-xs text-muted-foreground mb-1">Headers</div>
-                  <pre className="rounded-xl border bg-muted/50 p-2 text-[11px] font-mono max-h-[180px] overflow-auto">
+                  <pre className="rounded-md border bg-muted/50 p-2 text-[11px] font-mono max-h-[180px] overflow-auto">
 {Object.entries(details.response.headers).map(([k, v]) => `${k}: ${v}`).join("\n")}
                   </pre>
                 </div>
@@ -392,7 +392,7 @@ export function ConnectionTestDetailsDialog({
                       {totalLatency != null ? `${totalLatency}ms` : "—"}
                     </span>
                   </div>
-                  <p className="text-xs text-muted-foreground rounded-xl border border-dashed p-3">
+                  <p className="text-xs text-muted-foreground rounded-md border border-dashed p-3">
                     Breakdown indisponível para este tipo de conexão. Apenas a latência total é coletada.
                   </p>
                 </div>
@@ -430,13 +430,13 @@ export function ConnectionTestDetailsDialog({
             {/* RESPOSTA */}
             <TabsContent value="resposta" className="space-y-2">
               {!maskedBody ? (
-                <div className="rounded-xl border border-dashed p-6 text-center text-sm text-muted-foreground">
+                <div className="rounded-md border border-dashed p-6 text-center text-sm text-muted-foreground">
                   Resposta não capturada para este teste.
                 </div>
               ) : (
                 <>
                   <div className="flex items-center justify-between gap-2">
-                    <div className="text-[11px] text-muted-foreground">
+                    <div className="text-xs text-muted-foreground">
                       {bytesOf(maskedBody)}
                       {details.response.truncated && (
                         <span className="ml-2 text-amber-600 dark:text-amber-400">
@@ -453,7 +453,7 @@ export function ConnectionTestDetailsDialog({
                       </Button>
                     </div>
                   </div>
-                  <pre className="rounded-xl border bg-muted/50 p-3 text-[11px] font-mono whitespace-pre-wrap break-words max-h-[360px] overflow-auto">
+                  <pre className="rounded-md border bg-muted/50 p-3 text-[11px] font-mono whitespace-pre-wrap break-words max-h-[360px] overflow-auto">
 {bodyExpanded || maskedBody.length <= PREVIEW_LIMIT
   ? maskedBody
   : maskedBody.slice(0, PREVIEW_LIMIT)}

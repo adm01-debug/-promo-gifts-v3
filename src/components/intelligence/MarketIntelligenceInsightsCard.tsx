@@ -121,11 +121,11 @@ export function MarketIntelligenceInsightsCard({
               <span>Não foi possível gerar insights agora. Tente novamente em instantes.</span>
             </div>
           ) : data?.empty ? (
-            <div className="flex items-start gap-3 p-4 rounded-xl bg-muted/40 border border-dashed border-border">
+            <div className="flex items-start gap-3 p-4 rounded-md bg-muted/40 border border-dashed border-border">
               <Inbox className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
               <div className="space-y-1.5">
                 <p className="text-sm font-medium text-foreground">{data.summary}</p>
-                <p className="text-[11px] text-muted-foreground">{data.next_action}</p>
+                <p className="text-xs text-muted-foreground">{data.next_action}</p>
               </div>
             </div>
           ) : data ? (
@@ -139,7 +139,7 @@ export function MarketIntelligenceInsightsCard({
                 <InsightRow icon={<Sparkles className="h-4 w-4 text-primary" />} label="Próxima ação" text={data.next_action} delay={150} />
                 {data.highlights && data.highlights.length > 0 && (
                   <div
-                    className="flex items-start gap-2 p-2.5 rounded-xl bg-card/60 border border-border/40 animate-fade-in"
+                    className="flex items-start gap-2 p-2.5 rounded-md bg-card/60 border border-border/40 animate-fade-in"
                     style={{ animationDelay: "200ms" }}
                   >
                     <div className="shrink-0 mt-0.5"><Star className="h-4 w-4 text-chart-5" /></div>
@@ -174,7 +174,7 @@ function InsightRow({
   if (!text) return null;
   return (
     <div
-      className="flex items-start gap-2 p-2.5 rounded-xl bg-card/60 border border-border/40 animate-fade-in"
+      className="flex items-start gap-2 p-2.5 rounded-md bg-card/60 border border-border/40 animate-fade-in"
       style={{ animationDelay: `${delay}ms` }}
     >
       <div className="shrink-0 mt-0.5">{icon}</div>

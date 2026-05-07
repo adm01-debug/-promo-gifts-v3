@@ -4,6 +4,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { useSimulatorWizard } from "@/hooks/simulator/useSimulatorWizard";
 import { useWizardDrafts } from "@/hooks/simulator/useWizardDrafts";
@@ -124,8 +125,8 @@ export default function SimuladorWizard() {
 
   return (
     <>
-    <>
-      <PageSEO title="Mestre da Personalização" description="Simule personalizações de brindes com cálculo automático de custos." path="/simulador" />
+    <MainLayout>
+      <PageSEO title="Simulador de Personalização" description="Simule personalizações de brindes com cálculo automático de custos." path="/simulador" />
       <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in min-h-[calc(100vh-8rem)]">
         {/* Compact Header */}
         <motion.div 
@@ -138,8 +139,8 @@ export default function SimuladorWizard() {
             <div className="p-2 rounded-lg bg-gradient-to-br from-primary to-primary/80 shadow-md shadow-primary/25">
               <Calculator className="h-4 w-4 text-primary-foreground" />
             </div>
-            <h1 data-testid="page-title-simulador" className="font-display text-xl sm:text-2xl font-bold tracking-tight">
-              Mestre da Personalização
+            <h1 data-testid="page-title-simulador" className="font-display text-lg font-bold tracking-tight">
+              Simulador
             </h1>
           </div>
 
@@ -303,7 +304,7 @@ export default function SimuladorWizard() {
           />
         )}
       </div>
-    </>
+    </MainLayout>
 
     {/* Save Draft Dialog */}
     <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>

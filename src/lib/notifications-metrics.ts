@@ -115,7 +115,7 @@ const TRIGGER_TO_FETCH_HISTORY = 20;
  * TTL inside `useWorkspaceNotifications.prefetch`. Any sample above this is
  * counted as a "TTL breach" and warned to the console.
  */
-export const TRIGGER_TO_FETCH_TTL_MS = 10000; // Aumentado de 5s para 10s para alinhar com o novo PREFETCH_MIN_INTERVAL_MS
+export const TRIGGER_TO_FETCH_TTL_MS = 5000;
 
 const BADGE_RENDER_HISTORY = 20;
 /** Render budget threshold (ms). A render is a "hit" iff `elapsedMs < BUDGET_MS`. */

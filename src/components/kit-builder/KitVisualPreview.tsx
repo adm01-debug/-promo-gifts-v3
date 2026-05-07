@@ -61,7 +61,7 @@ export function KitVisualPreview({ kitState }: KitVisualPreviewProps) {
                     className="flex flex-col items-center gap-1"
                   >
                     <div
-                      className="rounded-xl bg-card border shadow-sm flex items-center justify-center overflow-hidden"
+                      className="rounded-lg bg-card border shadow-sm flex items-center justify-center overflow-hidden"
                       style={{ width: relativeSize, height: relativeSize }}
                     >
                       {item.imageUrl ? (

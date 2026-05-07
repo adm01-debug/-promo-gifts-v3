@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { useFavoritesStore, type FavoriteVariantInfo } from "@/stores/useFavoritesStore";
 import {
@@ -19,12 +20,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import {
   Heart, Trash2, Search, Package, Layers, TrendingDown, TrendingUp,
   CheckSquare, X, FolderOpen,
@@ -325,7 +320,7 @@ export default function FavoritesPage() {
   );
 
   return (
-    <>
+    <MainLayout>
       <PageSEO title="Favoritos" description="Suas listas de produtos favoritos com organização, anotações e compartilhamento." path="/favoritos" />
       <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 pb-24 md:pb-6 animate-fade-in">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
@@ -338,7 +333,7 @@ export default function FavoritesPage() {
               <Heart className="h-6 w-6 text-destructive fill-destructive" />
             </div>
             <div>
-              <h1 data-testid="page-title-favoritos" className="text-xl lg:text-3xl font-display font-bold text-foreground">
+              <h1 data-testid="page-title-favoritos" className="text-2xl lg:text-3xl font-display font-bold text-foreground">
                 Meus Favoritos
               </h1>
               <p data-testid="favorites-count" className="text-muted-foreground text-sm">
@@ -358,19 +353,10 @@ export default function FavoritesPage() {
           <div className="flex gap-2 items-center flex-wrap">
             <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
               <SheetTrigger asChild>
-                <TooltipProvider >
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="outline" size="sm" className="lg:hidden">
-                        <FolderOpen className="h-4 w-4 mr-1.5" />
-                        Listas
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-                      Gerenciar listas de favoritos
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <Button variant="outline" size="sm" className="lg:hidden">
+                  <FolderOpen className="h-4 w-4 mr-1.5" />
+                  Listas
+                </Button>
               </SheetTrigger>
               <SheetContent side="left" className="w-72 p-4 overflow-y-auto">
                 {sidebarNode}
@@ -382,19 +368,10 @@ export default function FavoritesPage() {
                 {!isRemoteListView && (
                   <DeleteConfirmDialog
                     trigger={
-                      <TooltipProvider >
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Limpar Tudo
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-                            Remover todos os itens desta lista
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                      <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Limpar Tudo
+                      </Button>
                     }
                     title="Limpar todos os favoritos?"
                     description={`Esta ação irá remover todos os ${favoriteCount} produtos.`}
@@ -402,25 +379,31 @@ export default function FavoritesPage() {
                     itemName="favoritos"
                   />
                 )}
-                <TooltipProvider >
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant={selectionMode ? "default" : "outline"}
-                        size="sm"
-                        className={cn("gap-1.5 h-8 transition-all relative",
-                          selectionMode ? "bg-primary text-primary-foreground" : "hover:border-primary/50")}
-                        onClick={toggleSelectionMode}
+                <Button
+                  variant={selectionMode ? "default" : "outline"}
+                  size="sm"
+                  className={cn("gap-1.5 h-8 transition-all relative",
+                    selectionMode ? "bg-primary text-primary-foreground" : "hover:border-primary/50")}
+                  onClick={toggleSelectionMode}
+                >
+                  <CheckSquare className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline text-xs">{selectionMode ? "Cancelar" : "Selecionar"}</span>
+                  <AnimatePresence>
+                    {selectionMode && selectedIds.size > 0 && (
+                      <motion.div
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        exit={{ scale: 0, opacity: 0 }}
+                        transition={{ type: "spring", stiffness: 500, damping: 25 }}
+                        className="absolute -top-2 -right-2"
                       >
-                        <CheckSquare className="h-3.5 w-3.5" />
-                        <span className="hidden sm:inline text-xs">{selectionMode ? "Cancelar" : "Selecionar"}</span>
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-                      {selectionMode ? "Sair do modo de seleção" : "Habilitar seleção múltipla"}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                        <Badge className="bg-destructive text-destructive-foreground h-5 min-w-5 text-[10px] font-bold px-1.5 py-0 flex items-center justify-center tabular-nums shadow-lg">
+                          {selectedIds.size}
+                        </Badge>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </Button>
                 <div className="hidden sm:block">
                   <LayoutPopover
                     viewMode={viewMode}
@@ -472,7 +455,7 @@ export default function FavoritesPage() {
                         <Package className="h-5 w-5 text-primary" />
                       </div>
                       <div>
-                        <p className="text-xl font-display font-bold text-foreground">{stats.total}</p>
+                        <p className="text-2xl font-display font-bold text-foreground">{stats.total}</p>
                         <p className="text-xs text-muted-foreground">Produtos</p>
                       </div>
                     </div>
@@ -481,7 +464,7 @@ export default function FavoritesPage() {
                         <Layers className="h-5 w-5 text-primary" />
                       </div>
                       <div>
-                        <p className="text-xl font-display font-bold text-foreground">{stats.categories}</p>
+                        <p className="text-2xl font-display font-bold text-foreground">{stats.categories}</p>
                         <p className="text-xs text-muted-foreground">Categorias</p>
                       </div>
                     </div>
@@ -490,7 +473,7 @@ export default function FavoritesPage() {
                         <TrendingDown className="h-5 w-5 text-success" />
                       </div>
                       <div>
-                        <p className="text-xl font-display font-bold text-foreground">{fmt(stats.minPrice)}</p>
+                        <p className="text-2xl font-display font-bold text-foreground">{fmt(stats.minPrice)}</p>
                         <p className="text-xs text-muted-foreground">Menor preço</p>
                       </div>
                     </div>
@@ -499,7 +482,7 @@ export default function FavoritesPage() {
                         <TrendingUp className="h-5 w-5 text-primary" />
                       </div>
                       <div>
-                        <p className="text-xl font-display font-bold text-foreground">{fmt(stats.maxPrice)}</p>
+                        <p className="text-2xl font-display font-bold text-foreground">{fmt(stats.maxPrice)}</p>
                         <p className="text-xs text-muted-foreground">Maior preço</p>
                       </div>
                     </div>
@@ -726,6 +709,6 @@ export default function FavoritesPage() {
           onClose={() => setPresenting(false)}
         />
       )}
-    </>
+    </MainLayout>
   );
 }

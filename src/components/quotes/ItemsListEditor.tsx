@@ -41,7 +41,7 @@ export function ItemsListEditor({ items, onChange }: ItemsListEditorProps) {
           <p className="text-sm text-muted-foreground">Nenhum item adicionado.</p>
         ) : (
           items.map((item, idx) => (
-            <div key={item.id ? `order-item-${item.id}` : `temp-order-item-${idx}`} className="grid grid-cols-12 gap-2 items-end border-b pb-2 last:border-0">
+            <div key={item.id ?? idx} className="grid grid-cols-12 gap-2 items-end border-b pb-2 last:border-0">
               <div className="col-span-12 sm:col-span-5">
                 <Input
                   placeholder="Produto"

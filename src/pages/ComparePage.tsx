@@ -6,8 +6,9 @@
  * C4: similar rail, presentation launcher.
  * C5: shortcuts, ARIA-live, smart empty state, recent sidebar.
  */
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { useComparisonStore, type CompareVariantInfo } from "@/stores/useComparisonStore";
 import { useProductsContext } from "@/contexts/ProductsContext";
@@ -15,12 +16,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { GitCompare, X, ArrowLeft, Share2, Image as ImageIcon, List, Filter, FileText, Building2, Swords } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SyncedZoomGallery } from "@/components/compare/SyncedZoomGallery";
@@ -110,16 +105,16 @@ export default function ComparePage() {
   // Empty state with smart suggestions
   if (compareCount < 2) {
     return (
-      <>
+      <MainLayout>
         <PageSEO title="Comparar Produtos" description="Compare brindes lado a lado." path="/comparar"
           jsonLd={{ "@context": "https://schema.org", "@type": "WebPage", "name": "Comparar Produtos", "url": "https://criar-together-now.lovable.app/comparar" }} />
         <CompareEmptyStateSmart />
-      </>
+      </MainLayout>
     );
   }
 
   return (
-    <>
+    <MainLayout>
       {/* ARIA-live region for accessibility announcements */}
       <div aria-live="polite" aria-atomic="true" className="sr-only">{ariaMessage}</div>
 
@@ -133,16 +128,9 @@ export default function ComparePage() {
       <div id="compare-export-area" className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div className="flex items-center gap-3">
-            <TooltipProvider >
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" aria-label="Voltar" onClick={() => navigate(-1)}><ArrowLeft className="h-5 w-5" /></Button>
-                </TooltipTrigger>
-                <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Voltar para página anterior</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Button variant="ghost" size="icon" aria-label="Voltar" onClick={() => navigate(-1)}><ArrowLeft className="h-5 w-5" /></Button>
             <div>
-              <h1 data-testid="page-title-comparador" className="text-xl lg:text-3xl font-display font-bold text-foreground">Comparador de Produtos</h1>
+              <h1 data-testid="page-title-comparador" className="text-2xl lg:text-3xl font-display font-bold text-foreground">Comparador de Produtos</h1>
               <p className="text-muted-foreground">
                 Comparando {compareCount} produtos
                 {client && <> · <span className="text-primary font-medium">{client.name}</span></>}
@@ -151,19 +139,12 @@ export default function ComparePage() {
           </div>
           <div className="flex flex-wrap gap-2">
             <Popover>
-            <TooltipProvider >
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <PopoverTrigger asChild>
-                    <Button variant={client ? "default" : "outline"} size="sm">
-                      <Building2 className="h-4 w-4 mr-2" />
-                      {client ? client.name.slice(0, 22) : "Cliente CRM"}
-                    </Button>
-                  </PopoverTrigger>
-                </TooltipTrigger>
-                <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Vincular comparação a um cliente</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+              <PopoverTrigger asChild>
+                <Button variant={client ? "default" : "outline"} size="sm">
+                  <Building2 className="h-4 w-4 mr-2" />
+                  {client ? client.name.slice(0, 22) : "Cliente CRM"}
+                </Button>
+              </PopoverTrigger>
               <PopoverContent align="end" className="w-80 p-3">
                 <FavoritesClientPicker
                   selectedClientId={client?.id ?? null}
@@ -173,53 +154,26 @@ export default function ComparePage() {
               </PopoverContent>
             </Popover>
             <RecentComparisonsSidebar />
-            <TooltipProvider >
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant={differencesOnly ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setDifferencesOnly(v => !v)}
-                    aria-pressed={differencesOnly}
-                  >
-                    <Filter className="h-4 w-4 mr-2" />
-                    {differencesOnly ? "Mostrando diferenças" : "Só diferenças"}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Destacar apenas atributos diferentes entre os produtos <kbd className="ml-1 px-1 py-0.5 rounded bg-primary-foreground/20 text-primary-foreground text-[10px] font-mono">D</kbd></TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <TooltipProvider >
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="default" size="sm" onClick={handleCreateQuote}>
-                    <FileText className="h-4 w-4 mr-2" />
-                    Criar orçamento
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Enviar produtos comparados para novo orçamento</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Button
+              variant={differencesOnly ? "default" : "outline"}
+              size="sm"
+              onClick={() => setDifferencesOnly(v => !v)}
+              aria-pressed={differencesOnly}
+              title="Atalho: D"
+            >
+              <Filter className="h-4 w-4 mr-2" />
+              {differencesOnly ? "Mostrando diferenças" : "Só diferenças"}
+            </Button>
+            <Button variant="default" size="sm" onClick={handleCreateQuote}>
+              <FileText className="h-4 w-4 mr-2" />
+              Criar orçamento
+            </Button>
             <ComparisonPresentationLauncher products={products} formatCurrency={formatCurrency} />
             <ExportComparisonButton products={products} formatCurrency={formatCurrency} />
-            <TooltipProvider >
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline" size="sm" onClick={() => setShareOpen(true)}>
-                    <Share2 className="h-4 w-4 mr-2" />Compartilhar
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Gerar link público de comparação</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-            <TooltipProvider >
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="outline" size="sm" onClick={() => { clearCompare(); navigate("/"); }}>Limpar</Button>
-                </TooltipTrigger>
-                <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Remover todos os produtos da comparação</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Button variant="outline" size="sm" onClick={() => setShareOpen(true)}>
+              <Share2 className="h-4 w-4 mr-2" />Compartilhar
+            </Button>
+            <Button variant="outline" size="sm" onClick={() => { clearCompare(); navigate("/"); }}>Limpar</Button>
           </div>
         </div>
 
@@ -290,16 +244,9 @@ export default function ComparePage() {
                               </Badge>
                             )}
                           </div>
-                          <TooltipProvider >
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <button aria-label="Remover" onClick={() => removeByIndex(entry.index)} className="p-1 rounded-full hover:bg-destructive/20 transition-colors">
-                                  <X className="h-4 w-4 text-muted-foreground hover:text-destructive" />
-                                </button>
-                              </TooltipTrigger>
-                              <TooltipContent side="top" className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Remover este produto</TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
+                          <button aria-label="Remover" onClick={() => removeByIndex(entry.index)} className="p-1 rounded-full hover:bg-destructive/20 transition-colors">
+                            <X className="h-4 w-4 text-muted-foreground hover:text-destructive" />
+                          </button>
                         </div>
                         <div className="space-y-2 text-sm">
                           <div className="flex justify-between"><span className="text-muted-foreground">Mín:</span><span>{entry.product.minQuantity} un.</span></div>
@@ -336,6 +283,6 @@ export default function ComparePage() {
           <SimilarProductsRail products={products} formatCurrency={formatCurrency} />
         </div>
       </div>
-    </>
+    </MainLayout>
   );
 }

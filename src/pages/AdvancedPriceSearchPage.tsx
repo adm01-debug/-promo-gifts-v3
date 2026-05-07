@@ -2,9 +2,9 @@
  * Página: Busca Avançada por Preço
  * Refatorada: lógica em useAdvancedPriceSearch, views em ResultViews, tipos em types.ts
  */
+import { MainLayout } from '@/components/layout/MainLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -45,7 +45,7 @@ export default function AdvancedPriceSearchPage() {
   } = useAdvancedPriceSearch();
 
   return (
-    <>
+    <MainLayout>
       <PageSEO title="Busca Avançada de Preços" description="Pesquise preços de brindes com filtros avançados." path="/busca-precos" noIndex />
       <div className="container py-6 space-y-6">
         <div className="flex items-center gap-3">
@@ -96,16 +96,7 @@ export default function AdvancedPriceSearchPage() {
                     ))}
                   </div>
                 </ScrollArea>
-                {filters.colors.length > 0 && (
-                  <TooltipProvider >
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="ghost" size="sm" className="w-full mt-2" onClick={() => updateFilter('colors', [])}>Limpar cores</Button>
-                      </TooltipTrigger>
-                      <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Desmarcar todas as cores selecionadas</TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                )}
+                {filters.colors.length > 0 && <Button variant="ghost" size="sm" className="w-full mt-2" onClick={() => updateFilter('colors', [])}>Limpar cores</Button>}
               </FilterSection>
 
               <FilterSection title="Técnica de Personalização" icon={Layers}>
@@ -150,16 +141,7 @@ export default function AdvancedPriceSearchPage() {
 
               <div className="flex gap-2 pt-4 border-t">
                 <Button onClick={handleSearch} className="flex-1" disabled={isLoading}><Search className="h-4 w-4 mr-2" />Buscar</Button>
-                <TooltipProvider >
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button variant="outline" onClick={handleReset}><RotateCcw className="h-4 w-4" /></Button>
-                    </TooltipTrigger>
-                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-                      Limpar todos os filtros da busca
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <Button variant="outline" onClick={handleReset}><RotateCcw className="h-4 w-4" /></Button>
               </div>
             </CardContent>
           </Card>
@@ -173,18 +155,9 @@ export default function AdvancedPriceSearchPage() {
                   : 'Configure os filtros e clique em "Buscar"'}
               </p>
               <div className="flex items-center gap-1 bg-muted/50 rounded-lg p-1">
-                <TooltipProvider >
-                  {([['cards', Grid3X3, 'Ver em Cards'], ['table', Table2, 'Ver em Tabela'], ['list', List, 'Ver em Lista']] as const).map(([mode, Icon, label]) => (
-                    <Tooltip key={mode}>
-                      <TooltipTrigger asChild>
-                        <Button variant={viewMode === mode ? 'secondary' : 'ghost'} size="sm" onClick={() => setViewMode(mode)}><Icon className="h-4 w-4" /></Button>
-                      </TooltipTrigger>
-                      <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-                        {label}
-                      </TooltipContent>
-                    </Tooltip>
-                  ))}
-                </TooltipProvider>
+                {([['cards', Grid3X3], ['table', Table2], ['list', List]] as const).map(([mode, Icon]) => (
+                  <Button key={mode} variant={viewMode === mode ? 'secondary' : 'ghost'} size="sm" onClick={() => setViewMode(mode)}><Icon className="h-4 w-4" /></Button>
+                ))}
               </div>
             </div>
 
@@ -216,6 +189,6 @@ export default function AdvancedPriceSearchPage() {
           </div>
         </div>
       </div>
-    </>
+    </MainLayout>
   );
 }

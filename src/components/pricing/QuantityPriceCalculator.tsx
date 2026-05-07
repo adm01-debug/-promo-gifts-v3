@@ -9,7 +9,6 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Calculator, Package, Paintbrush, Palette, Plus, X, FileText, Trophy } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -77,14 +76,14 @@ export function QuantityPriceCalculator({ productBasePrice = 0, productName, onS
     <div className={cn("space-y-6", className)}>
       {/* Step 1: Product */}
       <Card className="animate-fade-in">
-        <CardHeader><div className="flex items-center gap-2"><Package className="w-5 h-5 text-primary" /><CardTitle className="text-xl font-display">1. Selecione o Produto</CardTitle></div><CardDescription>Escolha o produto base para simular preços de gravação em diferentes tiragens</CardDescription></CardHeader>
+        <CardHeader><div className="flex items-center gap-2"><Package className="w-5 h-5 text-primary" /><CardTitle className="text-lg font-display">1. Selecione o Produto</CardTitle></div><CardDescription>Escolha o produto base para simular preços de gravação em diferentes tiragens</CardDescription></CardHeader>
         <CardContent><UnifiedProductSearch onSelect={handleProductSelect} selectedProduct={selectedProduct as any} /></CardContent>
       </Card>
 
       {/* Step 2: Techniques */}
       {selectedProduct && (
         <Card className="animate-fade-in">
-          <CardHeader><div className="flex items-center gap-2"><Paintbrush className="w-5 h-5 text-primary" /><CardTitle className="text-xl font-display">2. Selecione as Técnicas de Gravação</CardTitle></div><CardDescription>Escolha uma ou mais técnicas para comparar preços</CardDescription></CardHeader>
+          <CardHeader><div className="flex items-center gap-2"><Paintbrush className="w-5 h-5 text-primary" /><CardTitle className="text-lg font-display">2. Selecione as Técnicas de Gravação</CardTitle></div><CardDescription>Escolha uma ou mais técnicas para comparar preços</CardDescription></CardHeader>
           <CardContent><TechniqueMultiSelector productId={selectedProduct.id} selectedTechniques={selectedConfigs} onToggleTechnique={handleToggleTechnique} /></CardContent>
         </Card>
       )}
@@ -92,15 +91,15 @@ export function QuantityPriceCalculator({ productBasePrice = 0, productName, onS
       {/* Step 3: Configure */}
       {selectedConfigs.length > 0 && (
         <Card className="animate-fade-in">
-          <CardHeader><div className="flex items-center gap-2"><Palette className="w-5 h-5 text-primary" /><CardTitle className="text-xl font-display">3. Configure as Opções</CardTitle></div><CardDescription>Defina cores e tamanho para cada técnica selecionada</CardDescription></CardHeader>
-          <CardContent><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{selectedConfigs.map((config, index) => <TechniqueConfigCard key={`${config.technique.id}-${index}`} config={config} onUpdate={(u) => handleUpdateConfig(index, u)} onRemove={() => handleRemoveConfig(index)} />)}</div></CardContent>
+          <CardHeader><div className="flex items-center gap-2"><Palette className="w-5 h-5 text-primary" /><CardTitle className="text-lg font-display">3. Configure as Opções</CardTitle></div><CardDescription>Defina cores e tamanho para cada técnica selecionada</CardDescription></CardHeader>
+          <CardContent><div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">{selectedConfigs.map((config, index) => <TechniqueConfigCard key={config.technique.id} config={config} onUpdate={(u) => handleUpdateConfig(index, u)} onRemove={() => handleRemoveConfig(index)} />)}</div></CardContent>
         </Card>
       )}
 
       {/* Step 4: Compare */}
       {selectedProduct && selectedConfigs.length > 0 && (
         <Card className="animate-fade-in">
-          <CardHeader><div className="flex items-center gap-2"><Calculator className="w-5 h-5 text-primary" /><CardTitle className="text-xl font-display">4. Compare Preços por Tiragem</CardTitle></div><CardDescription>Veja como o preço por unidade muda conforme a quantidade. <Trophy className="inline w-3 h-3 text-success" /> = melhor preço.</CardDescription></CardHeader>
+          <CardHeader><div className="flex items-center gap-2"><Calculator className="w-5 h-5 text-primary" /><CardTitle className="text-lg font-display">4. Compare Preços por Tiragem</CardTitle></div><CardDescription>Veja como o preço por unidade muda conforme a quantidade. <Trophy className="inline w-3 h-3 text-success" /> = melhor preço.</CardDescription></CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-3">
               <label className="text-sm font-medium">Tiragens para comparar:</label>
@@ -108,30 +107,12 @@ export function QuantityPriceCalculator({ productBasePrice = 0, productName, onS
                 {customQuantities.map(qty => (
                   <Badge key={qty} variant="secondary" className="pl-3 pr-1 py-1 flex items-center gap-1">
                     {formatNumber(qty)}
-                    <TooltipProvider >
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button variant="ghost" size="icon" aria-label="Remover tiragem" className="h-5 w-5 hover:bg-destructive/20" onClick={() => handleRemoveQuantity(qty)} disabled={customQuantities.length <= 1}>
-                            <X className="w-3 h-3" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Remover esta quantidade da comparação</TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                    <Button variant="ghost" size="icon" aria-label="Fechar" className="h-5 w-5 hover:bg-destructive/20" onClick={() => handleRemoveQuantity(qty)} disabled={customQuantities.length <= 1}><X className="w-3 h-3" /></Button>
                   </Badge>
                 ))}
                 <div className="flex items-center gap-1">
                   <Input type="number" placeholder="Nova qtd" value={newQuantity} onChange={(e) => setNewQuantity(e.target.value)} className="w-24 h-7 text-xs" onKeyDown={(e) => e.key === 'Enter' && handleAddQuantity()} />
-                  <TooltipProvider >
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="outline" size="sm" className="h-7" onClick={handleAddQuantity}>
-                          <Plus className="w-3 h-3" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Adicionar nova tiragem para comparação</TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <Button variant="outline" size="sm" className="h-7" onClick={handleAddQuantity}><Plus className="w-3 h-3" /></Button>
                 </div>
               </div>
             </div>

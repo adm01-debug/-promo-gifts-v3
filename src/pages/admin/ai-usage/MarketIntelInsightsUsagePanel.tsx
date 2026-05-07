@@ -145,7 +145,7 @@ function StatTile({ icon, label, value, hint }: { icon: React.ReactNode; label: 
         {icon}
         {label}
       </div>
-      <p className="text-xl font-bold text-foreground mt-1">{value}</p>
+      <p className="text-2xl font-bold text-foreground mt-1">{value}</p>
       {hint && <p className="text-[10px] text-muted-foreground mt-0.5">{hint}</p>}
     </div>
   );

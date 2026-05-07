@@ -3,7 +3,6 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { useExternalDbInspect } from "@/hooks/useExternalDbInspect";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Database, RefreshCw, ChevronRight, ArrowLeft, FileSearch, Copy, CheckCircle2, AlertTriangle, ShieldCheck } from "lucide-react";
@@ -150,18 +149,9 @@ export default function AdminExternalDbPage() {
           </h1>
           <p className="text-muted-foreground">Visualize a estrutura das tabelas do banco de dados externo (somente leitura)</p>
         </div>
-        <TooltipProvider >
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button variant="outline" size="sm" onClick={() => selectedTable ? handleSelectTable(selectedTable) : listTables()}>
-                <RefreshCw className="h-4 w-4 mr-2" /> Atualizar
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-              Recarregar estrutura do banco de dados externo
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <Button variant="outline" size="sm" onClick={() => selectedTable ? handleSelectTable(selectedTable) : listTables()}>
+          <RefreshCw className="h-4 w-4 mr-2" /> Atualizar
+        </Button>
       </div>
 
       <Card className="border-primary/30">
@@ -179,32 +169,14 @@ export default function AdminExternalDbPage() {
           </div>
           <div className="flex gap-2">
             {diffs && (
-              <TooltipProvider >
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="outline" size="sm" onClick={copyReport}>
-                      <Copy className="h-4 w-4 mr-2" /> Copiar relatório
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-                    Copiar o diff completo em formato Markdown
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Button variant="outline" size="sm" onClick={copyReport}>
+                <Copy className="h-4 w-4 mr-2" /> Copiar relatório
+              </Button>
             )}
-            <TooltipProvider >
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button size="sm" onClick={runEngravingDiff} disabled={diffLoading}>
-                    <FileSearch className="h-4 w-4 mr-2" />
-                    {diffLoading ? "Inspecionando..." : "Comparar agora"}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-                  Executar verificação de integridade do schema (4 tabelas críticas)
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Button size="sm" onClick={runEngravingDiff} disabled={diffLoading}>
+              <FileSearch className="h-4 w-4 mr-2" />
+              {diffLoading ? "Inspecionando..." : "Comparar agora"}
+            </Button>
           </div>
         </CardHeader>
         {diffs && (
@@ -319,23 +291,14 @@ export default function AdminExternalDbPage() {
                       {c.requiredFields.length} required
                     </Badge>
                   </div>
-                  <TooltipProvider >
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          disabled={liveLoading === c.name}
-                          onClick={() => testContract(c.name)}
-                        >
-                          {liveLoading === c.name ? "Testando..." : "Testar agora"}
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-                        Executar uma chamada de teste real para validar o contrato deste RPC
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    disabled={liveLoading === c.name}
+                    onClick={() => testContract(c.name)}
+                  >
+                    {liveLoading === c.name ? "Testando..." : "Testar agora"}
+                  </Button>
                 </div>
                 {live && (
                   <div className="text-xs space-y-1 pt-1 border-t">

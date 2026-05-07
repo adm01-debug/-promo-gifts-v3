@@ -95,7 +95,7 @@ export function FullOpDiagnosticsPanel() {
     <Card>
       <CardHeader>
         <div className="flex items-center gap-3">
-          <div className="p-2 rounded-xl bg-primary/10">
+          <div className="p-2 rounded-lg bg-primary/10">
             <Stethoscope className="h-5 w-5 text-primary" />
           </div>
           <div>
@@ -132,7 +132,7 @@ export function FullOpDiagnosticsPanel() {
                 {showKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </button>
             </div>
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Permite testar <code>validate_mcp_key</code> (block_reason, scopes, created_by).
             </p>
           </div>
@@ -148,7 +148,7 @@ export function FullOpDiagnosticsPanel() {
               autoComplete="off"
               className="font-mono text-xs"
             />
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Inspeção via hash — <strong>não consome o token</strong>.
             </p>
           </div>
@@ -177,7 +177,7 @@ export function FullOpDiagnosticsPanel() {
         </div>
 
         <div className="flex items-center justify-between gap-3">
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             <code>is_dev</code> e <code>can_grant_mcp_full</code> sempre rodam para o usuário
             autenticado atual.
           </p>
@@ -223,7 +223,7 @@ export function FullOpDiagnosticsPanel() {
                   return (
                     <div
                       key={c.id}
-                      className="flex items-start gap-3 p-3 rounded-xl border bg-card"
+                      className="flex items-start gap-3 p-3 rounded-lg border bg-card"
                     >
                       <Icon className={`h-5 w-5 mt-0.5 shrink-0 ${meta.className}`} />
                       <div className="flex-1 min-w-0 space-y-1">

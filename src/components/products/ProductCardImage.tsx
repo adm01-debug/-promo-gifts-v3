@@ -143,11 +143,9 @@ export const ProductCardImage = memo(function ProductCardImage({
                   <TooltipTrigger asChild>
                     <div className={cn("w-5 h-5 rounded-full border-2 shadow-sm cursor-pointer transition-all duration-200 hover:scale-125 hover:shadow-md",
                       isDotHighlighted ? "border-success ring-2 ring-success/30 scale-110" : "border-border/50"
-                    )} style={{ backgroundColor: color.hex, borderColor: color.hex === '#FFFFFF' ? 'hsl(var(--border))' : undefined }}
-                    onClick={(e) => { e.stopPropagation(); }} />
-
+                    )} style={{ backgroundColor: color.hex, borderColor: color.hex === '#FFFFFF' ? 'hsl(var(--border))' : undefined }} />
                   </TooltipTrigger>
-                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">{color.name}</TooltipContent>
+                  <TooltipContent>{color.name}</TooltipContent>
                 </Tooltip>
               );
             })}
@@ -169,25 +167,20 @@ export const ProductCardImage = memo(function ProductCardImage({
           }}
         >
           {allMatchingVariants.map((v, i) => (
-            <Tooltip key={v.groupSlug || v.variationSlug || i}>
-              <TooltipTrigger asChild>
-                <button role="tab" type="button"
-                  tabIndex={i === safeVariantIdx ? 0 : -1} aria-selected={i === safeVariantIdx}
-                  aria-current={i === safeVariantIdx ? 'true' : undefined}
-                  onClick={(e) => { e.stopPropagation(); onVariantChange(i); }}
-                  aria-label={`Ver variante ${v.name}`}
-                  className={cn("w-5 h-5 rounded-full border-2 transition-all duration-200 hover:scale-125 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
-                    i === safeVariantIdx ? "ring-2 ring-offset-2 ring-offset-card scale-110" : "border-border/50 opacity-70 hover:opacity-100"
-                  )}
-                  style={{
-                    backgroundColor: v.hex,
-                    borderColor: i === safeVariantIdx ? (isLightColor(v.hex) ? 'hsl(var(--muted-foreground))' : v.hex) : undefined,
-                    ['--tw-ring-color' as string]: i === safeVariantIdx ? (isLightColor(v.hex) ? 'hsl(var(--muted-foreground) / 0.6)' : v.hex) : undefined,
-                  }}
-                />
-              </TooltipTrigger>
-              <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">{v.name}</TooltipContent>
-            </Tooltip>
+            <button key={v.groupSlug || v.variationSlug || i} role="tab" type="button"
+              tabIndex={i === safeVariantIdx ? 0 : -1} aria-selected={i === safeVariantIdx}
+              aria-current={i === safeVariantIdx ? 'true' : undefined}
+              onClick={(e) => { e.stopPropagation(); onVariantChange(i); }}
+              aria-label={`Ver variante ${v.name}`} title={v.name}
+              className={cn("w-5 h-5 rounded-full border-2 transition-all duration-200 hover:scale-125 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1",
+                i === safeVariantIdx ? "ring-2 ring-offset-2 ring-offset-card scale-110" : "border-border/50 opacity-70 hover:opacity-100"
+              )}
+              style={{
+                backgroundColor: v.hex,
+                borderColor: i === safeVariantIdx ? (isLightColor(v.hex) ? 'hsl(var(--muted-foreground))' : v.hex) : undefined,
+                ['--tw-ring-color' as string]: i === safeVariantIdx ? (isLightColor(v.hex) ? 'hsl(var(--muted-foreground) / 0.6)' : v.hex) : undefined,
+              }}
+            />
           ))}
           <span className="text-[10px] font-medium text-muted-foreground ml-0.5 max-w-[60px] truncate hidden sm:inline" title={allMatchingVariants[safeVariantIdx]?.name}>{allMatchingVariants[safeVariantIdx]?.name}</span>
           <span className="text-[10px] font-medium text-muted-foreground ml-0.5" aria-live="polite">{safeVariantIdx + 1}/{allMatchingVariants.length}</span>

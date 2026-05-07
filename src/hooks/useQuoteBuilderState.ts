@@ -374,23 +374,31 @@ export function useQuoteBuilderState() {
     return QuoteCalc.calculateItemTotal({
       quantity: item.quantity,
       unitPrice: item.unit_price,
-      personalizations: item.personalizations,
+      personalizations: item.personalizations
     });
   }, []);
 
-  const realSubtotal = useMemo(() => QuoteCalc.calculateSubtotal(items.map(i => ({
-    quantity: i.quantity,
-    unitPrice: i.unit_price,
-    personalizations: i.personalizations
-  }))), [items]);
+  // ── Subtotal real (sem markup) e apresentado (com markup) ──
+  const realSubtotal = useMemo(() => 
+    QuoteCalc.calculateSubtotal(items.map(item => ({
+      quantity: item.quantity,
+      unitPrice: item.unit_price,
+      personalizations: item.personalizations
+    }))), 
+    [items]
+  );
 
-  const subtotal = useMemo(() => QuoteCalc.applyMarkup(realSubtotal, negotiationMarkup), [realSubtotal, negotiationMarkup]);
+  const subtotal = useMemo(
+    () => QuoteCalc.applyMarkup(realSubtotal, negotiationMarkup),
+    [realSubtotal, negotiationMarkup]
+  );
 
-  const discountAmount = useMemo(() => QuoteCalc.calculateDiscountAmount(subtotal, discountType, discountValue), [subtotal, discountType, discountValue]);
+  const discountAmount = useMemo(
+    () => QuoteCalc.calculateDiscountAmount(subtotal, discountType, discountValue),
+    [subtotal, discountType, discountValue]
+  );
 
-  const shippingCostValue = useMemo(() => (shippingType === "fob" || shippingType === "fob_pre") ? (shippingCost || 0) : 0, [shippingType, shippingCost]);
-
-  const total = useMemo(() => Math.max(0, subtotal - discountAmount + shippingCostValue), [subtotal, discountAmount, shippingCostValue]);
+  const total = useMemo(() => Math.max(0, subtotal - discountAmount), [subtotal, discountAmount]);
 
   // ── Desconto REAL (sobre subtotal real) — usado para alçada ──
   const realDiscountPercent = useMemo(

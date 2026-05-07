@@ -4,7 +4,6 @@ import { createClient } from "npm:@supabase/supabase-js@2.49.1";
 import { z } from "https://esm.sh/zod@3.23.8";
 import { parseBodyWithSchema } from "../_shared/zod-validate.ts";
 import { resolveCredential } from "../_shared/credentials.ts";
-import { authenticateRequest, authErrorResponse, requireRole } from "../_shared/auth.ts";
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
 const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -106,18 +105,15 @@ Deno.serve(async (req) => {
 
   const corsHeaders = getCorsHeaders(req);
 
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
   try {
-    // 1. Authenticate Request
-    const auth = await authenticateRequest(req);
-    
-    // 2. Validate body with Zod
-    const parsed = await parseBodyWithSchema(req, RequestSchema, corsHeaders);
+    // Validate body with Zod
+    const parsed = await parseBodyWithSchema(req, RequestSchema, getCorsHeaders(req));
     if ('error' in parsed) return parsed.error;
 
     const { action, data } = parsed.data;
-    console.log(`[quote-sync] User ${auth.userId} acting: ${action}`, data);
-
-    const supabase = auth.localServiceClient;
+    console.log(`Quote sync action: ${action}`, data);
 
     switch (action) {
       case "sync_quote": {
@@ -228,9 +224,6 @@ Deno.serve(async (req) => {
       }
     }
   } catch (error) {
-    if ((error as any)?.status) {
-      return authErrorResponse(error, corsHeaders);
-    }
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     console.error("Quote sync error:", error);
     return new Response(JSON.stringify({ error: errorMessage }), {

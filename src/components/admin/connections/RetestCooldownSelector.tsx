@@ -27,7 +27,7 @@ export function RetestCooldownSelector({ className }: Props) {
   const { cooldownMs, loading, saving, save } = useRetestCooldownSetting();
 
   return (
-    <TooltipProvider >
+    <TooltipProvider delayDuration={150}>
       <Tooltip>
         <TooltipTrigger asChild>
           <div className={cn("inline-flex items-center gap-1.5", className)}>

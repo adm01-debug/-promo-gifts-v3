@@ -63,7 +63,7 @@ export function GroupComponentCard({
 
   return (
     <SortableItem id={component.id}>
-      <AccordionItem value={component.id} className="border rounded-xl px-4">
+      <AccordionItem value={component.id} className="border rounded-lg px-4">
         <AccordionTrigger className="hover:no-underline">
           <div className="flex items-center gap-3 flex-1">
             <Badge variant="outline" className="font-mono">{component.component_code}</Badge>
@@ -75,9 +75,9 @@ export function GroupComponentCard({
           </div>
         </AccordionTrigger>
         <AccordionContent className="pt-4 pb-2">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-muted/30 rounded-xl mb-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 p-4 bg-muted/30 rounded-lg mb-4">
             <div>
-              <Label className="text-[11px] text-muted-foreground">Código</Label>
+              <Label className="text-xs text-muted-foreground">Código</Label>
               <InlineEditField
                 value={component.component_code}
                 onSave={(value) => onUpdateComponent({ id: component.id, component_code: value.toUpperCase() })}
@@ -85,7 +85,7 @@ export function GroupComponentCard({
               />
             </div>
             <div>
-              <Label className="text-[11px] text-muted-foreground">Nome</Label>
+              <Label className="text-xs text-muted-foreground">Nome</Label>
               <InlineEditField
                 value={component.component_name}
                 onSave={(value) => onUpdateComponent({ id: component.id, component_name: value })}

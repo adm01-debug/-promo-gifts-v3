@@ -105,7 +105,7 @@ export function QuoteVersionHistory({ quoteId, currentQuoteId, onCreateVersion }
       </CardHeader>
       <CardContent className="pt-0">
         {versions.length <= 1 ? (
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Este é o orçamento original (v1). Crie uma nova versão para registrar alterações.
           </p>
         ) : (
@@ -121,7 +121,7 @@ export function QuoteVersionHistory({ quoteId, currentQuoteId, onCreateVersion }
                     <button
                       onClick={() => !isCurrent && navigate(`/orcamentos/${version.id}`)}
                       disabled={isCurrent}
-                      className={`w-full text-left p-2 rounded-xl transition-colors ${
+                      className={`w-full text-left p-2 rounded-md transition-colors ${
                         isCurrent
                           ? "bg-primary/10 border border-primary/20"
                           : "hover:bg-muted/50 cursor-pointer"

@@ -36,7 +36,7 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
     <div className="space-y-4">
       {/* Filter bar */}
       {g.videos.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2 p-2.5 rounded-xl bg-muted/20 border border-border/30">
+        <div className="flex flex-wrap items-center gap-2 p-2.5 rounded-lg bg-muted/20 border border-border/30">
           <Filter className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
           <Select value={g.filterType} onValueChange={g.setFilterType}>
             <SelectTrigger className="h-7 w-[120px] text-[11px]"><SelectValue placeholder="Tipo" /></SelectTrigger>
@@ -124,7 +124,7 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
 
       {/* Stats */}
       {g.videos.length > 0 && (
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground px-1 py-1.5 rounded-xl bg-muted/20 border border-border/30">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-muted-foreground px-1 py-1.5 rounded-lg bg-muted/20 border border-border/30">
           <span className="font-medium text-foreground/70">{g.stats.total} vídeo(s)</span>
           <span className="flex items-center gap-1"><Link2 className="h-2.5 w-2.5" />{g.stats.linked} vinculado(s)</span>
         </div>
@@ -159,7 +159,7 @@ export function ProductVideoGallery({ productId }: ProductVideoGalleryProps) {
         <DialogContent className="max-w-3xl p-2">
           {g.previewVideo && (
             <div className="space-y-2">
-                <div className="aspect-video rounded-xl overflow-hidden bg-black">
+                <div className="aspect-video rounded-md overflow-hidden bg-black">
                   {(() => {
                     const embedUrl = getCloudflareEmbedUrl(g.previewVideo.url_stream, { autoplay: true });
 

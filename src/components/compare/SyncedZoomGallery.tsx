@@ -212,7 +212,7 @@ export function SyncedZoomGallery({ products, onProductClick }: SyncedZoomGaller
                       key={idx}
                       onClick={() => setSelectedColorIdx(prev => ({ ...prev, [slotKey]: idx }))}
                       className={cn(
-                        "shrink-0 w-10 h-10 rounded-xl overflow-hidden transition-all",
+                        "shrink-0 w-10 h-10 rounded-md overflow-hidden transition-all",
                         colorIdx === idx
                           ? "ring-2 ring-primary ring-offset-1 ring-offset-background"
                           : "opacity-60 hover:opacity-100"

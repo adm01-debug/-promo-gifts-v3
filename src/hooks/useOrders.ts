@@ -5,12 +5,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { logRlsDenial } from "@/lib/security/rls-denial-logger";
-import { applySellerScope } from "@/lib/auth/apply-seller-scope";
-import type { Database } from "@/integrations/supabase/types";
-
-type OrderInsert = Database["public"]["Tables"]["orders"]["Insert"];
-type OrderUpdate = Database["public"]["Tables"]["orders"]["Update"];
-
 
 export interface OrderRow {
   id: string;
@@ -38,65 +32,30 @@ export interface OrderRow {
   updated_at: string;
 }
 
-export interface OrdersListFilters {
-  search?: string;
-  status?: string;
-  page?: number;
-  pageSize?: number;
-}
-
 /**
- * Lista pedidos respeitando RLS, com suporte a paginação e busca.
+ * Lista pedidos respeitando RLS. Quando `scope === "self"`, aplica filtro
+ * adicional por seller_id (defesa em profundidade); para "team"/"all" deixa
+ * o RLS decidir o que aparece.
  */
-export function useOrdersList(
-  sellerId?: string, 
-  scope: "self" | "team" | "all" = "self",
-  filters: OrdersListFilters = {}
-) {
-  const { search, status, page = 1, pageSize = 20 } = filters;
-
+export function useOrdersList(sellerId?: string, scope: "self" | "team" | "all" = "self") {
   return useQuery({
-    queryKey: ["orders", "list", sellerId, scope, search, status, page, pageSize],
+    queryKey: ["orders", "list", sellerId, scope],
     enabled: !!sellerId,
-    queryFn: async (): Promise<{ data: OrderRow[]; count: number }> => {
-      let q = supabase
-        .from("orders")
-        .select("*", { count: "exact" });
-
-      q = applySellerScope(q, { scope, userId: sellerId });
-
-      if (status && status !== "all") {
-        q = q.eq("status", status);
-      }
-
-      if (search) {
-        // Busca otimizada usando os campos principais
-        q = q.or(`order_number.ilike.%${search}%,client_name.ilike.%${search}%,client_company.ilike.%${search}%`);
-      }
-
-      // Ordenação lógica: Pedidos recentes primeiro, mas permitindo expansão para ordenação por status se necessário
-      q = q.order("created_at", { ascending: false });
-
-      // Paginação
-      const from = (page - 1) * pageSize;
-      const to = from + pageSize - 1;
-      q = q.range(from, to);
-      
-      const { data, error, count } = await q;
+    queryFn: async (): Promise<OrderRow[]> => {
+      // rls-allow: applySellerScope chamado dinamicamente conforme escopo
+      let q = supabase.from("orders").select("*").order("created_at", { ascending: false });
+      if (scope === "self" && sellerId) q = q.eq("seller_id", sellerId);
+      const { data, error } = await q;
       if (error) {
-        console.error("Error fetching orders:", error);
         await logRlsDenial(error, {
           table: "orders", op: "SELECT",
           endpoint: "useOrdersList",
-          querySummary: `scope=${scope} sellerId=${sellerId ?? "?"} search=${search}`,
+          querySummary: `scope=${scope} sellerId=${sellerId ?? "?"}`,
           policyHint: "orders_select_scope",
         });
         throw error;
       }
-      return {
-        data: (data ?? []) as OrderRow[],
-        count: count ?? 0
-      };
+      return (data ?? []) as OrderRow[];
     },
   });
 }
@@ -123,26 +82,17 @@ export function useOrderDetail(orderId?: string) {
 export function useUpdateOrder(orderId?: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (patch: OrderUpdate) => {
+    mutationFn: async (patch: Partial<OrderRow>) => {
       // Sanitização básica de inputs de texto
-      const sanitizedPatch: OrderUpdate = { 
-        ...patch,
-        updated_at: new Date().toISOString()
-      };
-      
-      if (typeof sanitizedPatch.notes === 'string') {
-        sanitizedPatch.notes = sanitizedPatch.notes.trim().slice(0, 2000);
-      }
-      if (typeof sanitizedPatch.internal_notes === 'string') {
-        sanitizedPatch.internal_notes = sanitizedPatch.internal_notes.trim().slice(0, 2000);
-      }
+      const sanitizedPatch = { ...patch };
+      if (sanitizedPatch.notes) sanitizedPatch.notes = sanitizedPatch.notes.trim().slice(0, 2000);
+      if (sanitizedPatch.internal_notes) sanitizedPatch.internal_notes = sanitizedPatch.internal_notes.trim().slice(0, 2000);
 
       const { error } = await supabase
         // rls-allow: applySellerScope chamado dinamicamente conforme escopo
         .from("orders")
-        .update(sanitizedPatch)
+        .update({ ...patch, updated_at: new Date().toISOString() })
         .eq("id", orderId!);
-        
       if (error) {
         await logRlsDenial(error, {
           table: "orders", op: "UPDATE",
@@ -157,21 +107,9 @@ export function useUpdateOrder(orderId?: string) {
       toast.success("Pedido atualizado");
       qc.invalidateQueries({ queryKey: ["orders"] });
     },
-    onError: (e: Error) => {
-      console.error("Error updating order:", e);
-      toast.error(e.message || "Erro ao atualizar pedido");
-    },
+    onError: (e: Error) => toast.error(e.message),
   });
 }
-
-export const ORDER_STATUS_ORDER = {
-  pending: 0,
-  confirmed: 1,
-  in_production: 2,
-  shipped: 3,
-  delivered: 4,
-  cancelled: 5,
-} as const;
 
 export const ORDER_STATUS_FLOW = [
   "pending",

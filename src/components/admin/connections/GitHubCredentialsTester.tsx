@@ -79,7 +79,7 @@ export function GitHubCredentialsTester() {
   };
 
   return (
-    <div className="space-y-3 rounded-xl border border-border bg-muted/20 p-4">
+    <div className="space-y-3 rounded-lg border border-border bg-muted/20 p-4">
       <div className="flex items-center justify-between gap-2 flex-wrap">
         <div className="flex items-center gap-2">
           <ShieldCheck className="h-4 w-4 text-primary" />
@@ -99,7 +99,7 @@ export function GitHubCredentialsTester() {
 
       {report && (
         <div className="space-y-2">
-          <TooltipProvider >
+          <TooltipProvider delayDuration={150}>
             <div className="flex flex-wrap gap-2">
               {(Object.entries(report.checks) as Array<[keyof Report["checks"], CheckResult]>).map(
                 ([key, check]) => (
@@ -172,7 +172,7 @@ export function GitHubCredentialsTester() {
       )}
 
       {!report && (
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           Clique para validar token, repo e branch contra a API do GitHub. O resultado aparece em
           badges por chave (verde = OK, vermelho = falha).
         </p>

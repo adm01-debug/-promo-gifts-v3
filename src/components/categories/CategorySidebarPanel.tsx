@@ -62,7 +62,7 @@ function TreeNode({
     >
       <div
         className={cn(
-          "flex items-center gap-2 py-2.5 px-3 rounded-xl cursor-pointer transition-all duration-200",
+          "flex items-center gap-2 py-2.5 px-3 rounded-lg cursor-pointer transition-all duration-200",
           "hover:bg-accent/60",
           isSelected && "bg-primary/15 text-primary font-semibold border-l-2 border-primary"
         )}
@@ -272,7 +272,7 @@ export function CategorySidebarPanel({
         <div className="text-center text-destructive">
           <Folder className="w-8 h-8 mx-auto mb-2 opacity-50" />
           <p className="text-sm font-medium">Erro ao carregar</p>
-          <p className="text-[11px] text-muted-foreground">{error}</p>
+          <p className="text-xs text-muted-foreground">{error}</p>
         </div>
       </div>
     );
@@ -389,7 +389,7 @@ export function CategorySidebarPanel({
                 <div
                   key={cat.id}
                   className={cn(
-                    "flex items-center gap-2 py-2 px-3 rounded-xl cursor-pointer",
+                    "flex items-center gap-2 py-2 px-3 rounded-lg cursor-pointer",
                     "hover:bg-accent/60 transition-colors",
                     selectedCategoryId === cat.id && "bg-primary/15 text-primary"
                   )}

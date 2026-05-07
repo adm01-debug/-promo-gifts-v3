@@ -23,7 +23,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { VisuallyHidden } from "@/components/a11y/VisuallyHidden";
 import { cn } from "@/lib/utils";
 import type { Product } from "@/hooks/useProducts";
@@ -276,7 +276,7 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
                 </span>
               </div>
 
-              <h2 data-testid="product-quickview-name" className="text-xl font-display font-bold text-foreground leading-tight">
+              <h2 data-testid="product-quickview-name" className="text-2xl font-display font-bold text-foreground leading-tight">
                 {product.name}
               </h2>
 
@@ -337,7 +337,7 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
                 >
                   <Minus className="h-4 w-4" />
                 </Button>
-                <span className="text-xl font-semibold w-12 text-center">{quantity}</span>
+                <span className="text-lg font-semibold w-12 text-center">{quantity}</span>
                 <Button
                   variant="outline"
                   size="icon" aria-label="Adicionar"
@@ -353,7 +353,7 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
             </div>
 
             {/* Delivery info */}
-            <div className="mt-4 p-3 rounded-xl bg-muted/30 flex items-center gap-3">
+            <div className="mt-4 p-3 rounded-lg bg-muted/30 flex items-center gap-3">
               <Truck className="h-5 w-5 text-muted-foreground" />
               <div className="text-sm">
                 <p className="font-medium text-foreground">Entrega estimada</p>
@@ -367,63 +367,57 @@ export const ProductQuickView = forwardRef<HTMLDivElement, ProductQuickViewProps
             {/* Actions */}
             <div className="space-y-3 mt-4">
               <div className="flex gap-2">
-                <TooltipProvider >
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className={cn(
-                          "h-11 w-11",
-                          isFavorited && "bg-destructive/10 border-destructive/30 text-destructive"
-                        )}
-                        onClick={handleFavorite}
-                        data-testid="product-favorite"
-                        aria-pressed={isFavorited}
-                       aria-label="Favoritar"><Heart className={cn("h-5 w-5", isFavorited && "fill-current")} />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-                      {isFavorited ? "Remover dos favoritos" : "Adicionar aos favoritos"}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className={cn(
+                        "h-11 w-11",
+                        isFavorited && "bg-destructive/10 border-destructive/30 text-destructive"
+                      )}
+                      onClick={handleFavorite}
+                      data-testid="product-favorite"
+                      aria-pressed={isFavorited}
+                     aria-label="Favoritar"><Heart className={cn("h-5 w-5", isFavorited && "fill-current")} />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {isFavorited ? "Remover dos favoritos" : "Adicionar aos favoritos"}
+                  </TooltipContent>
+                </Tooltip>
 
-                <TooltipProvider >
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        className={cn(
-                          "h-11 w-11",
-                          isInCompare && "bg-primary/10 border-primary/30 text-primary"
-                        )}
-                        onClick={handleCompare}
-                       aria-label="Comparar"><GitCompare className="h-5 w-5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-                      {isInCompare ? "Remover da comparação" : "Adicionar à comparação"}
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className={cn(
+                        "h-11 w-11",
+                        isInCompare && "bg-primary/10 border-primary/30 text-primary"
+                      )}
+                      onClick={handleCompare}
+                     aria-label="Comparar"><GitCompare className="h-5 w-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    {isInCompare ? "Remover da comparação" : "Adicionar à comparação"}
+                  </TooltipContent>
+                </Tooltip>
 
-                <TooltipProvider >
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant="outline"
-                        size="icon" aria-label="Compartilhar"
-                        className="h-11 w-11"
-                        onClick={() => onShare?.(product)}
-                      >
-                        <Share2 className="h-5 w-5" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Gerar link ou compartilhar no WhatsApp</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="outline"
+                      size="icon" aria-label="Compartilhar"
+                      className="h-11 w-11"
+                      onClick={() => onShare?.(product)}
+                    >
+                      <Share2 className="h-5 w-5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Compartilhar</TooltipContent>
+                </Tooltip>
 
                 <Button
                   data-testid="product-quickview-add-to-quote"

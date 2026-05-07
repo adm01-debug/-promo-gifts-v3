@@ -23,7 +23,7 @@ export function EngravingAreaCard({ area, isExpanded, onToggleExpand, onToggleAc
   return (
     <div
       className={cn(
-        'group rounded-xl border transition-all duration-200',
+        'group rounded-lg border transition-all duration-200',
         area.is_active ? 'border-border/50 bg-card/60 hover:border-border hover:shadow-sm' : 'border-border/20 bg-muted/20 opacity-60',
       )}
     >

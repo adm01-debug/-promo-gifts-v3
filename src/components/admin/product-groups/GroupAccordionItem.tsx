@@ -27,7 +27,7 @@ export function GroupAccordionItem({
   const [isAddOpen, setIsAddOpen] = useState(false);
 
   return (
-    <AccordionItem value={group.id} className="border rounded-xl px-4">
+    <AccordionItem value={group.id} className="border rounded-lg px-4">
       <AccordionTrigger className="hover:no-underline">
         <div className="flex items-center gap-3 flex-1">
           <Badge variant="outline" className="font-mono">{group.group_code}</Badge>
@@ -37,9 +37,9 @@ export function GroupAccordionItem({
         </div>
       </AccordionTrigger>
       <AccordionContent className="pt-4 pb-2">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted/30 rounded-xl mb-4">
-          <div><Label className="text-[11px] text-muted-foreground">Código</Label><InlineEditField value={group.group_code} onSave={(v) => onUpdate({ id: group.id, group_code: v.toUpperCase() })} className="font-mono" /></div>
-          <div><Label className="text-[11px] text-muted-foreground">Nome</Label><InlineEditField value={group.group_name} onSave={(v) => onUpdate({ id: group.id, group_name: v })} /></div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 bg-muted/30 rounded-lg mb-4">
+          <div><Label className="text-xs text-muted-foreground">Código</Label><InlineEditField value={group.group_code} onSave={(v) => onUpdate({ id: group.id, group_code: v.toUpperCase() })} className="font-mono" /></div>
+          <div><Label className="text-xs text-muted-foreground">Nome</Label><InlineEditField value={group.group_name} onSave={(v) => onUpdate({ id: group.id, group_name: v })} /></div>
           <div className="flex items-center gap-2">
             <Switch id={`group-active-${group.id}`} checked={group.is_active} onCheckedChange={(checked) => onUpdate({ id: group.id, is_active: checked })} />
             <Label htmlFor={`group-active-${group.id}`} className="text-sm">Ativo</Label>
@@ -61,7 +61,7 @@ export function GroupAccordionItem({
                   {availableProducts.length === 0 ? (
                     <p className="text-center text-muted-foreground py-4">Todos os produtos já estão neste grupo</p>
                   ) : availableProducts.map((product) => (
-                    <div key={product.id} className="flex items-center justify-between p-3 border rounded-xl hover:bg-muted/50 cursor-pointer" onClick={() => onAddMember({ product_group_id: group.id, product_id: product.id })}>
+                    <div key={product.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50 cursor-pointer" onClick={() => onAddMember({ product_group_id: group.id, product_id: product.id })}>
                       <div><span className="font-medium">{product.name}</span><Badge variant="outline" className="ml-2 font-mono text-xs">{product.sku}</Badge></div>
                       <Plus className="h-4 w-4 text-muted-foreground" />
                     </div>

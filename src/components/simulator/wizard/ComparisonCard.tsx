@@ -34,12 +34,12 @@ export function ComparisonCard({
   return (
     <div className="relative">
       {isBestValue && !isSelected && (
-        <div className="absolute -inset-px rounded-xl bg-gradient-to-r from-warning/40 via-primary/30 to-warning/40 blur-sm pointer-events-none" />
+        <div className="absolute -inset-px rounded-2xl bg-gradient-to-r from-warning/40 via-primary/30 to-warning/40 blur-sm pointer-events-none" />
       )}
       <button
         onClick={() => onSelect(result)}
         className={cn(
-          'relative w-full p-6 rounded-xl text-left transition-all duration-300 group',
+          'relative w-full p-6 rounded-2xl text-left transition-all duration-300 group',
           'bg-card border hover:border-primary/40 hover:shadow-xl hover:shadow-primary/10',
           isSelected && 'ring-2 ring-primary border-primary/50 shadow-lg shadow-primary/10',
           !isSelected && isBestValue && 'ring-2 ring-warning/50 border-warning/30 shadow-lg shadow-warning/10',
@@ -70,7 +70,7 @@ export function ComparisonCard({
               <h4 className="font-bold text-xl">{result.techniqueName}</h4>
               <Badge variant="outline" className="text-xs font-mono">{result.techniqueCode}</Badge>
               {isBestValue && (
-                <Badge className="bg-gradient-to-r from-warning to-orange text-primary-foreground border-0 gap-1.5 px-3 py-1 shadow-lg shadow-warning/25 text-sm">
+                <Badge className="bg-gradient-to-r from-warning to-orange text-primary-foreground border-0 gap-1.5 px-3 py-1 shadow-lg shadow-amber-500/25 text-sm">
                   <Trophy className="h-4 w-4" />Melhor Custo-Benefício
                 </Badge>
               )}
@@ -140,9 +140,9 @@ export function ComparisonCard({
 
           {/* Total Price */}
           <div className="text-right shrink-0">
-            <div className="p-4 rounded-xl bg-muted/50 group-hover:bg-primary/5 transition-colors min-w-[140px]">
+            <div className="p-4 rounded-2xl bg-muted/50 group-hover:bg-primary/5 transition-colors min-w-[140px]">
               <p className="text-[11px] text-muted-foreground uppercase tracking-wider mb-1">Total</p>
-              <p className="text-xl font-bold text-primary">{formatCurrency(result.totalPrice)}</p>
+              <p className="text-2xl font-bold text-primary">{formatCurrency(result.totalPrice)}</p>
               <p className="text-xs text-muted-foreground mt-1">{formatCurrency(result.costPerUnit)}/un</p>
             </div>
           </div>

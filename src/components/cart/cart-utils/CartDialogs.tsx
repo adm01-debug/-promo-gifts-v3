@@ -44,9 +44,9 @@ export function CompareCartsDialog({ carts }: { carts: SellerCart[] }) {
                 <Card key={cart.id} className="p-4 space-y-3">
                   <div className="flex items-center gap-2">
                     {cart.company_logo_url ? (
-                      <img src={cart.company_logo_url} alt="Logo da empresa" className="w-8 h-8 rounded-xl object-contain bg-background border border-border/50 p-0.5" loading="lazy" />
+                      <img src={cart.company_logo_url} alt="Logo da empresa" className="w-8 h-8 rounded-lg object-contain bg-background border border-border/50 p-0.5" loading="lazy" />
                     ) : (
-                      <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center">
+                      <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
                         <Building2 className="h-4 w-4 text-muted-foreground" />
                       </div>
                     )}
@@ -73,7 +73,7 @@ export function CompareCartsDialog({ carts }: { carts: SellerCart[] }) {
                   </div>
                   <div className="space-y-1.5 max-h-48 overflow-y-auto">
                     {cart.items.map(item => (
-                      <div key={item.id} className="flex items-center gap-2 text-xs p-1.5 rounded-xl bg-muted/30">
+                      <div key={item.id} className="flex items-center gap-2 text-xs p-1.5 rounded-lg bg-muted/30">
                         {item.product_image_url ? (
                           <img src={item.product_image_url} alt="Produto" className="w-8 h-8 rounded object-contain bg-background" loading="lazy" />
                         ) : (
@@ -118,7 +118,7 @@ export function SaveTemplateDialog({ cart, onSave }: { cart: SellerCart; onSave:
         <div className="space-y-3">
           <Input placeholder='Ex: "Kit Onboarding"' value={name} onChange={(e) => setName(e.target.value)} />
           <Textarea placeholder="Descrição opcional..." value={desc} onChange={(e) => setDesc(e.target.value)} rows={2} />
-          <p className="text-[11px] text-muted-foreground">{cart.items.length} itens serão salvos no template</p>
+          <p className="text-xs text-muted-foreground">{cart.items.length} itens serão salvos no template</p>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
@@ -170,7 +170,7 @@ export function LoadTemplateDialog({
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-semibold">{t.name}</p>
-                    {t.description && <p className="text-[11px] text-muted-foreground">{t.description}</p>}
+                    {t.description && <p className="text-xs text-muted-foreground">{t.description}</p>}
                     <p className="text-[10px] text-muted-foreground mt-1">{t.items.length} itens</p>
                   </div>
                   <div className="flex gap-1.5">

@@ -41,7 +41,7 @@ export function CommandActionGroup({ heading, actions, iconColor = "text-muted-f
                 )}
               </div>
               {action.description && (
-                <span className="text-[11px] text-muted-foreground">{action.description}</span>
+                <span className="text-xs text-muted-foreground">{action.description}</span>
               )}
             </div>
             {action.shortcut && <CommandShortcut>{action.shortcut}</CommandShortcut>}

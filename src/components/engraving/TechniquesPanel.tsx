@@ -97,7 +97,7 @@ export function TechniquesPanel() {
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12">
           <AlertCircle className="h-12 w-12 text-destructive mb-4" />
-          <p className="text-xl font-medium text-destructive mb-2">Erro ao carregar técnicas</p>
+          <p className="text-lg font-medium text-destructive mb-2">Erro ao carregar técnicas</p>
           <p className="text-sm text-muted-foreground text-center max-w-md mb-4">
             {error?.message || 'Não foi possível conectar ao banco de dados.'}
           </p>
@@ -166,7 +166,7 @@ export function TechniquesPanel() {
         </div>
 
         {/* Tabela */}
-        <div className="rounded-xl border">
+        <div className="rounded-md border">
           <Table>
             <TableHeader>
               <TableRow>
@@ -259,7 +259,7 @@ export function TechniquesPanel() {
                           </TooltipContent>
                         </Tooltip>
                       ) : (
-                        <span className="text-[11px] text-muted-foreground">N/A</span>
+                        <span className="text-xs text-muted-foreground">N/A</span>
                       )}
                     </TableCell>
                     <TableCell className="text-center">

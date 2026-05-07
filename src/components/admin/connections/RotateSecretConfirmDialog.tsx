@@ -69,7 +69,7 @@ export function RotateSecretConfirmDialog({
               <AlertTriangle className="w-6 h-6 text-warning" />
             </motion.div>
             <div className="space-y-1">
-              <AlertDialogTitle className="text-xl">
+              <AlertDialogTitle className="text-lg">
                 Rotacionar {secretName}?
               </AlertDialogTitle>
               <AlertDialogDescription>
@@ -88,7 +88,7 @@ export function RotateSecretConfirmDialog({
         />
 
         {/* Impacto */}
-        <div className="rounded-xl border border-border bg-muted/30 p-4">
+        <div className="rounded-lg border border-border bg-muted/30 p-4">
           <h4 className="text-sm font-medium mb-2">Isto irá:</h4>
           <ul className="space-y-1.5 text-sm text-muted-foreground">
             <li className="flex items-center gap-2">
@@ -112,7 +112,7 @@ export function RotateSecretConfirmDialog({
             <Label htmlFor="rotation-notes" className="text-sm">
               Motivo <span className="text-muted-foreground">(opcional)</span>
             </Label>
-            <span className="text-[11px] text-muted-foreground">
+            <span className="text-xs text-muted-foreground">
               {notes.length}/{MAX_NOTES}
             </span>
           </div>
@@ -132,7 +132,7 @@ export function RotateSecretConfirmDialog({
         </p>
 
         {errorMessage && (
-          <div className="rounded-xl border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+          <div className="rounded-md border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
             {errorMessage}
           </div>
         )}

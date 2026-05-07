@@ -38,14 +38,14 @@ export function MagicUpBrandKitPanel({ kit, loading, selectedClientName, logoPre
         <MagicUpLogoLibrary logos={kit.logoUrls} activeLogoUrl={logoPreview || kit.primaryLogoUrl} onUseLogo={onUseLogo} onAddCurrentLogo={onAddCurrentLogo} onChangeLogoVariant={(logoId, variant) => onUpdate({ logoUrls: kit.logoUrls.map((logo) => logo.id === logoId ? { ...logo, variant } : logo) })} />
         <Separator />
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="space-y-1.5"><Label className="text-[11px] text-muted-foreground">Cor primária</Label><Input value={kit.primaryColor || ""} onChange={(e) => onUpdate({ primaryColor: e.target.value })} placeholder="#1D4ED8" className="h-9" /></div>
-          <div className="space-y-1.5"><Label className="text-[11px] text-muted-foreground">Cor secundária</Label><Input value={kit.secondaryColor || ""} onChange={(e) => onUpdate({ secondaryColor: e.target.value })} placeholder="#F59E0B" className="h-9" /></div>
-          <div className="space-y-1.5"><Label className="text-[11px] text-muted-foreground">Tom de voz</Label><Input value={kit.toneOfVoice} onChange={(e) => onUpdate({ toneOfVoice: e.target.value })} placeholder="premium-consultivo" className="h-9" /></div>
-          <div className="space-y-1.5"><Label className="text-[11px] text-muted-foreground">Estilo visual</Label><Input value={kit.visualStyle} onChange={(e) => onUpdate({ visualStyle: e.target.value })} placeholder="limpo-corporativo" className="h-9" /></div>
+          <div className="space-y-1.5"><Label className="text-xs text-muted-foreground">Cor primária</Label><Input value={kit.primaryColor || ""} onChange={(e) => onUpdate({ primaryColor: e.target.value })} placeholder="#1D4ED8" className="h-9" /></div>
+          <div className="space-y-1.5"><Label className="text-xs text-muted-foreground">Cor secundária</Label><Input value={kit.secondaryColor || ""} onChange={(e) => onUpdate({ secondaryColor: e.target.value })} placeholder="#F59E0B" className="h-9" /></div>
+          <div className="space-y-1.5"><Label className="text-xs text-muted-foreground">Tom de voz</Label><Input value={kit.toneOfVoice} onChange={(e) => onUpdate({ toneOfVoice: e.target.value })} placeholder="premium-consultivo" className="h-9" /></div>
+          <div className="space-y-1.5"><Label className="text-xs text-muted-foreground">Estilo visual</Label><Input value={kit.visualStyle} onChange={(e) => onUpdate({ visualStyle: e.target.value })} placeholder="limpo-corporativo" className="h-9" /></div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div className="space-y-1.5"><Label className="text-[11px] text-muted-foreground">Palavras obrigatórias</Label><Input value={kit.requiredWords.join(", ")} onChange={(e) => onUpdate({ requiredWords: parseWordList(e.target.value) })} placeholder="sustentável, premium" className="h-9" /></div>
-          <div className="space-y-1.5"><Label className="text-[11px] text-muted-foreground">Palavras proibidas</Label><Input value={kit.forbiddenWords.join(", ")} onChange={(e) => onUpdate({ forbiddenWords: parseWordList(e.target.value) })} placeholder="barato, genérico" className="h-9" /></div>
+          <div className="space-y-1.5"><Label className="text-xs text-muted-foreground">Palavras obrigatórias</Label><Input value={kit.requiredWords.join(", ")} onChange={(e) => onUpdate({ requiredWords: parseWordList(e.target.value) })} placeholder="sustentável, premium" className="h-9" /></div>
+          <div className="space-y-1.5"><Label className="text-xs text-muted-foreground">Palavras proibidas</Label><Input value={kit.forbiddenWords.join(", ")} onChange={(e) => onUpdate({ forbiddenWords: parseWordList(e.target.value) })} placeholder="barato, genérico" className="h-9" /></div>
         </div>
         <Textarea value={kit.notes} onChange={(e) => onUpdate({ notes: e.target.value })} placeholder="Ex: manter logo em área limpa, priorizar fundos claros, evitar linguagem informal..." rows={3} className="text-sm resize-none" />
         <div className="flex flex-wrap items-center justify-between gap-2">

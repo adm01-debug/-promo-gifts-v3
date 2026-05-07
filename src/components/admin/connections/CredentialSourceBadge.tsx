@@ -42,12 +42,12 @@ export function CredentialSourceBadge({ status, className }: Props) {
   const Icon = config.icon;
 
   return (
-    <TooltipProvider >
+    <TooltipProvider delayDuration={150}>
       <Tooltip>
         <TooltipTrigger asChild>
           <span
             className={cn(
-              "inline-flex items-center gap-1 rounded-xl border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+              "inline-flex items-center gap-1 rounded-md border px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
               config.cls,
               className,
             )}

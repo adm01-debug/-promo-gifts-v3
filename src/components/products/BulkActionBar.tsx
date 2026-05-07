@@ -71,7 +71,7 @@ function ActionButton({
             <span className="hidden sm:inline">{label}</span>
           </Button>
         </TooltipTrigger>
-        <TooltipContent side="top" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none sm:hidden">{label}</TooltipContent>
+        <TooltipContent side="top" className="text-xs sm:hidden">{label}</TooltipContent>
       </Tooltip>
     </motion.div>
   );
@@ -98,7 +98,7 @@ export const BulkActionBar = memo(function BulkActionBar({
           transition={{ type: "spring", stiffness: 400, damping: 30 }}
           className={cn(
             "fixed bottom-6 left-1/2 -translate-x-1/2 z-50",
-            "flex items-center gap-1.5 sm:gap-3 px-3 sm:px-5 py-2.5 rounded-xl",
+            "flex items-center gap-1.5 sm:gap-3 px-3 sm:px-5 py-2.5 rounded-2xl",
             "bg-card/95 backdrop-blur-xl border border-primary/20",
             "shadow-[0_8px_40px_-8px_hsl(var(--primary)/0.25),0_2px_12px_-2px_rgba(0,0,0,0.4)]"
           )}
@@ -162,37 +162,27 @@ export const BulkActionBar = memo(function BulkActionBar({
           <div className="flex items-center gap-0.5 pl-2 sm:pl-2.5 border-l border-border/50">
             {selectedCount < totalCount && (
               <motion.div custom={5} variants={actionVariants} initial="hidden" animate="visible">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="gap-1 text-xs h-8 text-muted-foreground hover:text-foreground"
-                      onClick={onSelectAll}
-                    >
-                      <CheckSquare className="h-3.5 w-3.5" />
-                      <span className="hidden sm:inline">Todos</span>
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Selecionar todos os produtos carregados</TooltipContent>
-                </Tooltip>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="gap-1 text-xs h-8 text-muted-foreground hover:text-foreground"
+                  onClick={onSelectAll}
+                >
+                  <CheckSquare className="h-3.5 w-3.5" />
+                  <span className="hidden sm:inline">Todos</span>
+                </Button>
               </motion.div>
             )}
             <motion.div custom={6} variants={actionVariants} initial="hidden" animate="visible">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
-                    onClick={onClearSelection}
-                    aria-label="Limpar seleção"
-                  >
-                    <X className="h-3.5 w-3.5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="top" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Limpar seleção atual</TooltipContent>
-              </Tooltip>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                onClick={onClearSelection}
+                aria-label="Limpar seleção"
+              >
+                <X className="h-3.5 w-3.5" />
+              </Button>
             </motion.div>
           </div>
         </motion.div>

@@ -54,7 +54,7 @@ export function ComparisonDuelView({ products, formatCurrency, onRemove, onProdu
       }
     }
     return (
-      <div key={row.key} className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 py-3 odd:bg-muted/30 px-4 rounded-xl">
+      <div key={row.key} className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 py-3 odd:bg-muted/30 px-4 rounded-md">
         <div className={cn("text-right text-sm font-medium tabular-nums", aWin && "text-success font-bold")}>
           {row.key === "price" ? formatCurrency(row.raw(a)) : row.format(a)}
           {aWin && <Check className="h-3.5 w-3.5 inline ml-1.5" />}
@@ -70,7 +70,7 @@ export function ComparisonDuelView({ products, formatCurrency, onRemove, onProdu
 
   const renderHeader = (p: any, idx: number, side: "left" | "right") => (
     <div className={cn("space-y-3", side === "right" && "lg:text-right")}>
-      <div className="relative aspect-square rounded-xl overflow-hidden bg-muted border-2 border-border group">
+      <div className="relative aspect-square rounded-2xl overflow-hidden bg-muted border-2 border-border group">
         <img
           src={p.images?.[0]}
           alt={p.name}
@@ -98,25 +98,25 @@ export function ComparisonDuelView({ products, formatCurrency, onRemove, onProdu
       >
         {p.name}
       </h3>
-      <p className="text-xl font-bold text-primary tabular-nums">{formatCurrency(p.price)}</p>
+      <p className="text-2xl font-bold text-primary tabular-nums">{formatCurrency(p.price)}</p>
       {p.supplier?.name && (
-        <p className="text-[11px] text-muted-foreground">por {p.supplier.name}</p>
+        <p className="text-xs text-muted-foreground">por {p.supplier.name}</p>
       )}
     </div>
   );
 
   return (
-    <div className="space-y-6 rounded-xl border-2 border-primary/20 bg-card p-4 sm:p-6 shadow-sm">
+    <div className="space-y-6 rounded-2xl border-2 border-primary/20 bg-card p-4 sm:p-6 shadow-sm">
       <div className="flex items-center justify-center gap-3 pb-2">
         <Badge variant="outline" className="text-xs">⚔️ Modo Duelo</Badge>
-        <span className="text-[11px] text-muted-foreground">Comparação 1 a 1 com destaques</span>
+        <span className="text-xs text-muted-foreground">Comparação 1 a 1 com destaques</span>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto_1fr] gap-6 items-start">
         {renderHeader(a, 0, "left")}
         <div className="hidden lg:flex flex-col items-center justify-center pt-32">
           <div className="w-px h-32 bg-border" />
-          <span className="text-xl font-display font-bold text-muted-foreground my-4">VS</span>
+          <span className="text-2xl font-display font-bold text-muted-foreground my-4">VS</span>
           <div className="w-px h-32 bg-border" />
         </div>
         <div className="lg:hidden flex items-center justify-center py-2">

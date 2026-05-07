@@ -48,7 +48,7 @@ export function SingleVariantPicker({ productId, onSelect, compact, className }:
         <p className="text-xs font-medium text-muted-foreground">Carregando variações...</p>
         <div className="grid grid-cols-2 gap-1.5">
           {Array.from({ length: 4 }).map((_, i) => (
-            <Skeleton key={i} className="h-12 rounded-xl" />
+            <Skeleton key={i} className="h-12 rounded-lg" />
           ))}
         </div>
       </div>
@@ -70,7 +70,7 @@ export function SingleVariantPicker({ productId, onSelect, compact, className }:
           e.stopPropagation();
           onSelect(null);
         }}
-        className="w-full flex items-center gap-2 p-2 rounded-xl border border-dashed border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-all text-left text-xs text-muted-foreground group"
+        className="w-full flex items-center gap-2 p-2 rounded-lg border border-dashed border-border/60 hover:border-primary/40 hover:bg-primary/5 transition-all text-left text-xs text-muted-foreground group"
       >
         <div className="w-6 h-6 rounded-full bg-gradient-to-br from-destructive/70 via-success/70 to-info/70 border border-border/50 shrink-0 group-hover:scale-110 transition-transform" />
         <span className="flex-1">Sem cor específica</span>
@@ -97,7 +97,7 @@ export function SingleVariantPicker({ productId, onSelect, compact, className }:
                 onSelect(variant);
               }}
               className={cn(
-                'flex items-center gap-2 p-2 rounded-xl border transition-all text-left group',
+                'flex items-center gap-2 p-2 rounded-lg border transition-all text-left group',
                 'hover:border-primary/50 hover:bg-accent/60 hover:shadow-sm',
                 isOutOfStock
                   ? 'opacity-50 border-border/40 bg-muted/20'
@@ -108,7 +108,7 @@ export function SingleVariantPicker({ productId, onSelect, compact, className }:
                 <img
                   src={`${variant.selected_thumbnail}/thumbnail`}
                   alt={variant.color_name ?? ''}
-                  className="w-8 h-8 rounded-xl object-cover border border-border/50 shrink-0 group-hover:scale-105 transition-transform"
+                  className="w-8 h-8 rounded-md object-cover border border-border/50 shrink-0 group-hover:scale-105 transition-transform"
                   onError={(e) => {
                     const t = e.currentTarget;
                     if (t.src.includes('/thumbnail')) t.src = variant.selected_thumbnail!;
@@ -117,7 +117,7 @@ export function SingleVariantPicker({ productId, onSelect, compact, className }:
                 />
               ) : (
                 <div
-                  className="w-8 h-8 rounded-xl border border-border/50 shrink-0 group-hover:scale-105 transition-transform"
+                  className="w-8 h-8 rounded-md border border-border/50 shrink-0 group-hover:scale-105 transition-transform"
                   style={{ backgroundColor: variant.color_hex || '#CCC' }}
                 />
               )}

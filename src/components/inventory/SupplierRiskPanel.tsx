@@ -144,7 +144,7 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
     return (
       <Card>
         <CardHeader className="pb-3">
-          <CardTitle className="text-xl flex items-center gap-2">
+          <CardTitle className="text-lg flex items-center gap-2">
             <div className="h-8 w-8 rounded-full bg-warning/10 flex items-center justify-center">
               <ShieldAlert className="h-4 w-4 text-warning" aria-hidden="true" />
             </div>
@@ -173,14 +173,14 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
-            <CardTitle className="text-xl font-bold font-display tracking-tight flex items-center gap-2">
-              <div className="h-9 w-9 rounded-xl bg-amber-500/10 flex items-center justify-center shadow-inner">
-                <ShieldAlert className="h-5 w-5 text-amber-500" aria-hidden="true" />
+            <CardTitle className="text-lg flex items-center gap-2">
+              <div className="h-8 w-8 rounded-full bg-warning/10 flex items-center justify-center">
+                <ShieldAlert className="h-4 w-4 text-warning" aria-hidden="true" />
               </div>
-              Análise de Risco no Fornecedor
+              Risco de Ruptura no Fornecedor
               {globalCounts.critical > 0 && (
-                <Badge variant="destructive" className="text-[10px] font-bold uppercase h-5 px-1.5 animate-pulse border-none shadow-md shadow-destructive/20">
-                  {globalCounts.critical} Crítico{globalCounts.critical > 1 ? 's' : ''}
+                <Badge variant="destructive" className="text-[10px] animate-pulse">
+                  {globalCounts.critical} crítico{globalCounts.critical > 1 ? 's' : ''}
                 </Badge>
               )}
             </CardTitle>
@@ -271,7 +271,7 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
                           role="option"
                           aria-selected={selectedProductId === product.id}
                           className={cn(
-                            "w-full text-left p-2 rounded-xl text-xs transition-colors",
+                            "w-full text-left p-2 rounded-lg text-xs transition-colors",
                             selectedProductId === product.id
                               ? "bg-primary/10 border border-primary/20"
                               : "hover:bg-muted/50"
@@ -310,15 +310,15 @@ export function SupplierRiskPanel({ products }: SupplierRiskPanelProps) {
             {/* Summary — reflects filtered products */}
             <div className="grid grid-cols-3 gap-1.5 pt-2 border-t border-border">
               <div className="text-center p-1.5 rounded bg-destructive/10" role="status" aria-label={`${filteredCounts.critical} produtos críticos`}>
-                <p className="text-xl font-bold text-destructive">{filteredCounts.critical}</p>
+                <p className="text-lg font-bold text-destructive">{filteredCounts.critical}</p>
                 <p className="text-[9px] text-destructive">Críticos</p>
               </div>
               <div className="text-center p-1.5 rounded bg-warning/10" role="status" aria-label={`${filteredCounts.warning} produtos em atenção`}>
-                <p className="text-xl font-bold text-warning">{filteredCounts.warning}</p>
+                <p className="text-lg font-bold text-warning">{filteredCounts.warning}</p>
                 <p className="text-[9px] text-warning">Atenção</p>
               </div>
               <div className="text-center p-1.5 rounded bg-primary/10" role="status" aria-label={`${filteredCounts.ok} produtos OK`}>
-                <p className="text-xl font-bold text-primary">{filteredCounts.ok}</p>
+                <p className="text-lg font-bold text-primary">{filteredCounts.ok}</p>
                 <p className="text-[9px] text-primary">OK</p>
               </div>
             </div>

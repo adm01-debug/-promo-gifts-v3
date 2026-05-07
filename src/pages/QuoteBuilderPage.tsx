@@ -4,6 +4,7 @@
  */
 
 import { useMemo } from "react";
+import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { cn } from "@/lib/utils";
 
@@ -14,7 +15,6 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Calendar } from "@/components/ui/calendar";
 import {
   FileText, Plus, Save, Send, Package, Loader2, BookTemplate, ArrowLeft,
@@ -45,16 +45,16 @@ export default function QuoteBuilderPage() {
 
   if (s.loadingQuote) {
     return (
-      <>
+      <MainLayout>
         <div className="flex items-center justify-center min-h-[60vh]">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
         </div>
-      </>
+      </MainLayout>
     );
   }
 
   return (
-    <>
+    <MainLayout>
       <PageSEO title={s.quoteId ? "Editar Orçamento" : "Novo Orçamento"} description="Crie e edite orçamentos com seleção de produtos e personalização." path="/orcamentos/novo" noIndex />
 
       <QuoteAutoSave
@@ -77,16 +77,9 @@ export default function QuoteBuilderPage() {
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div className="flex items-center gap-4">
-            <TooltipProvider >
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" aria-label="Voltar" onClick={() => guardNavigation(() => s.navigate(-1))}>
-                    <ArrowLeft className="h-5 w-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Voltar para a página anterior</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Button variant="ghost" size="icon" aria-label="Voltar" onClick={() => guardNavigation(() => s.navigate(-1))}>
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
             <div>
               <h1 data-testid="page-title-orcamento-novo" className="font-display text-2xl font-bold text-foreground flex items-center gap-3">
                 <div className="p-2 rounded-xl bg-gradient-to-br from-primary/20 to-primary/10">
@@ -104,18 +97,11 @@ export default function QuoteBuilderPage() {
               <QuoteTemplateSelector
                 onSelectTemplate={s.applyTemplate}
                 trigger={
-                  <TooltipProvider >
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button variant="outline">
-                          <BookTemplate className="h-4 w-4 mr-2" />
-                          Usar Template
-                          {s.templates.length > 0 && <Badge variant="secondary" className="ml-2">{s.templates.length}</Badge>}
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Carregar configurações de um orçamento salvo anteriormente</TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <Button variant="outline">
+                    <BookTemplate className="h-4 w-4 mr-2" />
+                    Usar Template
+                    {s.templates.length > 0 && <Badge variant="secondary" className="ml-2">{s.templates.length}</Badge>}
+                  </Button>
                 }
               />
             )}
@@ -142,14 +128,7 @@ export default function QuoteBuilderPage() {
                 <BookTemplate className="h-4 w-4 text-primary" />
                 <span className="text-sm">Template <strong>"{s.templateApplied}"</strong> aplicado</span>
               </div>
-              <TooltipProvider >
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="sm" onClick={() => s.setTemplateApplied(null)}>Fechar</Button>
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Ocultar aviso de template</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Button variant="ghost" size="sm" onClick={() => s.setTemplateApplied(null)}>Fechar</Button>
             </CardContent>
           </Card>
         )}
@@ -164,14 +143,7 @@ export default function QuoteBuilderPage() {
                   <p className="text-sm text-muted-foreground">Use "{s.defaultTemplate.name}" para começar rapidamente</p>
                 </div>
               </div>
-              <TooltipProvider >
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="outline" onClick={() => s.applyTemplate(s.defaultTemplate!)}>Aplicar Template</Button>
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Carregar os produtos do template padrão para este orçamento</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Button variant="outline" onClick={() => s.applyTemplate(s.defaultTemplate!)}>Aplicar Template</Button>
             </CardContent>
           </Card>
         )}
@@ -351,7 +323,6 @@ export default function QuoteBuilderPage() {
                           onReorder={() => {}}
                           onUpdateQuantity={(_, qty) => s.updateItemQuantity(idx, qty)}
                           onUpdatePrice={(_, price) => s.updateItemPrice(idx, price)}
-                          onConfirmPrice={() => s.confirmItemPrice(idx)}
                           onRemove={() => { s.removeItem(idx); s.setActiveItemIndex(null); }}
                           onTogglePersonalization={() => s.toggleExpanded(idx)}
                           expandedItems={new Set(s.expandedItems.has(idx) ? [0] : [])}
@@ -432,6 +403,6 @@ export default function QuoteBuilderPage() {
         onCancel={cancelLeave}
         message={message}
       />
-    </>
+    </MainLayout>
   );
 }

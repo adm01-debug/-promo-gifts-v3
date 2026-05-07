@@ -200,7 +200,7 @@ export function ConnectionTimelineDrawer({
               <Loader2 className="h-4 w-4 animate-spin" /> Carregando…
             </div>
           ) : rows.length === 0 ? (
-            <div className="rounded-xl border border-dashed p-8 text-center text-sm text-muted-foreground">
+            <div className="rounded-md border border-dashed p-8 text-center text-sm text-muted-foreground">
               Nenhum teste registrado ainda. Execute "Testar conexão" para começar a gravar histórico.
             </div>
           ) : (
@@ -209,7 +209,7 @@ export function ConnectionTimelineDrawer({
                 <Card>
                   <CardHeader className="pb-2">
                     <CardDescription className="text-[10px]">Taxa de sucesso</CardDescription>
-                    <CardTitle className="text-xl">
+                    <CardTitle className="text-lg">
                       {stats.rate === null ? "—" : `${stats.rate.toFixed(0)}%`}
                     </CardTitle>
                   </CardHeader>
@@ -217,13 +217,13 @@ export function ConnectionTimelineDrawer({
                 <Card>
                   <CardHeader className="pb-2">
                     <CardDescription className="text-[10px]">Latência média</CardDescription>
-                    <CardTitle className="text-xl">{stats.avgLat}ms</CardTitle>
+                    <CardTitle className="text-lg">{stats.avgLat}ms</CardTitle>
                   </CardHeader>
                 </Card>
                 <Card>
                   <CardHeader className="pb-2">
                     <CardDescription className="text-[10px]">Total testes</CardDescription>
-                    <CardTitle className="text-xl">{stats.total}</CardTitle>
+                    <CardTitle className="text-lg">{stats.total}</CardTitle>
                   </CardHeader>
                 </Card>
               </div>
@@ -368,7 +368,7 @@ export function ConnectionTimelineDrawer({
                       >
                         Anterior
                       </Button>
-                      <span className="text-[11px] text-muted-foreground">
+                      <span className="text-xs text-muted-foreground">
                         {page + 1} / {pages}
                       </span>
                       <Button

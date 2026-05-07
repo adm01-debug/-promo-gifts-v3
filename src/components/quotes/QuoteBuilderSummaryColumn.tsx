@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import {
   Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter,
 } from "@/components/ui/dialog";
@@ -102,13 +102,13 @@ export function QuoteBuilderSummaryColumn({
   return (
     <div className="lg:col-span-4">
       <div className="sticky top-24">
-        <div className="flex flex-col rounded-xl border border-border/50 bg-card shadow-xl overflow-hidden">
+        <div className="flex flex-col rounded-2xl border border-border/50 bg-card shadow-xl overflow-hidden">
           {/* Header */}
           <div className="flex items-center gap-2 p-4 pb-3 shrink-0">
-            <div className="p-2 rounded-xl bg-primary/10">
+            <div className="p-2 rounded-lg bg-primary/10">
               <ShoppingCart className="h-4 w-4 text-primary" />
             </div>
-            <h3 className="font-display font-semibold text-base">Resumo (Apresentado)</h3>
+            <h3 className="font-display font-semibold text-base">Resumo</h3>
           </div>
 
           {/* Stale price filter — só aparece quando há itens com preço pendente de confirmação */}
@@ -132,22 +132,15 @@ export function QuoteBuilderSummaryColumn({
                 {showOnlyStale && <X className="h-3 w-3 ml-0.5" aria-hidden="true" />}
               </button>
               {confirmAllStalePrices && (
-                <TooltipProvider >
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="h-7 px-2.5 text-xs gap-1.5 border-warning/40 text-warning hover:bg-warning/10 hover:text-warning"
-                        onClick={() => setConfirmAllOpen(true)}
-                      >
-                        <CheckCircle2 className="h-3.5 w-3.5" />
-                        Confirmar todos
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Confirmar que todos os preços stale foram validados com o fornecedor</TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 px-2.5 text-xs gap-1.5 border-warning/40 text-warning hover:bg-warning/10 hover:text-warning"
+                  onClick={() => setConfirmAllOpen(true)}
+                >
+                  <CheckCircle2 className="h-3.5 w-3.5" />
+                  Confirmar todos
+                </Button>
               )}
             </div>
           )}
@@ -156,7 +149,7 @@ export function QuoteBuilderSummaryColumn({
           <div className="flex-1 min-h-0 px-4 overflow-y-auto max-h-[50vh]">
             <div className="space-y-3 pr-1">
               {items.length === 0 ? (
-                <div className="flex flex-col items-center justify-center p-8 rounded-xl border-2 border-dashed border-muted-foreground/20 bg-muted/5 group hover:border-primary/30 transition-all duration-300">
+                <div className="flex flex-col items-center justify-center p-8 rounded-2xl border-2 border-dashed border-muted-foreground/20 bg-muted/5 group hover:border-primary/30 transition-all duration-300">
                   <div className="p-3 rounded-full bg-muted/30 mb-3 group-hover:bg-primary/10 transition-colors">
                     <Package className="h-6 w-6 text-muted-foreground/40 group-hover:text-primary/50" />
                   </div>
@@ -164,7 +157,7 @@ export function QuoteBuilderSummaryColumn({
                   <p className="text-[11px] text-muted-foreground/60 mt-1 max-w-[150px] text-center">Busque produtos na coluna ao lado para começar</p>
                 </div>
               ) : visibleItems.length === 0 ? (
-                <div className="flex flex-col items-center justify-center p-6 rounded-xl border-2 border-dashed border-warning/30 bg-warning/[0.03]">
+                <div className="flex flex-col items-center justify-center p-6 rounded-2xl border-2 border-dashed border-warning/30 bg-warning/[0.03]">
                   <CheckCircle2 className="h-6 w-6 text-warning mb-2" />
                   <p className="text-sm font-medium text-warning">Preços Confirmados</p>
                   <button
@@ -195,9 +188,9 @@ export function QuoteBuilderSummaryColumn({
                       <div className="flex items-start gap-3">
                         <div className="shrink-0">
                           {item.product_image_url ? (
-                            <img src={item.product_image_url} alt={item.product_name} className="w-12 h-12 object-cover rounded-xl bg-muted" loading="lazy" />
+                            <img src={item.product_image_url} alt={item.product_name} className="w-12 h-12 object-cover rounded-lg bg-muted" loading="lazy" />
                           ) : (
-                            <div className="w-12 h-12 bg-muted rounded-xl flex items-center justify-center">
+                            <div className="w-12 h-12 bg-muted rounded-lg flex items-center justify-center">
                               <Package className="h-5 w-5 text-muted-foreground" />
                             </div>
                           )}
@@ -215,31 +208,16 @@ export function QuoteBuilderSummaryColumn({
                           </div>
                         </div>
                         <div className="flex items-center gap-1 shrink-0">
-                          <TooltipProvider >
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" aria-label="Editar" className={cn("h-6 w-6", isActive ? "text-primary" : "text-muted-foreground")} onClick={(e) => { e.stopPropagation(); setActiveItemIndex(idx); }}>
-                                  <Edit className="h-3.5 w-3.5" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Ajustar quantidades e personalização deste item</TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-
-                          <TooltipProvider >
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button variant="ghost" size="icon" aria-label="Excluir" className="h-6 w-6 text-destructive hover:bg-destructive/10" onClick={(e) => {
-                                  e.stopPropagation(); removeItem(idx);
-                                  if (activeItemIndex === idx) setActiveItemIndex(null);
-                                  else if (activeItemIndex !== null && activeItemIndex > idx) setActiveItemIndex(activeItemIndex - 1);
-                                }}>
-                                  <Trash2 className="h-3.5 w-3.5" />
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Remover este produto do orçamento</TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
+                          <Button variant="ghost" size="icon" aria-label="Editar" className={cn("h-6 w-6", isActive ? "text-primary" : "text-muted-foreground")} onClick={(e) => { e.stopPropagation(); setActiveItemIndex(idx); }}>
+                            <Edit className="h-3.5 w-3.5" />
+                          </Button>
+                          <Button variant="ghost" size="icon" aria-label="Excluir" className="h-6 w-6 text-destructive hover:bg-destructive/10" onClick={(e) => {
+                            e.stopPropagation(); removeItem(idx);
+                            if (activeItemIndex === idx) setActiveItemIndex(null);
+                            else if (activeItemIndex !== null && activeItemIndex > idx) setActiveItemIndex(activeItemIndex - 1);
+                          }}>
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </Button>
                         </div>
                       </div>
                       <div className="flex items-center gap-2 text-xs">
@@ -278,7 +256,7 @@ export function QuoteBuilderSummaryColumn({
                         </div>
                         <div className="space-y-1">
                           {item.personalizations.map((p, pIdx) => (
-                            <div key={pIdx} className="flex items-center justify-between gap-1 px-2 py-1 rounded-xl border border-border/40 bg-card text-xs">
+                            <div key={pIdx} className="flex items-center justify-between gap-1 px-2 py-1 rounded-lg border border-border/40 bg-card text-xs">
                               <div className="flex items-center gap-1.5 min-w-0 flex-1">
                                 <Badge variant="secondary" className="text-[9px] px-1 py-0 h-4 shrink-0 font-bold">{pIdx + 1}</Badge>
                                 <div className="min-w-0">
@@ -306,7 +284,7 @@ export function QuoteBuilderSummaryColumn({
           <div className="px-4 pt-3 space-y-2.5">
               {maxDiscountPercent != null && (
                 <div className={cn(
-                  "flex items-center gap-2 px-2.5 py-1.5 rounded-xl text-xs transition-colors",
+                  "flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs transition-colors",
                   isDiscountExceeded ? "bg-amber-500/10 border border-amber-500/30" : "bg-muted/50"
                 )}>
                   <Shield className={cn("h-3.5 w-3.5 shrink-0", isDiscountExceeded ? "text-amber-500" : "text-muted-foreground")} />
@@ -341,7 +319,7 @@ export function QuoteBuilderSummaryColumn({
                 />
               </div>
               {isDiscountExceeded && (
-                <div className="flex items-start gap-2 rounded-xl bg-amber-500/10 border border-amber-500/30 px-3 py-2">
+                <div className="flex items-start gap-2 rounded-lg bg-amber-500/10 border border-amber-500/30 px-3 py-2">
                   <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
                   <div>
                     <p className="text-xs text-amber-600 font-semibold">Desconto acima do autorizado</p>
@@ -389,7 +367,7 @@ export function QuoteBuilderSummaryColumn({
             </div>
 
             {!isFormValid && (
-              <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-3 py-2 space-y-1">
+              <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-3 py-2 space-y-1">
                 <p className="text-xs font-semibold text-destructive flex items-center gap-1">
                   <AlertTriangle className="h-3 w-3" /> Campos obrigatórios pendentes:
                 </p>
@@ -408,7 +386,7 @@ export function QuoteBuilderSummaryColumn({
             {isDiscountExceeded ? (
               <Button
                 size="lg"
-                className="w-full gap-2 h-12 text-sm font-bold bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-lg shadow-warning/20"
+                className="w-full gap-2 h-12 text-sm font-bold bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white shadow-lg shadow-amber-500/20"
                 onClick={() => setApprovalDialogOpen(true)}
                 disabled={quotesLoading || !isFormValid}
               >

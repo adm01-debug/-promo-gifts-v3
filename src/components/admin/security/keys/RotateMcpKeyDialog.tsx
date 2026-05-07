@@ -138,7 +138,7 @@ export function RotateMcpKeyDialog({ source, open, onOpenChange, onRotated }: Pr
                   Copie agora — esta é a única vez que será exibida em texto puro.
                 </AlertDescription>
               </Alert>
-              <div className="p-3 rounded-xl bg-muted font-mono text-xs break-all">
+              <div className="p-3 rounded-md bg-muted font-mono text-xs break-all">
                 {generated}
               </div>
               <Button onClick={() => copy(generated)} className="w-full">

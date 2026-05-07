@@ -71,7 +71,7 @@ export function useGlobalSearch() {
   const [typingSuggestions, setTypingSuggestions] = useState<string[]>([]);
   const [voiceOverlayOpen, setVoiceOverlayOpen] = useState(false);
   const navigate = useNavigate();
-  const debouncedQuery = useDebounce(query, 300);
+  const debouncedQuery = useDebounce(query, 500);
   
   const { 
     history: globalHistory, 

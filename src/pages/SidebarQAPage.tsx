@@ -159,7 +159,7 @@ export default function SidebarQAPage() {
         <header className="flex items-start justify-between gap-4 flex-wrap">
           <div>
             <h1
-              className="text-xl font-bold tracking-tight"
+              className="text-2xl font-bold tracking-tight"
               data-testid="page-title-sidebar-qa"
             >
               QA Visual — Sidebar

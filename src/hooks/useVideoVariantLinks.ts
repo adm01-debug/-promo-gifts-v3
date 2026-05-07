@@ -23,17 +23,11 @@ export function useVideoVariantLinks(productId?: string) {
   const query = useQuery({
     queryKey: ["video-variant-links", productId],
     queryFn: async () => {
-      try {
-        let q = supabase.from("video_variant_links").select("id, product_id, variant_id, variant_name, variant_color_hex, video_id, supplier_code, created_at").order("created_at", { ascending: false });
-        if (productId) q = q.eq("product_id", productId);
-        const { data, error } = await q;
-        if (error) throw error;
-        return data as VideoVariantLink[];
-      } catch (err) {
-        console.error("Error in useVideoVariantLinks:", err);
-        toast.error("Erro ao carregar vínculos de vídeo");
-        throw err;
-      }
+      let q = supabase.from("video_variant_links").select("*").order("created_at", { ascending: false });
+      if (productId) q = q.eq("product_id", productId);
+      const { data, error } = await q;
+      if (error) throw error;
+      return data as VideoVariantLink[];
     },
     enabled: !!productId || productId === undefined,
   });

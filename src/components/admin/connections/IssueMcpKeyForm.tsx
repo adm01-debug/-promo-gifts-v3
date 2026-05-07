@@ -200,7 +200,7 @@ export function IssueMcpKeyForm({ onIssued }: Props) {
             puro. Apenas o hash fica armazenado no banco.
           </AlertDescription>
         </Alert>
-        <div className="p-3 rounded-xl bg-muted font-mono text-xs break-all">
+        <div className="p-3 rounded-md bg-muted font-mono text-xs break-all">
           {generated}
         </div>
         <Button onClick={() => copy(generated)} className="w-full">
@@ -225,7 +225,7 @@ export function IssueMcpKeyForm({ onIssued }: Props) {
 
       <div>
         <Label className="block mb-2">Escopos</Label>
-        <TooltipProvider >
+        <TooltipProvider delayDuration={200}>
           <div className="flex flex-wrap gap-2">
             {KNOWN_SCOPES.map((s) => {
               const active = scopes.includes(s);

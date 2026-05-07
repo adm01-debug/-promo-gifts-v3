@@ -9,6 +9,7 @@ import { type MockupTechnique } from "@/types/external-db";
 import { useMemo, useCallback, useState, Suspense } from "react";
 import { useProductsContext } from "@/contexts/ProductsContext";
 import { deleteMockupFromDb } from "@/hooks/mockup/mockupGenerationService";
+import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { Button } from "@/components/ui/button";
 import { Loader2, AlertCircle, CheckCircle2, History, Wand2 } from "lucide-react";
@@ -185,7 +186,7 @@ export default function MockupGenerator() {
   }, [mg.setLastSavedRecordId, mg.setLastSavedMockupUrl, mg.fetchHistory]);
 
   return (
-    <>
+    <MainLayout>
       <DiagnosticProfiler id="MockupGenerator">
       <PageSEO title="Gerador de Mockups" description="Crie mockups profissionais de brindes personalizados com sua logo." path="/mockup-generator" />
       <Suspense fallback={null}>
@@ -239,14 +240,7 @@ export default function MockupGenerator() {
             <AlertTitle>Erro na geração</AlertTitle>
             <AlertDescription className="flex items-center justify-between">
               <span>{mg.generationError}</span>
-              <TooltipProvider >
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="outline" size="sm" onClick={() => mg.setGenerationError(null)}>Dispensar</Button>
-                  </TooltipTrigger>
-                  <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Remover aviso de erro</TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Button variant="outline" size="sm" onClick={() => mg.setGenerationError(null)}>Dispensar</Button>
             </AlertDescription>
           </Alert>
         )}
@@ -477,6 +471,6 @@ export default function MockupGenerator() {
         />
       </div>
       </DiagnosticProfiler>
-    </>
+    </MainLayout>
   );
 }

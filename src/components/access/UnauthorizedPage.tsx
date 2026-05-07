@@ -35,10 +35,10 @@ export function UnauthorizedPage() {
           </div>
 
           <div className="space-y-2">
-            <span className="badge-premium-primary text-[10px] py-0.5 px-2">
+            <span className="inline-block text-[10px] font-bold uppercase tracking-widest px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20">
               Não Autenticado · 401
             </span>
-            <h1 className="text-xl font-bold tracking-tight text-foreground">
+            <h1 className="text-2xl font-bold tracking-tight text-foreground">
               Acesso Restrito
             </h1>
             <p className="text-sm leading-relaxed text-muted-foreground">
@@ -60,10 +60,10 @@ export function UnauthorizedPage() {
           </div>
 
           <div className="pt-2">
-            <p className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-[0.15em]">
+            <p className="text-[10px] font-medium text-muted-foreground/40 uppercase tracking-widest">
               Identificador de Segurança
             </p>
-            <p className="badge-premium-mono mt-1.5 opacity-70">
+            <p className="text-[10px] font-mono text-muted-foreground/60 mt-1 bg-muted/20 py-1 px-2 rounded inline-block">
               {requestId}
             </p>
           </div>

@@ -10,6 +10,7 @@ import {
   type DragEndEvent,
 } from "@dnd-kit/core";
 import { SortableContext, verticalListSortingStrategy, arrayMove } from "@dnd-kit/sortable";
+import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { ProductGrid } from "@/components/products/ProductGrid";
 import { ProductTableView } from "@/components/products/ProductTableView";
@@ -17,7 +18,6 @@ import { ProductListItem } from "@/components/products/ProductListItem";
 import { LayoutPopover } from "@/components/products/LayoutPopover";
 import { getDefaultColumns, type ColumnCount } from "@/components/products/ColumnSelector";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -273,7 +273,7 @@ export default function CollectionDetailPage() {
   // Loading state for external collections
   if (isExternal && isLoadingExternalProducts) {
     return (
-      <>
+      <MainLayout>
         <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-4">
           <Skeleton className="h-8 w-48" />
           <Skeleton className="h-16 w-full" />
@@ -281,18 +281,18 @@ export default function CollectionDetailPage() {
             {[1, 2, 3, 4, 5, 6].map((i) => <Skeleton key={i} className="aspect-square rounded-xl" />)}
           </div>
         </div>
-      </>
+      </MainLayout>
     );
   }
 
   if (!collection) {
     return (
-      <>
+      <MainLayout>
         <div className="text-center py-16">
           <h2 className="font-display text-xl font-semibold mb-4">Coleção não encontrada</h2>
           <Button onClick={() => navigate("/colecoes")}>Voltar para coleções</Button>
         </div>
-      </>
+      </MainLayout>
     );
   }
 
@@ -348,7 +348,7 @@ export default function CollectionDetailPage() {
 
   return (
     <>
-      <>
+      <MainLayout>
         <PageSEO
           title={`Coleção: ${collection.name}`}
           description={`Explore os produtos da coleção ${collection.name}.`}
@@ -391,19 +391,10 @@ export default function CollectionDetailPage() {
                   </Button>
                 </motion.div>
                 <motion.div initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.15 }}>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button size="sm" variant="outline" className="gap-1.5 text-xs text-destructive border-destructive/30 hover:bg-destructive/10" onClick={handleBulkRemove}>
-                          <Trash2 className="h-3.5 w-3.5" />
-                          Remover
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-0.5 min-h-0">
-                        Remover itens selecionados
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <Button size="sm" variant="outline" className="gap-1.5 text-xs text-destructive border-destructive/30 hover:bg-destructive/10" onClick={handleBulkRemove}>
+                    <Trash2 className="h-3.5 w-3.5" />
+                    Remover
+                  </Button>
                 </motion.div>
               </>
             }
@@ -430,60 +421,37 @@ export default function CollectionDetailPage() {
                 </DropdownMenuContent>
               </DropdownMenu>
               {!isExternal && (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant={isSelectionMode ? "default" : "outline"}
-                        size="sm"
-                        className="gap-2"
-                        onClick={toggleSelectionMode}
-                      >
-                        <CheckSquare className="h-3.5 w-3.5" />
-                        {isSelectionMode ? "Selecionando" : "Selecionar"}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-0.5 min-h-0">
-                      Ativar seleção múltipla
-                    </TooltipContent>
-                  </Tooltip>
-
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button
-                        variant={manageMode ? "default" : "outline"}
-                        size="sm"
-                        className="gap-2"
-                        onClick={() => setManageMode((v) => !v)}
-                      >
-                        <Settings2 className="h-3.5 w-3.5" />
-                        {manageMode ? "Gerenciando" : "Gerenciar"}
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-0.5 min-h-0">
-                      Ordenar itens e editar notas
-                    </TooltipContent>
-                  </Tooltip>
-
+                <>
+                  <Button
+                    variant={isSelectionMode ? "default" : "outline"}
+                    size="sm"
+                    className="gap-2"
+                    onClick={toggleSelectionMode}
+                  >
+                    <CheckSquare className="h-3.5 w-3.5" />
+                    {isSelectionMode ? "Selecionando" : "Selecionar"}
+                  </Button>
+                  <Button
+                    variant={manageMode ? "default" : "outline"}
+                    size="sm"
+                    className="gap-2"
+                    onClick={() => setManageMode((v) => !v)}
+                  >
+                    <Settings2 className="h-3.5 w-3.5" />
+                    {manageMode ? "Gerenciando" : "Gerenciar"}
+                  </Button>
                   {priceDropCount > 0 && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant={onlyDrops ? "default" : "outline"}
-                          size="sm"
-                          className="gap-2"
-                          onClick={() => setOnlyDrops((v) => !v)}
-                        >
-                          <TrendingDown className="h-3.5 w-3.5" />
-                          Só com queda ({priceDropCount})
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-0.5 min-h-0">
-                        Filtrar produtos com queda de preço
-                      </TooltipContent>
-                    </Tooltip>
+                    <Button
+                      variant={onlyDrops ? "default" : "outline"}
+                      size="sm"
+                      className="gap-2"
+                      onClick={() => setOnlyDrops((v) => !v)}
+                    >
+                      <TrendingDown className="h-3.5 w-3.5" />
+                      Só com queda ({priceDropCount})
+                    </Button>
                   )}
-                </TooltipProvider>
+                </>
               )}
               <div className="hidden sm:block">
                 <LayoutPopover
@@ -656,7 +624,7 @@ export default function CollectionDetailPage() {
             </div>
           )}
         </div>
-      </>
+      </MainLayout>
 
       {showPresentation && products.length > 0 && (
         <CollectionPresentationLauncher

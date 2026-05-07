@@ -136,7 +136,7 @@ export function CategoryRanking({ days = 30, categoryId, supplierId, productId, 
     const total = pieData.reduce((s, p) => s + p.value, 0);
     const pct = total > 0 ? ((d.value / total) * 100).toFixed(1) : '0';
     return (
-      <div className="bg-popover border border-border rounded-xl px-3 py-2 shadow-lg text-xs space-y-1">
+      <div className="bg-popover border border-border rounded-lg px-3 py-2 shadow-lg text-xs space-y-1">
         <p className="font-semibold text-foreground">{d.fullName}</p>
         <div className="flex items-center gap-1.5">
            <TrendingUp className="h-3 w-3 text-success" />
@@ -157,7 +157,7 @@ export function CategoryRanking({ days = 30, categoryId, supplierId, productId, 
         <div className="flex items-center justify-between flex-wrap gap-2">
           <div>
             <CardTitle className="text-base flex items-center gap-2">
-               <div className="w-7 h-7 rounded-xl skin-icon flex items-center justify-center">
+               <div className="w-7 h-7 rounded-lg skin-icon flex items-center justify-center">
                  <LayoutGrid className="h-3.5 w-3.5" />
                </div>
               🏆 Ranking de Categorias
@@ -180,7 +180,7 @@ export function CategoryRanking({ days = 30, categoryId, supplierId, productId, 
               type="single"
               value={sortMode}
               onValueChange={(v) => v && setSortMode(v as SortMode)}
-              className="bg-muted/50 rounded-xl p-0.5"
+              className="bg-muted/50 rounded-lg p-0.5"
             >
               <ToggleGroupItem value="combined" className="text-[10px] px-2 py-1 h-6 data-[state=on]:bg-background data-[state=on]:shadow-sm">
                 Combinado
@@ -253,7 +253,7 @@ export function CategoryRanking({ days = 30, categoryId, supplierId, productId, 
                 transition={{ duration: 0.25, ease: [0.4, 0, 0.2, 1] }}
                 className="space-y-2.5"
               >
-                <TooltipProvider >
+                <TooltipProvider delayDuration={200}>
                   {sortedCategories.map((cat, i) => {
                     const val = getBarValue(cat);
                     const pct = maxVal > 0 ? (val / maxVal) * 100 : 0;

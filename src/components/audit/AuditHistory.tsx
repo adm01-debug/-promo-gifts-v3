@@ -124,7 +124,7 @@ export function AuditHistory({
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl flex items-center gap-2">
+          <CardTitle className="text-lg flex items-center gap-2">
             <Clock className="h-5 w-5" />
             {title}
           </CardTitle>
@@ -150,7 +150,7 @@ export function AuditHistory({
     return (
       <Card>
         <CardHeader>
-          <CardTitle className="text-xl flex items-center gap-2">
+          <CardTitle className="text-lg flex items-center gap-2">
             <Clock className="h-5 w-5" />
             {title}
           </CardTitle>
@@ -167,7 +167,7 @@ export function AuditHistory({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-xl flex items-center gap-2">
+        <CardTitle className="text-lg flex items-center gap-2">
           <Clock className="h-5 w-5" />
           {title}
           <Badge variant="outline" className="ml-2">

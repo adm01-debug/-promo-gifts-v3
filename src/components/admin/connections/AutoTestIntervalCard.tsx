@@ -67,7 +67,7 @@ export function AutoTestIntervalCard() {
     <Card className="border-dashed">
       <CardContent className="flex flex-wrap items-center gap-3 py-3">
         <div className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center">
+          <div className="h-8 w-8 rounded-md bg-primary/10 flex items-center justify-center">
             <Clock className="h-4 w-4 text-primary" />
           </div>
           <div className="leading-tight">
@@ -78,7 +78,7 @@ export function AutoTestIntervalCard() {
           </div>
         </div>
 
-        <TooltipProvider >
+        <TooltipProvider delayDuration={200}>
           <Tooltip>
             <TooltipTrigger asChild>
               <span className="inline-flex"><Info className="h-3.5 w-3.5 text-muted-foreground" /></span>

@@ -73,7 +73,7 @@ export function StepComplete({ importResult, importMode, invalidCount, validatio
         ) : (
           <AlertTriangle className="h-12 w-12 text-warning mx-auto mb-3" />
         )}
-        <p className="text-xl font-semibold font-display">Importação Concluída</p>
+        <p className="text-lg font-semibold font-display">Importação Concluída</p>
         <div className="flex justify-center gap-4 mt-2 text-sm">
           <span className="text-success font-medium">{importResult.succeeded} importados</span>
           {importResult.failed > 0 && <span className="text-destructive font-medium">{importResult.failed} falharam</span>}
@@ -84,7 +84,7 @@ export function StepComplete({ importResult, importMode, invalidCount, validatio
       </div>
 
       {importResult.errors.length > 0 && (
-        <ScrollArea className="h-[150px] border rounded-xl p-3">
+        <ScrollArea className="h-[150px] border rounded-lg p-3">
           <p className="text-xs font-medium mb-2">Erros detalhados:</p>
           {importResult.errors.map((e, i) => (
             <p key={i} className="text-xs text-destructive mb-1">Linhas {e.startRow}–{e.endRow}: {e.message}</p>

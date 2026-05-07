@@ -131,22 +131,22 @@ export function BridgeCallDetailDrawer({ sample, open, onOpenChange }: Props) {
 
           {/* Timing & sizes */}
           <div className="grid grid-cols-3 gap-3">
-            <div className="p-3 rounded-xl border border-border/50 bg-muted/30">
+            <div className="p-3 rounded-lg border border-border/50 bg-muted/30">
               <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Latência</p>
               <p className="font-display text-lg font-bold tabular-nums">{formatMs(sample.durationMs)}</p>
             </div>
-            <div className="p-3 rounded-xl border border-border/50 bg-muted/30">
+            <div className="p-3 rounded-lg border border-border/50 bg-muted/30">
               <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Enviado</p>
               <p className="font-display text-lg font-bold tabular-nums">{formatBytes(sample.reqBytes)}</p>
             </div>
-            <div className="p-3 rounded-xl border border-border/50 bg-muted/30">
+            <div className="p-3 rounded-lg border border-border/50 bg-muted/30">
               <p className="text-[10px] uppercase tracking-wide text-muted-foreground">Recebido</p>
               <p className="font-display text-lg font-bold tabular-nums">{formatBytes(sample.respBytes)}</p>
             </div>
           </div>
 
           {/* Timestamps */}
-          <div className="text-[11px] text-muted-foreground">
+          <div className="text-xs text-muted-foreground">
             <p>
               <span className="font-medium text-foreground">Quando:</span>{' '}
               {new Date(sample.ts).toLocaleString('pt-BR')}
@@ -160,7 +160,7 @@ export function BridgeCallDetailDrawer({ sample, open, onOpenChange }: Props) {
 
           {/* Erro */}
           {sample.errorMessage && (
-            <div className="p-3 rounded-xl border border-destructive/30 bg-destructive/5">
+            <div className="p-3 rounded-lg border border-destructive/30 bg-destructive/5">
               <p className="text-[10px] uppercase tracking-wide text-destructive font-medium mb-1">
                 Erro
               </p>

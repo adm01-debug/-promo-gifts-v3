@@ -5,7 +5,7 @@
 import { memo } from "react";
 import { Heart, Share2, Eye, GitCompare, FolderPlus, FileText, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { QuickAddToQuote } from "./QuickAddToQuote";
 import { cn } from "@/lib/utils";
 import type { VariantActionMode } from "./VariantPickerDialog";
@@ -47,32 +47,23 @@ export const ProductCardActions = memo(function ProductCardActions({
       )}
     >
       {/* Main FAB */}
-      <TooltipProvider >
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              type="button"
-              data-testid="product-card-actions-toggle"
-              data-actions-open={actionsOpen ? "true" : "false"}
-              className={cn(
-                "flex items-center justify-center h-9 w-9 md:h-11 md:w-11 rounded-full shadow-lg",
-                "transition-all duration-300 ease-out",
-                "min-h-[36px] min-w-[36px] md:min-h-[44px] md:min-w-[44px]",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-                actionsOpen ? "bg-muted text-muted-foreground rotate-45" : "bg-orange/60 text-orange-foreground hover:bg-orange/80"
-              )}
-              onClick={(e) => { e.stopPropagation(); onToggleActions(); }}
-              aria-label={actionsOpen ? "Fechar ações" : "Ações rápidas"}
-              aria-expanded={actionsOpen}
-            >
-              <Plus className="h-4 w-4 md:h-5 md:w-5 transition-transform duration-200" />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent side="left" className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-            {actionsOpen ? "Fechar menu" : "Ver ações rápidas"}
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+      <button
+        type="button"
+        data-testid="product-card-actions-toggle"
+        data-actions-open={actionsOpen ? "true" : "false"}
+        className={cn(
+          "flex items-center justify-center h-9 w-9 md:h-11 md:w-11 rounded-full shadow-lg",
+          "transition-all duration-300 ease-out",
+          "min-h-[36px] min-w-[36px] md:min-h-[44px] md:min-w-[44px]",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          actionsOpen ? "bg-muted text-muted-foreground rotate-45" : "bg-orange/60 text-orange-foreground hover:bg-orange/80"
+        )}
+        onClick={(e) => { e.stopPropagation(); onToggleActions(); }}
+        aria-label={actionsOpen ? "Fechar ações" : "Ações rápidas"}
+        aria-expanded={actionsOpen}
+      >
+        <Plus className="h-4 w-4 md:h-5 md:w-5 transition-transform duration-200" />
+      </button>
 
       {/* Expanded actions */}
       <div className={cn(
@@ -85,7 +76,7 @@ export const ProductCardActions = memo(function ProductCardActions({
           ariaPressed={isFavorited}
           className={cn(btnClass, isFavorited && "bg-destructive/10 border-destructive/30")}
           iconClassName={cn(isFavorited && "fill-destructive text-destructive scale-110 animate-heart-fill")}
-          onClick={(e) => { e.stopPropagation(); onFavorite(e); }} />
+          onClick={onFavorite} />
 
         {/* Compare */}
         <ActionButton icon={GitCompare} label={isInCompare ? "Remover da comparação" : "Adicionar à comparação"}
@@ -110,19 +101,12 @@ export const ProductCardActions = memo(function ProductCardActions({
           onClick={(e) => { e.stopPropagation(); markBusy(); onOpenVariantPicker('quote'); }} />
 
         {/* Add to Cart */}
-        <TooltipProvider >
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <QuickAddToQuote
-                productId={productId} productName={productName} productSku={productSku}
-                productImageUrl={productImageUrl} productPrice={productPrice}
-                minQuantity={productMinQuantity} variant="icon"
-                className="h-9 w-9 md:h-11 md:w-11 min-h-[36px] min-w-[36px] md:min-h-[44px] md:min-w-[44px] bg-primary hover:bg-primary/90 text-primary-foreground border-primary/20 shadow-primary/20 hover:scale-110 active:scale-95 disabled:opacity-50"
-              />
-            </TooltipTrigger>
-            <TooltipContent side="left" className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">Adicionar ao carrinho</TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+        <QuickAddToQuote
+          productId={productId} productName={productName} productSku={productSku}
+          productImageUrl={productImageUrl} productPrice={productPrice}
+          minQuantity={productMinQuantity} variant="icon"
+          className="h-9 w-9 md:h-11 md:w-11 min-h-[36px] min-w-[36px] md:min-h-[44px] md:min-w-[44px] bg-primary hover:bg-primary/90 text-primary-foreground border-primary/20 shadow-primary/20 hover:scale-110 active:scale-95 disabled:opacity-50"
+        />
 
         {/* Quick View */}
         <ActionButton icon={Eye} label="Visualização Rápida" className={btnClass}
@@ -144,18 +128,16 @@ function ActionButton({
   ariaPressed?: boolean;
 }) {
   return (
-    <TooltipProvider >
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <Button variant="secondary" size="icon" className={className} disabled={disabled}
-            onClick={onClick} aria-label={label}
-            data-testid={testId}
-            aria-pressed={ariaPressed}>
-            <Icon className={cn("h-4 w-4 md:h-5 md:w-5 transition-all duration-300", iconClassName)} />
-          </Button>
-        </TooltipTrigger>
-        <TooltipContent side="left" className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">{label}</TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button variant="secondary" size="icon" className={className} disabled={disabled}
+          onClick={onClick} aria-label={label}
+          data-testid={testId}
+          aria-pressed={ariaPressed}>
+          <Icon className={cn("h-4 w-4 md:h-5 md:w-5 transition-all duration-300", iconClassName)} />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent side="left">{label}</TooltipContent>
+    </Tooltip>
   );
 }

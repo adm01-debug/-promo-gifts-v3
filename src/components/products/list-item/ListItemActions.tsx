@@ -43,7 +43,7 @@ export function ListItemActions({
             <Heart className={cn("h-3.5 w-3.5", isFavorited && "fill-current")} />
           </Button>
         </TooltipTrigger>
-        <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">{isFavorited ? "Remover favorito" : "Favoritar"}</TooltipContent>
+        <TooltipContent side="bottom">{isFavorited ? "Remover favorito" : "Favoritar"}</TooltipContent>
       </Tooltip>
 
       {/* Comparar */}
@@ -57,7 +57,7 @@ export function ListItemActions({
             <GitCompare className="h-3.5 w-3.5" />
           </Button>
         </TooltipTrigger>
-        <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Comparar</TooltipContent>
+        <TooltipContent side="bottom">Comparar</TooltipContent>
       </Tooltip>
 
       {/* Desktop-only actions */}
@@ -69,7 +69,7 @@ export function ListItemActions({
               <Share2 className="h-3.5 w-3.5" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Compartilhar</TooltipContent>
+          <TooltipContent side="bottom">Compartilhar</TooltipContent>
         </Tooltip>
 
         <Tooltip>
@@ -79,7 +79,7 @@ export function ListItemActions({
               <FolderPlus className="h-3.5 w-3.5" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Coleção</TooltipContent>
+          <TooltipContent side="bottom">Coleção</TooltipContent>
         </Tooltip>
 
         <Tooltip>
@@ -89,7 +89,7 @@ export function ListItemActions({
               <FileText className="h-3.5 w-3.5" />
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Orçamento</TooltipContent>
+          <TooltipContent side="bottom">Orçamento</TooltipContent>
         </Tooltip>
       </div>
 
@@ -108,7 +108,7 @@ export function ListItemActions({
             <Eye className="h-3.5 w-3.5" />
           </Button>
         </TooltipTrigger>
-        <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Quick View</TooltipContent>
+        <TooltipContent side="bottom">Quick View</TooltipContent>
       </Tooltip>
     </div>
   );

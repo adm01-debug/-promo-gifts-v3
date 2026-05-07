@@ -52,7 +52,7 @@ export function RoleChangeDialog({ user, onClose, onConfirm }: RoleChangeDialogP
                     <Code2 className="h-4 w-4 text-purple-600" />
                     <div>
                       <div className="font-medium">Dev</div>
-                      <div className="text-[11px] text-muted-foreground">Acesso total, incluindo área técnica</div>
+                      <div className="text-xs text-muted-foreground">Acesso total, incluindo área técnica</div>
                     </div>
                   </div>
                 </SelectItem>
@@ -62,7 +62,7 @@ export function RoleChangeDialog({ user, onClose, onConfirm }: RoleChangeDialogP
                   <ShieldCheck className="h-4 w-4 text-primary" />
                   <div>
                     <div className="font-medium">Supervisor</div>
-                    <div className="text-[11px] text-muted-foreground">Gestão comercial, descontos e cadastros</div>
+                    <div className="text-xs text-muted-foreground">Gestão comercial, descontos e cadastros</div>
                   </div>
                 </div>
               </SelectItem>
@@ -71,7 +71,7 @@ export function RoleChangeDialog({ user, onClose, onConfirm }: RoleChangeDialogP
                   <Shield className="h-4 w-4" />
                   <div>
                     <div className="font-medium">Agente</div>
-                    <div className="text-[11px] text-muted-foreground">Acesso somente aos próprios dados</div>
+                    <div className="text-xs text-muted-foreground">Acesso somente aos próprios dados</div>
                   </div>
                 </div>
               </SelectItem>

@@ -74,7 +74,7 @@ export function StockHistoryChart({ productId }: StockHistoryChartProps) {
         <CardContent className="flex flex-col items-center justify-center py-8 gap-3 text-center">
           <AlertCircle className="h-6 w-6 text-destructive" />
           <p className="text-sm font-medium text-destructive">Não foi possível carregar dados de mercado</p>
-          <p className="text-[11px] text-muted-foreground">Tente novamente em alguns instantes</p>
+          <p className="text-xs text-muted-foreground">Tente novamente em alguns instantes</p>
           <Button variant="outline" size="sm" onClick={handleRetry} className="gap-1.5 mt-1">
             <RefreshCw className="h-3.5 w-3.5" />
             Tentar novamente
@@ -251,7 +251,7 @@ function MarketTooltip({ active, payload, showCost }: { active?: boolean; payloa
   const hasActivity = (depleted != null && depleted > 0) || (restocked != null && restocked > 0);
 
   return (
-    <div className="bg-popover border border-border rounded-xl p-3 shadow-lg min-w-[180px]">
+    <div className="bg-popover border border-border rounded-lg p-3 shadow-lg min-w-[180px]">
       <p className="text-xs font-medium text-foreground">{data.fullDate}</p>
       <div className="mt-2 space-y-1.5">
         <div className="flex justify-between text-xs">

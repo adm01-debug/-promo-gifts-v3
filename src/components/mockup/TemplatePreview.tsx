@@ -60,7 +60,7 @@ export function TemplatePreview({
     if (!showTooltips) return <div key={index}>{marker}</div>;
 
     return (
-      <TooltipProvider key={index} >
+      <TooltipProvider key={index} delayDuration={100}>
         <Tooltip>
           <TooltipTrigger asChild>
             {marker}
@@ -81,7 +81,7 @@ export function TemplatePreview({
   return (
     <div
       className={cn(
-        "relative rounded-xl border border-border bg-muted/50",
+        "relative rounded-md border border-border bg-muted/50",
         "transition-all duration-200",
         config.container,
         className
@@ -126,7 +126,7 @@ export function TemplatePreviewExpanded({
   return (
     <div 
       className={cn(
-        "relative w-full aspect-square rounded-xl border border-border overflow-hidden bg-muted/30",
+        "relative w-full aspect-square rounded-lg border border-border overflow-hidden bg-muted/30",
         className
       )}
     >
@@ -149,7 +149,7 @@ export function TemplatePreviewExpanded({
 
       {/* Area markers */}
       {areas.map((area, index) => (
-        <TooltipProvider key={index} >
+        <TooltipProvider key={index} delayDuration={100}>
           <Tooltip>
             <TooltipTrigger asChild>
               <button
@@ -177,10 +177,10 @@ export function TemplatePreviewExpanded({
             <TooltipContent side="top">
               <div className="space-y-1">
                 <p className="font-medium">{area.name}</p>
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   Tamanho: {area.logoWidth}×{area.logoHeight} cm
                 </p>
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   Posição: {area.positionX}%, {area.positionY}%
                 </p>
               </div>

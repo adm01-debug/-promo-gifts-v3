@@ -107,7 +107,7 @@ export function TrendsKpiCards({ current, previous }: TrendsKpiCardsProps) {
                   <Icon className={cn("h-5 w-5", c.iconText)} />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-xl font-bold text-foreground leading-tight">
+                  <p className="text-2xl font-bold text-foreground leading-tight">
                     {value.toLocaleString("pt-BR")}
                   </p>
                   <p className="text-xs text-muted-foreground leading-tight">{label}</p>

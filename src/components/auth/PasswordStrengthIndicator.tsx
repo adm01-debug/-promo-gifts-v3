@@ -98,7 +98,7 @@ export function PasswordStrengthIndicator({
       {/* Progress bar */}
       <div className="space-y-1.5">
         <div className="flex justify-between items-center">
-          <span className="text-[11px] text-muted-foreground">Força da senha</span>
+          <span className="text-xs text-muted-foreground">Força da senha</span>
           <span className={cn(
             'text-xs font-medium',
             analysis.strength === 'weak' && 'text-destructive',
@@ -145,7 +145,7 @@ export function PasswordStrengthIndicator({
       {/* Breach check */}
       {password.length >= 8 && (
         <div className={cn(
-          'flex items-start gap-2 p-2.5 rounded-xl border text-xs',
+          'flex items-start gap-2 p-2.5 rounded-lg border text-xs',
           isChecking && 'bg-muted/50 border-muted',
           isBreached && 'bg-destructive/10 border-destructive/30',
           !isChecking && !isBreached && hasCheckedBreach && 'bg-success/10 border-success/30'

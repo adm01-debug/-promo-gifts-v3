@@ -67,7 +67,7 @@ export function PackagingModal({
       <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg">
-            <div className="w-8 h-8 rounded-xl bg-warning/10 flex items-center justify-center">
+            <div className="w-8 h-8 rounded-lg bg-warning/10 flex items-center justify-center">
               <Gift className="h-4 w-4 text-warning" />
             </div>
             <span>Embalagem Especial</span>
@@ -100,7 +100,7 @@ export function PackagingModal({
               ) : (
                 <div className="flex flex-col items-center justify-center h-full bg-gradient-to-br from-secondary to-secondary/50">
                   <Package className="h-16 w-16 text-muted-foreground/30 mb-2" />
-                  <span className="text-[11px] text-muted-foreground">
+                  <span className="text-xs text-muted-foreground">
                     Imagem não disponível
                   </span>
                 </div>
@@ -123,7 +123,7 @@ export function PackagingModal({
                   {packingType}
                 </Badge>
                 {packagingContext && contextLabels[packagingContext] && (
-                  <span className="text-[11px] text-muted-foreground">
+                  <span className="text-xs text-muted-foreground">
                     {contextLabels[packagingContext]}
                   </span>
                 )}
@@ -188,7 +188,7 @@ export function PackagingModal({
 
           {/* Observação */}
           <Separator className="bg-border/50" />
-          <div className="flex items-start gap-2 p-3 rounded-xl bg-info/5 border border-info/20">
+          <div className="flex items-start gap-2 p-3 rounded-lg bg-info/5 border border-info/20">
             <Info className="h-4 w-4 text-info shrink-0 mt-0.5" />
             <p className="text-xs text-muted-foreground leading-relaxed">
               A embalagem especial está inclusa no preço do produto.
@@ -213,7 +213,7 @@ function DimensionItem({
   if (!value) return null;
   
   return (
-    <div className="p-2.5 rounded-xl bg-secondary/50 border border-border/50">
+    <div className="p-2.5 rounded-lg bg-secondary/50 border border-border/50">
       <div className="flex items-center gap-1.5 text-[10px] text-muted-foreground uppercase tracking-wide mb-1">
         {icon}
         {label}

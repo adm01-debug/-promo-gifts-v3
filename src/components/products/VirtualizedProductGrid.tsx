@@ -1,14 +1,8 @@
-import React, { useRef, useCallback, useState, useEffect } from "react";
+import { useRef, useCallback, useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { motion, AnimatePresence } from "framer-motion";
 import { Loader2, ArrowUp } from "lucide-react";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { ProductCard } from "./ProductCard";
 import { ProductListItem } from "./ProductListItem";
 import { ProductCardSkeleton } from "./ProductCardSkeleton";
@@ -159,14 +153,14 @@ export function VirtualizedProductGrid({
     <div className="relative h-full">
       <div
         ref={parentRef}
-        className="h-[calc(100vh-200px)] min-h-[600px] overflow-y-auto rounded-xl border border-primary/10 
-          bg-gradient-to-b from-background via-background/95 to-background/90 backdrop-blur-sm
-          scrollbar-products shadow-sm overscroll-contain"
+        className="h-[calc(100vh-200px)] min-h-[600px] overflow-y-auto rounded-xl border border-border/40 
+          bg-gradient-to-b from-background/80 to-background/40 backdrop-blur-sm
+          scrollbar-products shadow-inner overscroll-contain"
         style={{ contain: "strict", WebkitOverflowScrolling: "touch" }}
       >
         {/* Barra de filtros sticky DENTRO do container de scroll */}
         {showFilterBar && onSortChange && onOpenFilters && onClearFilters && onViewModeChange && (
-          <div className="sticky top-0 z-20 bg-background/95 backdrop-blur-md border-b border-primary/10 px-4 py-2.5 mb-2 shadow-sm">
+          <div className="sticky top-[calc(var(--header-h,56px)+var(--breadcrumb-h,0px))] z-20 bg-background/95 backdrop-blur-md border-b border-border px-4 py-2.5 mb-2">
              <InlineFilterBar
               activeFiltersCount={activeFiltersCount}
               totalProducts={products.length}
@@ -269,43 +263,29 @@ export function VirtualizedProductGrid({
                       transition={{ delay: colIndex * 0.05 }}
                       className={cn(
                         "relative transition-all duration-200",
-                        selectionMode && selectedIds?.has(product.id) && "ring-2 ring-primary/50 rounded-xl shadow-md"
+                        selectionMode && selectedIds?.has(product.id) && "ring-2 ring-primary/50 rounded-2xl shadow-md"
                       )}
                       style={{ zIndex: 1 }}
-                      onClick={(e) => {
-                        if (selectionMode) {
-                          e.stopPropagation();
-                          onToggleSelect?.(product.id);
-                        }
-                      }}
-
                     >
                       {selectionMode && (
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <button
-                              className={cn(
-                                "absolute top-2 left-2 z-20 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200",
-                                selectedIds?.has(product.id)
-                                  ? "bg-primary border-primary text-primary-foreground scale-100"
-                                  : "border-muted-foreground/40 bg-card/80 backdrop-blur-sm hover:border-primary/60"
-                              )}
-                              onClick={(e) => {
-                                e.stopPropagation(); e.preventDefault();
-                                onToggleSelect?.(product.id);
-                              }}
-                            >
-                              {selectedIds?.has(product.id) && (
-                                <svg className="w-3.5 h-3.5" viewBox="0 0 14 14" fill="none">
-                                  <path d="M11.5 3.5L5.5 10L2.5 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                                </svg>
-                              )}
-                            </button>
-                          </TooltipTrigger>
-                          <TooltipContent className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">
-                            {selectedIds?.has(product.id) ? "Desmarcar" : "Selecionar"}
-                          </TooltipContent>
-                        </Tooltip>
+                        <button
+                          className={cn(
+                            "absolute top-2 left-2 z-20 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all duration-200",
+                            selectedIds?.has(product.id)
+                              ? "bg-primary border-primary text-primary-foreground scale-100"
+                              : "border-muted-foreground/40 bg-card/80 backdrop-blur-sm hover:border-primary/60"
+                          )}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onToggleSelect?.(product.id);
+                          }}
+                        >
+                          {selectedIds?.has(product.id) && (
+                            <svg className="w-3.5 h-3.5" viewBox="0 0 14 14" fill="none">
+                              <path d="M11.5 3.5L5.5 10L2.5 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                          )}
+                        </button>
                       )}
                       <ProductCard
                         product={product}
@@ -330,21 +310,16 @@ export function VirtualizedProductGrid({
       {/* Scroll to top button - posicionado dentro do container */}
       <AnimatePresence>
         {showScrollTop && (
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <motion.button
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.8 }}
-                className="absolute bottom-4 right-4 p-3 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors z-30"
-                onClick={scrollToTop}
-                aria-label="Voltar ao topo"
-              >
-                <ArrowUp className="h-5 w-5" />
-              </motion.button>
-            </TooltipTrigger>
-            <TooltipContent side="left" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Voltar ao topo</TooltipContent>
-          </Tooltip>
+          <motion.button
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            className="absolute bottom-4 right-4 p-3 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 transition-colors z-30"
+            onClick={scrollToTop}
+            title="Voltar ao topo"
+          >
+            <ArrowUp className="h-5 w-5" />
+          </motion.button>
         )}
       </AnimatePresence>
     </div>

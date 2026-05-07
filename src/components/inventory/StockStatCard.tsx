@@ -125,10 +125,10 @@ export function StatCard({ title, value, icon, trend, variant = 'default', onCli
       <div className="p-4">
         <div className="flex items-center justify-between gap-3">
           <div className="space-y-1 text-left min-w-0 flex-1">
-            <p className="text-[10px] text-muted-foreground font-bold uppercase tracking-widest leading-none mb-1 opacity-70 group-hover:opacity-100 transition-opacity">{title}</p>
-            <p className="text-2xl font-extrabold tabular-nums tracking-tighter leading-none">{displayValue}</p>
+            <p className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">{title}</p>
+            <p className="text-2xl font-bold tabular-nums tracking-tight">{displayValue}</p>
             {subtitle && (
-              <p className="text-[10px] text-muted-foreground/60 font-medium truncate mt-1">{subtitle}</p>
+              <p className="text-[10px] text-muted-foreground/70 truncate">{subtitle}</p>
             )}
             {trend && (
               <p className={cn(

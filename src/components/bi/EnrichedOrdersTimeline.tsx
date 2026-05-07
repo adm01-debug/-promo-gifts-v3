@@ -71,12 +71,12 @@ export function EnrichedOrdersTimeline({ clientId }: Props) {
       <CardContent className="p-5">
         <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
           <div className="flex items-center gap-2">
-            <div className="h-8 w-8 rounded-xl bg-primary/10 flex items-center justify-center">
+            <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
               <ShoppingBag className="h-4 w-4 text-primary" />
             </div>
             <div>
               <h3 className="font-display font-semibold text-sm">Linha do tempo de pedidos</h3>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 Últimos {bi.recentOrders.length} fechamentos · evolução de ticket
               </p>
             </div>
@@ -164,7 +164,7 @@ export function EnrichedOrdersTimeline({ clientId }: Props) {
                         </Badge>
                       )}
                       {o.isAnomaly && (
-                        <TooltipProvider >
+                        <TooltipProvider delayDuration={150}>
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Badge
@@ -194,7 +194,7 @@ export function EnrichedOrdersTimeline({ clientId }: Props) {
                   <div className="text-right shrink-0">
                     <div className="font-semibold text-sm tabular-nums">{fmtBRL(o.total)}</div>
                     <div className="flex items-center gap-1.5 justify-end">
-                      <span className="text-[11px] text-muted-foreground">{fmtDate(o.date)}</span>
+                      <span className="text-xs text-muted-foreground">{fmtDate(o.date)}</span>
                       {deltaPct != null && Math.abs(deltaPct) > 5 && (
                         <span className={cn("text-[10px] font-medium tabular-nums", deltaTone)}>
                           {deltaPct > 0 ? "+" : ""}

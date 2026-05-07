@@ -65,7 +65,7 @@ export function CompareEmptyStateSmart() {
           <GitCompare className="h-10 w-10 text-muted-foreground" />
         </div>
         <div className="text-center">
-          <h1 className="text-xl font-display font-bold text-foreground mb-2">Comparador de Produtos</h1>
+          <h1 className="text-2xl font-display font-bold text-foreground mb-2">Comparador de Produtos</h1>
           <p className="text-muted-foreground max-w-md">
             Selecione pelo menos 2 produtos para comparar lado a lado.
           </p>
@@ -84,7 +84,7 @@ export function CompareEmptyStateSmart() {
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
             {products.slice(0, 6).map(p => (
               <div key={p.id} className="rounded-xl border border-border bg-card p-3 space-y-2 hover:shadow-md hover:border-primary/40 transition-all">
-                <div className="aspect-square rounded-xl overflow-hidden bg-muted">
+                <div className="aspect-square rounded-lg overflow-hidden bg-muted">
                   <img src={p.images?.[0]} alt={p.name} className="w-full h-full object-contain" loading="lazy" />
                 </div>
                 <p className="text-xs font-medium line-clamp-2">{p.name}</p>

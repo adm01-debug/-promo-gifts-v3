@@ -92,11 +92,11 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
                 <Button type="button" variant="outline" size="sm" className="h-7 text-xs gap-1" onClick={form.addPixKey}><Plus className="h-3 w-3" /> Adicionar</Button>
               </div>
               {form.pixKeys.map((pix: { id: string; tipo: string; chave: string; favorecido: string; principal: boolean }) => (
-                <div key={pix.id} className="rounded-xl border border-border bg-muted/30 p-3 space-y-2">
+                <div key={pix.id} className="rounded-lg border border-border bg-muted/30 p-3 space-y-2">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <Switch checked={pix.principal} onCheckedChange={(v) => form.updatePixKey(pix.id, 'principal', v)} />
-                      <span className="text-[11px] text-muted-foreground">{pix.principal ? 'Principal' : 'Secundária'}</span>
+                      <span className="text-xs text-muted-foreground">{pix.principal ? 'Principal' : 'Secundária'}</span>
                     </div>
                     <Button type="button" variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => form.removePixKey(pix.id)}><Trash2 className="h-3.5 w-3.5" /></Button>
                   </div>
@@ -133,12 +133,12 @@ export function NewSupplierDialog({ onCreated }: NewSupplierDialogProps) {
 
           {/* Classification */}
           <TabsContent value="classification" className="space-y-4 pt-3">
-            <div className="flex items-center justify-between rounded-xl border border-border p-3">
-              <div><Label className="text-sm">Fornecedor de Produtos</Label><p className="text-[11px] text-muted-foreground">Fornece brindes e produtos</p></div>
+            <div className="flex items-center justify-between rounded-lg border border-border p-3">
+              <div><Label className="text-sm">Fornecedor de Produtos</Label><p className="text-xs text-muted-foreground">Fornece brindes e produtos</p></div>
               <Switch checked={form.isProductSupplier} onCheckedChange={form.setIsProductSupplier} />
             </div>
-            <div className="flex items-center justify-between rounded-xl border border-border p-3">
-              <div><Label className="text-sm">Fornecedor de Gravação</Label><p className="text-[11px] text-muted-foreground">Realiza personalização/gravação</p></div>
+            <div className="flex items-center justify-between rounded-lg border border-border p-3">
+              <div><Label className="text-sm">Fornecedor de Gravação</Label><p className="text-xs text-muted-foreground">Realiza personalização/gravação</p></div>
               <Switch checked={form.isEngravingSupplier} onCheckedChange={form.setIsEngravingSupplier} />
             </div>
           </TabsContent>

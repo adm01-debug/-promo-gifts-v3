@@ -33,16 +33,16 @@ export const PasskeyLogin = forwardRef<HTMLButtonElement, PasskeyLoginProps>(fun
       ref={ref}
       type="button"
       variant="outline"
-      className="w-full h-12 gap-3 font-bold uppercase tracking-widest border-border/60 bg-background hover:bg-muted/50 transition-all shadow-sm text-primary hover:text-primary-glow"
+      className="w-full gap-2 border-orange/30 hover:border-orange hover:bg-orange/10"
       onClick={handleClick}
       disabled={disabled || isLoading}
     >
       {isLoading ? (
         <Loader2 className="h-4 w-4 animate-spin" />
       ) : (
-        <Fingerprint className="h-5 w-5 text-primary" />
+        <Fingerprint className="h-4 w-4 text-orange" />
       )}
-      ENTRAR COM BIOMETRIA
+      Entrar com Biometria
     </Button>
   );
 });

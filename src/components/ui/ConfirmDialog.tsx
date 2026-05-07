@@ -117,7 +117,7 @@ export function ConfirmDialog({
               <Icon className={cn("w-6 h-6", config.iconColor)} />
             </motion.div>
             <div className="space-y-2">
-              <AlertDialogTitle className="text-xl" data-testid={titleTestId}>
+              <AlertDialogTitle className="text-lg" data-testid={titleTestId}>
                 {title}
               </AlertDialogTitle>
               {description && (
@@ -135,7 +135,7 @@ export function ConfirmDialog({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="my-4 p-4 rounded-xl bg-muted/50 border border-border"
+            className="my-4 p-4 rounded-lg bg-muted/50 border border-border"
             data-testid={testId ? `${testId}-impact` : "confirm-dialog-impact"}
           >
             <h4 className="text-sm font-medium mb-2">{impactPreview.title}</h4>

@@ -179,7 +179,7 @@ export function BITourGuide({ force = false, onClose }: Props) {
         <Card className="p-4 border-2 border-primary/40 shadow-2xl">
           <div className="flex items-start justify-between gap-2 mb-2">
             <div className="flex items-center gap-2">
-              <div className="h-7 w-7 rounded-xl bg-primary/15 flex items-center justify-center">
+              <div className="h-7 w-7 rounded-lg bg-primary/15 flex items-center justify-center">
                 <Sparkles className="h-3.5 w-3.5 text-primary" />
               </div>
               <div>
@@ -192,7 +192,7 @@ export function BITourGuide({ force = false, onClose }: Props) {
             <button
               onClick={finish}
               aria-label="Fechar tour"
-              className="h-7 w-7 rounded-xl hover:bg-muted flex items-center justify-center text-muted-foreground"
+              className="h-7 w-7 rounded-md hover:bg-muted flex items-center justify-center text-muted-foreground"
             >
               <X className="h-4 w-4" />
             </button>
@@ -215,7 +215,7 @@ export function BITourGuide({ force = false, onClose }: Props) {
               variant="ghost"
               size="sm"
               onClick={finish}
-              className="text-[11px] text-muted-foreground"
+              className="text-xs text-muted-foreground"
             >
               Pular
             </Button>

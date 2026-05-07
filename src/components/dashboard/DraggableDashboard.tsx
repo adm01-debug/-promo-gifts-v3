@@ -319,7 +319,7 @@ export function WidgetPicker({ availableWidgets, onAddWidget, className }: Widge
         <div className="space-y-4">
           <div>
             <h4 className="font-semibold text-sm">Widgets Disponíveis</h4>
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Clique para adicionar ao dashboard
             </p>
           </div>
@@ -331,7 +331,7 @@ export function WidgetPicker({ availableWidgets, onAddWidget, className }: Widge
                   onAddWidget(config);
                   setIsOpen(false);
                 }}
-                className="flex items-start gap-3 p-3 rounded-xl text-left hover:bg-muted transition-colors"
+                className="flex items-start gap-3 p-3 rounded-lg text-left hover:bg-muted transition-colors"
               >
                 <div className="flex-shrink-0 w-8 h-8 bg-primary/10 rounded flex items-center justify-center">
                   {config.icon || <LayoutGrid className="h-4 w-4 text-primary" />}
@@ -339,7 +339,7 @@ export function WidgetPicker({ availableWidgets, onAddWidget, className }: Widge
                 <div>
                   <p className="font-medium text-sm">{config.title}</p>
                   {config.description && (
-                    <p className="text-[11px] text-muted-foreground">{config.description}</p>
+                    <p className="text-xs text-muted-foreground">{config.description}</p>
                   )}
                 </div>
               </button>

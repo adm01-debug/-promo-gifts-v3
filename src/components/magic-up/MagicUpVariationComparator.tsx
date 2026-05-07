@@ -57,7 +57,7 @@ export function MagicUpVariationComparator({ variations, activeIndex, onSelect, 
   };
 
   return (
-    <section data-testid="magic-up-variation-comparator" className="rounded-xl border bg-card p-3" aria-label="Comparador de variações">
+    <section data-testid="magic-up-variation-comparator" className="rounded-lg border bg-card p-3" aria-label="Comparador de variações">
       <div className="mb-2 flex items-center justify-between gap-2">
         <p className="text-sm font-semibold">Comparar variações</p>
         <Badge variant="secondary" aria-label={`Melhor score entre variações: ${bestScore !== null ? bestScore : "indisponível"}`}>Melhor score: {bestScore !== null ? bestScore : "—"}</Badge>
@@ -73,7 +73,7 @@ export function MagicUpVariationComparator({ variations, activeIndex, onSelect, 
               data-testid={`variation-item-${index + 1}`}
               data-variation-index={index}
               key={`${variation.id || variation.imageUrl}-${index}`}
-              className={cn("overflow-hidden rounded-xl border", isActive ? "border-primary ring-2 ring-primary/20" : "border-border hover:border-primary/40")}
+              className={cn("overflow-hidden rounded-lg border", isActive ? "border-primary ring-2 ring-primary/20" : "border-border hover:border-primary/40")}
             >
               <button
                 ref={(el) => { cardRefs.current[index] = el; }}

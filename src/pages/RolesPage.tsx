@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { SidebarProvider, Sidebar, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
 import { Shield, Plus, Edit, Trash2, Users } from 'lucide-react';
+import { BackButton } from '@/components/common/BackButton';
 import { PageSEO } from "@/components/seo/PageSEO";
 
 interface Role {
@@ -90,103 +92,111 @@ export default function RolesPage() {
   };
 
   return (
-    <>
+    <SidebarProvider>
       <PageSEO title="Roles" description="Gerencie perfis de acesso do sistema." path="/admin/roles" noIndex />
-      <div className="w-full max-w-[1920px] mx-auto space-y-4 animate-fade-in">
-        <div className="flex items-center justify-between">
-          <h1 className="font-display text-2xl font-bold">Gestão de Roles</h1>
-        </div>
-
-        <div className="mx-auto max-w-4xl space-y-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Shield className="h-5 w-5" />
-                  Roles do Sistema
-                </CardTitle>
-                <CardDescription>Gerencie as roles de acesso do sistema</CardDescription>
-              </div>
-              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button onClick={() => { setEditingRole(null); setFormData({ name: '', description: '' }); }}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Nova Role
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>{editingRole ? 'Editar Role' : 'Nova Role'}</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                      <Label>Nome</Label>
-                      <Input
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        placeholder="ex: manager"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Descrição</Label>
-                      <Textarea
-                        value={formData.description}
-                        onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        placeholder="Descrição da role..."
-                      />
-                    </div>
-                    <Button onClick={handleSubmit} className="w-full">
-                      {editingRole ? 'Atualizar' : 'Criar'}
-                    </Button>
+      <div className="flex min-h-screen w-full">
+        <Sidebar />
+        <SidebarInset className="flex-1">
+          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+            <SidebarTrigger className="-ml-1" />
+            <BackButton fallbackPath="/admin" />
+            <div className="flex-1">
+              <h1 className="font-display text-lg font-semibold">Gestão de Roles</h1>
+            </div>
+          </header>
+          <main className="flex-1 w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
+            <div className="mx-auto max-w-4xl space-y-6">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Shield className="h-5 w-5" />
+                      Roles do Sistema
+                    </CardTitle>
+                    <CardDescription>Gerencie as roles de acesso do sistema</CardDescription>
                   </div>
-                </DialogContent>
-              </Dialog>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="flex justify-center py-8">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
-                </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nome</TableHead>
-                      <TableHead>Descrição</TableHead>
-                      <TableHead className="w-[100px]">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {roles.map((role) => (
-                      <TableRow key={role.id}>
-                        <TableCell>
-                          <Badge variant="outline" className="flex items-center gap-1 w-fit">
-                            <Users className="h-3 w-3" />
-                            {role.name}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-muted-foreground">
-                          {role.description || '-'}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex gap-2">
-                            <Button variant="ghost" size="icon" aria-label="Editar" onClick={() => handleEdit(role)}>
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button variant="ghost" size="icon" aria-label="Excluir" onClick={() => handleDelete(role.id)}>
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+                  <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                    <DialogTrigger asChild>
+                      <Button onClick={() => { setEditingRole(null); setFormData({ name: '', description: '' }); }}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Nova Role
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>{editingRole ? 'Editar Role' : 'Nova Role'}</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                          <Label>Nome</Label>
+                          <Input
+                            value={formData.name}
+                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                            placeholder="ex: manager"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Descrição</Label>
+                          <Textarea
+                            value={formData.description}
+                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                            placeholder="Descrição da role..."
+                          />
+                        </div>
+                        <Button onClick={handleSubmit} className="w-full">
+                          {editingRole ? 'Atualizar' : 'Criar'}
+                        </Button>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </CardHeader>
+                <CardContent>
+                  {isLoading ? (
+                    <div className="flex justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+                    </div>
+                  ) : (
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead>Nome</TableHead>
+                          <TableHead>Descrição</TableHead>
+                          <TableHead className="w-[100px]">Ações</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {roles.map((role) => (
+                          <TableRow key={role.id}>
+                            <TableCell>
+                              <Badge variant="outline" className="flex items-center gap-1 w-fit">
+                                <Users className="h-3 w-3" />
+                                {role.name}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-muted-foreground">
+                              {role.description || '-'}
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex gap-2">
+                                <Button variant="ghost" size="icon" aria-label="Editar" onClick={() => handleEdit(role)}>
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                                <Button variant="ghost" size="icon" aria-label="Excluir" onClick={() => handleDelete(role.id)}>
+                                  <Trash2 className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          </main>
+        </SidebarInset>
       </div>
-    </>
+    </SidebarProvider>
   );
 }

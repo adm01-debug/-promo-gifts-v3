@@ -125,19 +125,6 @@ export function useCatalogSelection(
   const firstSelectedId = selectedIds.size > 0 ? Array.from(selectedIds)[0] : "";
   const firstSelectedProduct = paginatedProducts.find(p => p.id === firstSelectedId);
 
-  /**
-   * Volta do BulkAddToCartModal para o BulkVariantWizard preservando as
-   * variantes já escolhidas. O usuário pode corrigir cor/produto sem
-   * perder o trabalho feito.
-   */
-  const handleBackToWizard = useCallback(() => {
-    setCartModalOpen(false);
-    setWizardMode("cart");
-    // wizardSelections já está populado — o wizard reabre no último índice
-    // para revisão rápida (ou índice 0 se vazio).
-    setVariantWizardOpen(true);
-  }, []);
-
   return {
     selectedIds, toggleSelect, selectAll, clearSelection,
     collectionModalOpen, setCollectionModalOpen,
@@ -147,6 +134,5 @@ export function useCatalogSelection(
     firstSelectedId, firstSelectedProduct,
     handleBulkFavorite, handleBulkCompare, handleBulkCollection,
     handleBulkQuote, handleBulkCart, handleWizardComplete,
-    handleBackToWizard,
   };
 }

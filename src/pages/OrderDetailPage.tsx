@@ -4,9 +4,9 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ArrowLeft, Building2, Mail, Package, Phone, Truck, User, CreditCard, Clock, MapPin, FileText } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -63,36 +63,19 @@ export default function OrderDetailPage() {
   }, [id, user]);
 
   const fetchOrder = async () => {
-    try {
-      setLoading(true);
-      const [orderRes, itemsRes] = await Promise.all([
-        supabase
-          .from("orders")
-          .select("id, order_number, created_at, status, fulfillment_status, subtotal, discount_amount, shipping_cost, total, client_name, client_company, client_email, client_phone, payment_terms, delivery_time, notes, internal_notes, tracking_number, quote_id")
-          .eq("id", id!)
-          .maybeSingle(),
-        supabase
-          .from("order_items")
-          .select("id, product_name, product_sku, product_image_url, quantity, unit_price")
-          .eq("order_id", id!),
-      ]);
+    setLoading(true);
+    const [orderRes, itemsRes] = await Promise.all([
+      // rls-allow: lookup por id; RLS valida ownership
+      supabase.from("orders").select("*").eq("id", id!).maybeSingle(),
+      supabase.from("order_items").select("*").eq("order_id", id!),
+    ]);
 
-      if (orderRes.error) throw orderRes.error;
-      if (itemsRes.error) throw itemsRes.error;
-
-      if (orderRes.data) {
-        setOrder(orderRes.data);
-        setTrackingNumber(orderRes.data.tracking_number || "");
-      }
-      if (itemsRes.data) {
-        setItems(itemsRes.data);
-      }
-    } catch (error) {
-      console.error("Error fetching order details:", error);
-      toast.error("Erro ao carregar detalhes do pedido");
-    } finally {
-      setLoading(false);
+    if (orderRes.data) {
+      setOrder(orderRes.data);
+      setTrackingNumber(orderRes.data.tracking_number || "");
     }
+    if (itemsRes.data) setItems(itemsRes.data);
+    setLoading(false);
   };
 
   const updateStatus = async (newStatus: string) => {
@@ -113,45 +96,37 @@ export default function OrderDetailPage() {
   };
 
   const updateTracking = async () => {
-    if (!trackingNumber.trim()) {
-      toast.error("Por favor, insira um código de rastreio válido");
-      return;
-    }
-
     setIsSaving(true);
-    try {
-      const { error } = await supabase
-        .from("orders")
-        .update({ tracking_number: trackingNumber.trim(), updated_at: new Date().toISOString() })
-        .eq("id", id!);
+    const { error } = await supabase
+      // rls-allow: lookup por id; RLS valida ownership
+      .from("orders")
+      .update({ tracking_number: trackingNumber, updated_at: new Date().toISOString() })
+      .eq("id", id!);
 
-      if (error) throw error;
-      
-      toast.success("Código de rastreio atualizado");
-      setOrder((prev: any) => ({ ...prev, tracking_number: trackingNumber.trim() }));
-    } catch (error) {
-      console.error("Error updating tracking:", error);
+    if (error) {
       toast.error("Erro ao salvar rastreio");
-    } finally {
-      setIsSaving(false);
+    } else {
+      toast.success("Código de rastreio atualizado");
+      setOrder((prev: any) => ({ ...prev, tracking_number: trackingNumber }));
     }
+    setIsSaving(false);
   };
 
   if (loading) {
     return (
-      <>
+      <MainLayout>
         <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
           <Skeleton className="h-10 w-48" />
           <Skeleton className="h-64 w-full" />
           <Skeleton className="h-48 w-full" />
         </div>
-      </>
+      </MainLayout>
     );
   }
 
   if (!order) {
     return (
-      <>
+      <MainLayout>
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <Package className="h-16 w-16 text-muted-foreground/40 mb-4" />
           <h2 className="font-display text-xl font-semibold mb-2">Pedido não encontrado</h2>
@@ -160,7 +135,7 @@ export default function OrderDetailPage() {
             <ArrowLeft className="h-4 w-4 mr-2" /> Voltar aos Pedidos
           </Button>
         </div>
-      </>
+      </MainLayout>
     );
   }
 
@@ -168,24 +143,15 @@ export default function OrderDetailPage() {
   const fc = fulfillmentConfig[order.fulfillment_status] || { label: order.fulfillment_status, color: "" };
 
   return (
-    <>
+    <MainLayout>
       <PageSEO title={`Pedido #${order.order_number}`} description={`Detalhes do pedido ${order.order_number}`} path={`/pedidos/${id}`} noIndex />
       <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <TooltipProvider >
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="icon" aria-label="Voltar" onClick={() => navigate("/pedidos")}>
-                    <ArrowLeft className="h-5 w-5" />
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-                  Voltar para lista de pedidos
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Button variant="ghost" size="icon" aria-label="Voltar" onClick={() => navigate("/pedidos")}>
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
             <div>
               <h1 className="font-display text-2xl font-bold">Pedido #{order.order_number}</h1>
               <p className="text-sm text-muted-foreground">
@@ -303,24 +269,15 @@ export default function OrderDetailPage() {
                 </div>
 
                 {order.quote_id && (
-                  <TooltipProvider >
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full gap-2"
-                          onClick={() => navigate(`/orcamentos/${order.quote_id}`)}
-                        >
-                          <FileText className="h-4 w-4" />
-                          Ver Orçamento Original
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-                        Acessar a proposta comercial que gerou este pedido
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full gap-2"
+                    onClick={() => navigate(`/orcamentos/${order.quote_id}`)}
+                  >
+                    <FileText className="h-4 w-4" />
+                    Ver Orçamento Original
+                  </Button>
                 )}
               </CardContent>
             </Card>
@@ -421,6 +378,6 @@ export default function OrderDetailPage() {
           </div>
         </div>
       </div>
-    </>
+    </MainLayout>
   );
 }

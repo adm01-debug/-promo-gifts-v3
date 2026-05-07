@@ -1,3 +1,4 @@
+import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { ReplenishmentStatsCards } from "@/components/replenishments/ReplenishmentStatsCards";
 import { ReplenishmentProductGrid } from "@/components/replenishments/ReplenishmentProductGrid";
@@ -5,7 +6,7 @@ import { RecentReplenishmentsWidget } from "@/components/replenishments/RecentRe
 
 export default function ReplenishmentsPage() {
   return (
-    <>
+    <MainLayout>
       <PageSEO
         title="Reposição — Produtos Repostos"
         description="Acompanhe os produtos repostos pelos fornecedores nos últimos 30 dias. Visualize KPIs, filtre por categoria e fornecedor."
@@ -22,6 +23,6 @@ export default function ReplenishmentsPage() {
           </aside>
         </div>
       </div>
-    </>
+    </MainLayout>
   );
 }

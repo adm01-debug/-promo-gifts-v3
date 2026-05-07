@@ -92,7 +92,7 @@ export function QuoteSignaturePad({ onSign, isSubmitting }: QuoteSignaturePadPro
         </div>
         <div className="space-y-2">
           <Label>Assine no quadro abaixo</Label>
-          <div className="rounded-xl border bg-muted/20">
+          <div className="rounded-lg border bg-muted/20">
             <canvas
               ref={canvasRef}
               width={500}
@@ -116,7 +116,7 @@ export function QuoteSignaturePad({ onSign, isSubmitting }: QuoteSignaturePadPro
             {isSubmitting ? "Enviando..." : "Confirmar assinatura"}
           </Button>
         </div>
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           Esta assinatura tem validade jurídica conforme MP 2.200-2/2001.
         </p>
       </CardContent>

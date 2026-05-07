@@ -458,7 +458,7 @@ export function ConnectionTestHistoryPanel({
           disabled={empty}
           className={cn(
             "flex-1 flex items-center justify-between gap-2 text-xs font-medium",
-            "rounded-xl px-1 py-1 transition-colors",
+            "rounded-md px-1 py-1 transition-colors",
             empty ? "text-muted-foreground/60 cursor-not-allowed" : "text-foreground hover:bg-muted/50",
           )}
           aria-expanded={expanded}
@@ -475,7 +475,7 @@ export function ConnectionTestHistoryPanel({
           </span>
           <span className="inline-flex items-center gap-2">
             {!expanded && items.length >= 2 && (
-              <TooltipProvider >
+              <TooltipProvider delayDuration={150}>
                 <LatencySparkline items={items} />
               </TooltipProvider>
             )}
@@ -595,7 +595,7 @@ export function ConnectionTestHistoryPanel({
               {emptyMessage(filter, source)}
             </div>
           ) : (
-            <TooltipProvider >
+            <TooltipProvider delayDuration={150}>
               <ul className="space-y-0.5">
                 {pendingTest && <PendingHistoryRow startedAt={pendingTest.startedAt} />}
                 {previewItems.map((it) => (
@@ -660,7 +660,7 @@ export function ConnectionTestHistoryPanel({
               {emptyMessage(filter, source)}
             </div>
           ) : (
-            <TooltipProvider >
+            <TooltipProvider delayDuration={150}>
               <ul className="space-y-0.5">
                 {pendingTest && <PendingHistoryRow startedAt={pendingTest.startedAt} />}
                 {visibleItems.map((it) => (

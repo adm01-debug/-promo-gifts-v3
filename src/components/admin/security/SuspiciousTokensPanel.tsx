@@ -157,7 +157,7 @@ export function SuspiciousTokensPanel() {
                     <TableCell className="font-mono text-xs max-w-[220px] truncate" title={g.resource_id}>{g.resource_id}</TableCell>
                     <TableCell className="text-right"><Badge variant={severity} className="text-xs tabular-nums">{g.total}</Badge></TableCell>
                     <TableCell className="text-right text-xs tabular-nums">{g.distinctIps}</TableCell>
-                    <TableCell className="text-[11px] text-muted-foreground">{Array.from(g.reasons).join(", ")}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground">{Array.from(g.reasons).join(", ")}</TableCell>
                     <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
                       {format(new Date(g.first), "dd/MM HH:mm", { locale: ptBR })}
                     </TableCell>

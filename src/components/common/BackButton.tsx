@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 
 const routeLabels: Record<string, string> = {
@@ -68,37 +68,35 @@ export const BackButton = forwardRef<HTMLButtonElement, BackButtonProps>(
     const ariaLabel = `Voltar para ${parentLabel}`;
 
     return (
-      <TooltipProvider >
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <motion.div
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.2, ease: "easeOut" }}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <motion.div
+            initial={{ opacity: 0, x: -8 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
+          >
+            <Button
+              ref={ref}
+              variant="ghost"
+              size="sm"
+              onClick={handleBack}
+              aria-label={ariaLabel}
+              className={cn(
+                "gap-1.5 text-muted-foreground hover:text-foreground -ml-2 h-8 px-2 group",
+                "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                className
+              )}
             >
-              <Button
-                ref={ref}
-                variant="ghost"
-                size="sm"
-                onClick={handleBack}
-                aria-label={ariaLabel}
-                className={cn(
-                  "gap-1.5 text-muted-foreground hover:text-foreground -ml-2 h-8 px-2 group",
-                  "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
-                  className
-                )}
-              >
-                <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
-                <span className="text-sm hidden sm:inline">Voltar para {parentLabel}</span>
-                <span className="text-sm sm:hidden">Voltar</span>
-              </Button>
-            </motion.div>
-          </TooltipTrigger>
-          <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] font-medium px-2 py-1 border-none shadow-xl">
-            {ariaLabel}
-          </TooltipContent>
-        </Tooltip>
-      </TooltipProvider>
+              <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
+              <span className="text-sm hidden sm:inline">Voltar para {parentLabel}</span>
+              <span className="text-sm sm:hidden">Voltar</span>
+            </Button>
+          </motion.div>
+        </TooltipTrigger>
+        <TooltipContent side="bottom" className="text-xs">
+          {ariaLabel}
+        </TooltipContent>
+      </Tooltip>
     );
   }
 );

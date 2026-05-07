@@ -73,11 +73,11 @@ export function TechniqueCard({
             <HoverCardTrigger asChild>
               <div className="relative flex-shrink-0">
                 {thumbnail ? (
-                  <div className="w-10 h-10 rounded-xl overflow-hidden ring-2 ring-border">
+                  <div className="w-10 h-10 rounded-lg overflow-hidden ring-2 ring-border">
                     <img src={thumbnail} alt={technique.name} className="w-full h-full object-cover" loading="lazy" />
                   </div>
                 ) : (
-                  <div className={cn('w-10 h-10 rounded-xl flex items-center justify-center text-lg', style.color, 'text-primary-foreground')}>{style.icon}</div>
+                  <div className={cn('w-10 h-10 rounded-lg flex items-center justify-center text-lg', style.color, 'text-primary-foreground')}>{style.icon}</div>
                 )}
                 {isSelected && (
                   <motion.div className="absolute -top-1 -right-1 w-4 h-4 bg-primary rounded-full flex items-center justify-center" initial={{ scale: 0 }} animate={{ scale: 1 }}>
@@ -202,7 +202,7 @@ export function TechniqueCard({
             </div>
 
             <div className="flex flex-col items-end gap-1 flex-shrink-0">
-              <p className="text-[11px] text-muted-foreground">Estimativa</p>
+              <p className="text-xs text-muted-foreground">Estimativa</p>
               <p className="font-bold text-lg">{formatCurrency(estimatedCost)}</p>
               {recommendation.isRecommended && (
                 <div className="flex items-center gap-1 text-warning">
@@ -267,11 +267,11 @@ function InlineConfigForm({
       {showSize && sizeOptions.length === 0 && (
         <>
           <div className="space-y-1.5">
-            <Label className="text-[11px] text-muted-foreground">Largura (cm)</Label>
+            <Label className="text-xs text-muted-foreground">Largura (cm)</Label>
             <Input type="number" min={1} value={settings.width} onChange={(e) => onUpdateSetting('width', parseInt(e.target.value) || 1)} className="h-9" onClick={(e) => e.stopPropagation()} />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-[11px] text-muted-foreground">Altura (cm)</Label>
+            <Label className="text-xs text-muted-foreground">Altura (cm)</Label>
             <Input type="number" min={1} value={settings.height} onChange={(e) => onUpdateSetting('height', parseInt(e.target.value) || 1)} className="h-9" onClick={(e) => e.stopPropagation()} />
           </div>
         </>
@@ -285,7 +285,7 @@ function InlineConfigForm({
       </div>
       {showSize && sizeOptions.length === 0 && (
         <div className="col-span-full">
-          <p className="text-[11px] text-muted-foreground">Área: <span className="font-mono font-medium">{settings.width * settings.height} cm²</span></p>
+          <p className="text-xs text-muted-foreground">Área: <span className="font-mono font-medium">{settings.width * settings.height} cm²</span></p>
         </div>
       )}
     </div>

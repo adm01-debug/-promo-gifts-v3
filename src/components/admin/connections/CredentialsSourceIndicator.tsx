@@ -154,7 +154,7 @@ export function CredentialsSourceIndicator({ secrets, isLoading, onRefresh, clas
   return (
     <div
       className={[
-        "rounded-xl border bg-card px-4 py-3",
+        "rounded-lg border bg-card px-4 py-3",
         "flex items-start gap-3 flex-wrap",
         className ?? "",
       ].join(" ")}
@@ -162,7 +162,7 @@ export function CredentialsSourceIndicator({ secrets, isLoading, onRefresh, clas
       aria-live="polite"
       data-testid="credentials-source-indicator"
     >
-      <div className="h-9 w-9 rounded-xl bg-primary/10 flex items-center justify-center shrink-0">
+      <div className="h-9 w-9 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
         <Database className="h-4 w-4 text-primary" aria-hidden="true" />
       </div>
 
@@ -171,7 +171,7 @@ export function CredentialsSourceIndicator({ secrets, isLoading, onRefresh, clas
           <p className="text-sm font-medium leading-none">
             Fonte das credenciais
           </p>
-          <TooltipProvider >
+          <TooltipProvider delayDuration={200}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Badge
@@ -195,7 +195,7 @@ export function CredentialsSourceIndicator({ secrets, isLoading, onRefresh, clas
           </TooltipProvider>
         </div>
 
-        <p className="text-[11px] text-muted-foreground">
+        <p className="text-xs text-muted-foreground">
           Lista, badges e máscaras desta página vêm de{" "}
           <code className="text-[11px] font-mono text-foreground">
             integration_credentials
@@ -208,7 +208,7 @@ export function CredentialsSourceIndicator({ secrets, isLoading, onRefresh, clas
         </p>
 
         <div className="flex items-center gap-1.5 flex-wrap pt-1">
-          <TooltipProvider >
+          <TooltipProvider delayDuration={150}>
             <Tooltip>
               <TooltipTrigger asChild>
                 <Badge
@@ -331,7 +331,7 @@ export function CredentialsSourceIndicator({ secrets, isLoading, onRefresh, clas
       </div>
 
       {onRefresh && (
-        <TooltipProvider >
+        <TooltipProvider delayDuration={200}>
           <Tooltip>
             <TooltipTrigger asChild>
               <Button

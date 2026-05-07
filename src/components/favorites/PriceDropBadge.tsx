@@ -32,12 +32,12 @@ export function PriceDropBadge({
     : null;
 
   return (
-    <TooltipProvider >
+    <TooltipProvider delayDuration={200}>
       <Tooltip>
         <TooltipTrigger asChild>
           <div
             className={cn(
-              "inline-flex items-center gap-1 rounded-xl px-1.5 py-0.5 font-semibold tabular-nums backdrop-blur-sm border shadow-sm",
+              "inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 font-semibold tabular-nums backdrop-blur-sm border shadow-sm",
               size === "sm" ? "text-[10px]" : "text-xs",
               isDrop
                 ? "bg-success/15 text-success border-success/30"

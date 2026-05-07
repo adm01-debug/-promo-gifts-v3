@@ -41,7 +41,7 @@ export function ComparisonScoreCard({ products, className }: ComparisonScoreCard
   return (
     <div
       className={cn(
-        "relative rounded-xl border-[1.5px] border-primary/30 bg-gradient-to-br from-primary/5 via-background to-background p-4 shadow-md",
+        "relative rounded-2xl border-[1.5px] border-primary/30 bg-gradient-to-br from-primary/5 via-background to-background p-4 shadow-md",
         className
       )}
     >
@@ -55,7 +55,7 @@ export function ComparisonScoreCard({ products, className }: ComparisonScoreCard
               <Badge className="bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/40 gap-1">
                 <Sparkles className="h-3 w-3" /> Recomendado
               </Badge>
-              <span className="text-xl font-bold text-foreground">{winner!.total}</span>
+              <span className="text-2xl font-bold text-foreground">{winner!.total}</span>
               <span className="text-sm text-muted-foreground">/ 100</span>
             </div>
             <p className="text-sm font-medium text-foreground line-clamp-1 mt-0.5">
@@ -75,7 +75,7 @@ export function ComparisonScoreCard({ products, className }: ComparisonScoreCard
             <div className="space-y-4">
               <div>
                 <h4 className="font-semibold text-sm">Pesos do score</h4>
-                <p className="text-[11px] text-muted-foreground">
+                <p className="text-xs text-muted-foreground">
                   Ajuste para refletir suas prioridades.
                 </p>
               </div>
@@ -121,7 +121,7 @@ export function ComparisonScoreCard({ products, className }: ComparisonScoreCard
               <div
                 key={s.productId}
                 className={cn(
-                  "flex items-center gap-2 rounded-xl border px-2.5 py-1.5 text-xs",
+                  "flex items-center gap-2 rounded-lg border px-2.5 py-1.5 text-xs",
                   s.isWinner
                     ? "border-primary/40 bg-primary/5 font-medium"
                     : "border-border bg-muted/30"

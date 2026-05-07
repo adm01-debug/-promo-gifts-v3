@@ -139,7 +139,7 @@ export function FollowUpTimer({ createdAt }: { createdAt: string }) {
 
   return (
     <div className={cn(
-      "flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-xl border",
+      "flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg border",
       isUrgent
         ? "bg-destructive/10 text-destructive border-destructive/20"
         : isWarning

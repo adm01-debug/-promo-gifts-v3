@@ -21,7 +21,7 @@ export function FilterPanelHeader({
     <div className="pb-3 mb-1">
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-orange to-orange-hover flex items-center justify-center shadow-md shadow-orange/20">
+          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-orange to-orange-hover flex items-center justify-center shadow-md shadow-orange/20">
             <SlidersHorizontal className="h-4 w-4 text-orange-foreground" />
           </div>
           <div>
@@ -43,7 +43,7 @@ export function FilterPanelHeader({
       </div>
 
       <div className="flex items-center gap-1.5">
-        <Tooltip >
+        <Tooltip delayDuration={200}>
           <TooltipTrigger asChild>
             <Button
               variant="outline"
@@ -62,10 +62,10 @@ export function FilterPanelHeader({
               Reset
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Limpar todos os filtros ativos</TooltipContent>
+          <TooltipContent side="bottom" className="text-xs bg-card border-border">Limpar todos os filtros ativos</TooltipContent>
         </Tooltip>
 
-        <Tooltip >
+        <Tooltip delayDuration={200}>
           <TooltipTrigger asChild>
             <Button
               variant="outline"
@@ -78,7 +78,7 @@ export function FilterPanelHeader({
               Fechar
             </Button>
           </TooltipTrigger>
-          <TooltipContent side="bottom" className="bg-primary text-primary-foreground text-[11px] px-2 py-1 border-none">Recolher todas as seções</TooltipContent>
+          <TooltipContent side="bottom" className="text-xs bg-card border-border">Recolher todas as seções</TooltipContent>
         </Tooltip>
       </div>
 

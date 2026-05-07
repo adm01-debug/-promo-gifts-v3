@@ -14,11 +14,11 @@ export function MagicUpCampaignSummary({ campaign, channel, objective, tone, onS
   const status = CAMPAIGN_STATUSES.find((item) => item.value === campaign?.status)?.label || "Rascunho";
 
   return (
-    <div className="rounded-xl border bg-muted/30 p-3 space-y-2">
+    <div className="rounded-lg border bg-muted/30 p-3 space-y-2">
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
           <p className="truncate text-sm font-semibold">{campaign?.title || "Campanha sem nome"}</p>
-          <p className="text-[11px] text-muted-foreground">{toHuman(channel)} · {toHuman(objective)} · {toHuman(tone)}</p>
+          <p className="text-xs text-muted-foreground">{toHuman(channel)} · {toHuman(objective)} · {toHuman(tone)}</p>
         </div>
         <Badge variant={campaign?.id ? "secondary" : "outline"}>{status}</Badge>
       </div>

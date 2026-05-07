@@ -40,45 +40,23 @@ export function useQuotesDashboard() {
   const [tokenStats, setTokenStats] = useState({ total: 0, viewed: 0, responded: 0 });
 
   useEffect(() => {
-    let isMounted = true;
     (async () => {
       setLoadingClients(true);
       try {
-        const data = await selectCrm<{ id: string; nome_fantasia: string | null }>("companies", { 
-          select: "id,nome_fantasia", 
-          orderBy: "nome_fantasia", 
-          limit: 500 
-        });
-        if (isMounted) {
-          setClients(data.map(c => ({ id: c.id, name: c.nome_fantasia || c.id })));
-        }
-      } catch (err) { 
-        console.error("Error fetching clients:", err); 
-      } finally {
-        if (isMounted) setLoadingClients(false);
-      }
+        const data = await selectCrm<Client>("companies", { select: "id,nome_fantasia", orderBy: "nome_fantasia", limit: 500 });
+        setClients(data.map((c: any) => ({ id: c.id, name: c.nome_fantasia || c.id })));
+      } catch (err) { console.error("Error fetching clients:", err); }
+      setLoadingClients(false);
     })();
-    return () => { isMounted = false; };
   }, []);
 
   useEffect(() => {
-    let isMounted = true;
     (async () => {
-      try {
-        const { data, error } = await supabase.from("quote_approval_tokens").select("id, viewed_at, responded_at");
-        if (error) throw error;
-        if (isMounted && data) {
-          setTokenStats({
-            total: data.length,
-            viewed: data.filter(t => t.viewed_at).length,
-            responded: data.filter(t => t.responded_at).length,
-          });
-        }
-      } catch (err) {
-        console.error("Error fetching token stats:", err);
-      }
+      const { data } = await supabase.from("quote_approval_tokens").select("id, viewed_at, responded_at");
+      if (data) setTokenStats({
+        total: data.length, viewed: data.filter(t => t.viewed_at).length, responded: data.filter(t => t.responded_at).length,
+      });
     })();
-    return () => { isMounted = false; };
   }, []);
 
   const quotesClients = useMemo(() => {

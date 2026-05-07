@@ -29,7 +29,7 @@ export function BorderRadiusControl({ value, onChange }: BorderRadiusControlProp
             <SlidersHorizontal className="h-4 w-4 text-primary" />
             <h2 className="text-sm font-display font-semibold text-foreground">Raio da Borda</h2>
           </div>
-          <span className="text-sm font-mono font-semibold text-foreground bg-muted px-3 py-1 rounded-xl">
+          <span className="text-sm font-mono font-semibold text-foreground bg-muted px-3 py-1 rounded-md">
             {value}px
           </span>
         </div>
@@ -41,7 +41,7 @@ export function BorderRadiusControl({ value, onChange }: BorderRadiusControlProp
               key={preset.value}
               onClick={() => onChange(preset.value)}
               className={cn(
-                'text-[11px] font-medium px-3 py-1.5 rounded-xl transition-all',
+                'text-[11px] font-medium px-3 py-1.5 rounded-md transition-all',
                 value === preset.value
                   ? 'bg-primary text-primary-foreground shadow-sm'
                   : 'bg-muted text-muted-foreground hover:text-foreground hover:bg-muted/80'

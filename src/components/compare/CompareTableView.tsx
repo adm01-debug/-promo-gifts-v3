@@ -111,13 +111,13 @@ export function CompareTableView({
             initial={{ y: -40, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -40, opacity: 0 }}
-            className="sticky top-[calc(var(--header-h,56px)+var(--breadcrumb-h,0px))] z-30 bg-background/95 backdrop-blur-md border-b border-border py-2 px-2 shadow-sm"
+            className="sticky top-0 z-30 bg-background/95 backdrop-blur-md border-b border-border py-2 px-2 shadow-sm"
           >
             <div className="flex items-center gap-2 overflow-x-auto">
               {entries.map((entry) => (
                 <div
                   key={`sticky-${entry.index}`}
-                  className="flex items-center gap-2 px-2 py-1 rounded-xl bg-card border border-border shrink-0 min-w-[180px]"
+                  className="flex items-center gap-2 px-2 py-1 rounded-lg bg-card border border-border shrink-0 min-w-[180px]"
                 >
                   <img
                     src={hoveredVariant[entry.index] ?? entry.product.images[0]}
@@ -160,7 +160,7 @@ export function CompareTableView({
                           <img
                             src={hoveredVariant[entry.index] ?? entry.product.images[0]}
                             alt={entry.product.name}
-                            className="w-24 h-24 rounded-xl object-cover cursor-pointer hover:ring-2 hover:ring-primary transition-all"
+                            className="w-24 h-24 rounded-lg object-cover cursor-pointer hover:ring-2 hover:ring-primary transition-all"
                             onClick={() => navigate(`/produto/${entry.product.id}`)}
                             loading="lazy"
                           />
@@ -238,7 +238,7 @@ export function CompareTableView({
               <SimpleRow label="Cores disponíveis" products={products} render={(p) => (
                 <div className="flex flex-wrap justify-center gap-1">
                   {p.colors?.slice(0, 6).map((c: any, i: number) => <div key={i} className="w-5 h-5 rounded-full border border-border" style={{ backgroundColor: c.hex }} title={c.name} />)}
-                  {(p.colors?.length ?? 0) > 6 && <span className="text-[11px] text-muted-foreground">+{p.colors.length - 6}</span>}
+                  {(p.colors?.length ?? 0) > 6 && <span className="text-xs text-muted-foreground">+{p.colors.length - 6}</span>}
                 </div>
               )} />
               {showRow("materials") && (

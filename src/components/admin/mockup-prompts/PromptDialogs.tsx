@@ -41,7 +41,7 @@ export function HistoryDialog({ open, label, history, loading, onClose, onRestor
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Badge variant="outline">v{entry.version}</Badge>
-                        <span className="text-[11px] text-muted-foreground">{new Date(entry.changed_at).toLocaleString("pt-BR")}</span>
+                        <span className="text-xs text-muted-foreground">{new Date(entry.changed_at).toLocaleString("pt-BR")}</span>
                       </div>
                       <Button variant="ghost" size="sm" onClick={() => onRestore(entry)}><RotateCcw className="h-3 w-3 mr-1" />Restaurar</Button>
                     </div>
@@ -49,7 +49,7 @@ export function HistoryDialog({ open, label, history, loading, onClose, onRestor
                   </CardHeader>
                   <CardContent>
                     <div className="text-xs mb-1 text-muted-foreground">Modelo: {entry.ai_model}</div>
-                    <pre className="text-xs bg-muted/50 p-3 rounded-xl whitespace-pre-wrap max-h-40 overflow-auto">{entry.prompt_text}</pre>
+                    <pre className="text-xs bg-muted/50 p-3 rounded-md whitespace-pre-wrap max-h-40 overflow-auto">{entry.prompt_text}</pre>
                   </CardContent>
                 </Card>
               ))}
@@ -72,7 +72,7 @@ export function TestDialog({ open, label, result, loading, onClose }: TestDialog
           <DialogDescription>Visualização do prompt com variáveis substituídas por valores de exemplo</DialogDescription>
         </DialogHeader>
         {loading ? <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin" /></div>
-          : result ? <ScrollArea className="max-h-[60vh]"><pre className="text-sm bg-muted/50 p-4 rounded-xl whitespace-pre-wrap">{result}</pre></ScrollArea> : null}
+          : result ? <ScrollArea className="max-h-[60vh]"><pre className="text-sm bg-muted/50 p-4 rounded-md whitespace-pre-wrap">{result}</pre></ScrollArea> : null}
       </DialogContent>
     </Dialog>
   );

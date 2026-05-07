@@ -69,7 +69,7 @@ export default function PersonalizationSimulator() {
         </CardHeader>
         <CardContent className="space-y-2 text-sm">
           <p>Área: <strong>{area} cm²</strong></p>
-          <p>Total estimado: <strong className="text-xl text-primary">R$ {total.toFixed(2)}</strong></p>
+          <p>Total estimado: <strong className="text-2xl text-primary">R$ {total.toFixed(2)}</strong></p>
           <p className="text-muted-foreground text-xs">
             Estimativa didática — não consulta as tabelas oficiais de gravação. Para o cálculo
             real (áreas, técnicas, faixas e valores cadastrados), use o Simulador (wizard).

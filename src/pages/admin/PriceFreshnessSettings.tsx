@@ -64,7 +64,7 @@ export default function PriceFreshnessSettings() {
       />
 
       <div className="mb-6">
-        <h1 className="text-xl font-display font-bold text-foreground">
+        <h1 className="text-2xl font-display font-bold text-foreground">
           Validade de Preços
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">

@@ -87,8 +87,8 @@ export function RecentAuditTable() {
     <Card>
       <CardHeader className="flex flex-row items-start justify-between gap-3">
         <div>
-          <CardTitle className="flex items-center gap-2 text-base font-bold"><History className="h-5 w-5 text-primary" /> Auditoria Recente</CardTitle>
-          <CardDescription className="text-[11px] font-medium">Ações administrativas registradas (50 últimas) — atualiza 30s</CardDescription>
+          <CardTitle className="flex items-center gap-2"><History className="h-5 w-5" /> Auditoria recente (50 últimas)</CardTitle>
+          <CardDescription>Ações administrativas registradas em admin_audit_log — atualiza a cada 30s</CardDescription>
         </div>
         <Button variant="outline" size="sm" onClick={load} disabled={loading}>
           <RefreshCw className={`h-4 w-4 mr-1.5 ${loading ? "animate-spin" : ""}`} />
@@ -115,13 +115,13 @@ export function RecentAuditTable() {
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
-              <TableRow className="hover:bg-transparent border-b-2 border-primary/10">
-                <TableHead className="text-[10px] font-bold uppercase tracking-wider">Quando</TableHead>
-                <TableHead className="text-[10px] font-bold uppercase tracking-wider">Admin</TableHead>
-                <TableHead className="text-[10px] font-bold uppercase tracking-wider">Ação</TableHead>
-                <TableHead className="text-[10px] font-bold uppercase tracking-wider">Recurso</TableHead>
-                <TableHead className="text-[10px] font-bold uppercase tracking-wider">IP</TableHead>
-                <TableHead className="w-[60px] text-[10px] font-bold uppercase tracking-wider">Ver</TableHead>
+              <TableRow>
+                <TableHead>Quando</TableHead>
+                <TableHead>Admin</TableHead>
+                <TableHead>Ação</TableHead>
+                <TableHead>Recurso</TableHead>
+                <TableHead>IP</TableHead>
+                <TableHead className="w-[60px]">Ver</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -174,7 +174,7 @@ export function RecentAuditTable() {
               </div>
               <div>
                 <Label>Details (JSON)</Label>
-                <pre className="mt-1 p-3 bg-muted rounded-xl text-xs overflow-auto max-h-[300px]">
+                <pre className="mt-1 p-3 bg-muted rounded-md text-xs overflow-auto max-h-[300px]">
                   {JSON.stringify(selected.details, null, 2)}
                 </pre>
               </div>

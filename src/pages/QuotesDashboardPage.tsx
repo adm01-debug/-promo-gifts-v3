@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
+import { MainLayout } from "@/components/layout/MainLayout";
 import { PageSEO } from "@/components/seo/PageSEO";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -23,7 +24,7 @@ export default function QuotesDashboardPage() {
 
   if (s.isLoading) {
     return (
-      <>
+      <MainLayout>
         <div className="w-full max-w-[1920px] mx-auto px-3 sm:px-4 lg:px-6 xl:px-8 py-3 sm:py-4 space-y-3 sm:space-y-4 pb-24 md:pb-6 animate-fade-in">
           <Skeleton className="h-10 w-64" />
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -33,12 +34,12 @@ export default function QuotesDashboardPage() {
             <Skeleton className="h-80" /><Skeleton className="h-80" />
           </div>
         </div>
-      </>
+      </MainLayout>
     );
   }
 
   return (
-    <>
+    <MainLayout>
       <PageSEO title="Dashboard de Orçamentos" description="Acompanhe métricas e indicadores dos seus orçamentos." path="/orcamentos/dashboard" noIndex />
       <div className="space-y-6">
         {/* Header */}
@@ -86,9 +87,9 @@ export default function QuotesDashboardPage() {
 
         {/* Secondary metrics */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="bg-card/50 backdrop-blur-sm border-border/50"><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">Ticket Médio</p><p className="text-xl font-bold text-foreground">{formatCurrency(s.metrics.averageValue)}</p></div><div className="p-3 rounded-full bg-primary/10"><TrendingUp className="h-5 w-5 text-primary" /></div></div></CardContent></Card>
-          <Card className="bg-card/50 backdrop-blur-sm border-border/50"><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">Taxa de Rejeição</p><p className="text-xl font-bold text-destructive">{s.metrics.rejectionRate.toFixed(1)}%</p></div><div className="p-3 rounded-full bg-destructive/10"><XCircle className="h-5 w-5 text-destructive" /></div></div></CardContent></Card>
-          <Card className="bg-card/50 backdrop-blur-sm border-border/50"><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">Aguardando Resposta</p><p className="text-xl font-bold text-warning">{s.metrics.pendingQuotes}</p></div><div className="p-3 rounded-full bg-warning/10"><Clock className="h-5 w-5 text-warning" /></div></div></CardContent></Card>
+          <Card className="bg-card/50 backdrop-blur-sm border-border/50"><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">Ticket Médio</p><p className="text-2xl font-bold text-foreground">{formatCurrency(s.metrics.averageValue)}</p></div><div className="p-3 rounded-full bg-primary/10"><TrendingUp className="h-5 w-5 text-primary" /></div></div></CardContent></Card>
+          <Card className="bg-card/50 backdrop-blur-sm border-border/50"><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">Taxa de Rejeição</p><p className="text-2xl font-bold text-destructive">{s.metrics.rejectionRate.toFixed(1)}%</p></div><div className="p-3 rounded-full bg-destructive/10"><XCircle className="h-5 w-5 text-destructive" /></div></div></CardContent></Card>
+          <Card className="bg-card/50 backdrop-blur-sm border-border/50"><CardContent className="pt-6"><div className="flex items-center justify-between"><div><p className="text-sm text-muted-foreground">Aguardando Resposta</p><p className="text-2xl font-bold text-warning">{s.metrics.pendingQuotes}</p></div><div className="p-3 rounded-full bg-warning/10"><Clock className="h-5 w-5 text-warning" /></div></div></CardContent></Card>
         </div>
 
         {/* Approval Links */}
@@ -104,7 +105,7 @@ export default function QuotesDashboardPage() {
                 ].map(t => (
                   <div key={t.label} className="text-center p-3 rounded-lg bg-muted/30">
                     <div className="flex items-center justify-center gap-1.5 mb-1">{t.icon}</div>
-                    <p className="text-xl font-bold text-foreground">{t.value}</p>
+                    <p className="text-2xl font-bold text-foreground">{t.value}</p>
                     <p className="text-xs text-muted-foreground">{t.label}</p>
                     {t.pct !== null && <p className="text-xs text-muted-foreground/70">({t.pct}%)</p>}
                   </div>
@@ -193,6 +194,6 @@ export default function QuotesDashboardPage() {
           </CardContent>
         </Card>
       </div>
-    </>
+    </MainLayout>
   );
 }

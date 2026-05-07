@@ -186,30 +186,30 @@ export function InboundEventsPanel() {
         <CardContent className="space-y-4">
           {/* KPIs */}
           <div className="grid grid-cols-3 gap-3">
-            <div className="p-3 rounded-xl bg-muted/30 border">
+            <div className="p-3 rounded-lg bg-muted/30 border">
               <div className="flex items-center justify-between">
                 <Inbox className="h-4 w-4 text-muted-foreground" />
                 <Badge variant="outline" className="text-[10px]">total</Badge>
               </div>
-              <p className="text-xl font-bold mt-1">{kpis.total}</p>
+              <p className="text-2xl font-bold mt-1">{kpis.total}</p>
               <p className="text-[11px] text-muted-foreground">eventos no período</p>
             </div>
-            <div className="p-3 rounded-xl bg-muted/30 border">
+            <div className="p-3 rounded-lg bg-muted/30 border">
               <div className="flex items-center justify-between">
                 <ShieldAlert className={cn("h-4 w-4", invalidTone === "success" ? "text-success" : invalidTone === "warning" ? "text-warning" : "text-destructive")} />
                 <Badge variant="outline" className={cn("text-[10px]", tone(invalidTone))}>
                   {invalidTone === "success" ? "OK" : invalidTone === "warning" ? "Atenção" : "Crítico"}
                 </Badge>
               </div>
-              <p className="text-xl font-bold mt-1">{kpis.invalidRate.toFixed(1)}%</p>
+              <p className="text-2xl font-bold mt-1">{kpis.invalidRate.toFixed(1)}%</p>
               <p className="text-[11px] text-muted-foreground">{kpis.invalid} HMAC inválidos</p>
             </div>
-            <div className="p-3 rounded-xl bg-muted/30 border">
+            <div className="p-3 rounded-lg bg-muted/30 border">
               <div className="flex items-center justify-between">
                 <AlertTriangle className={cn("h-4 w-4", kpis.unprocessed > 0 ? "text-warning" : "text-muted-foreground")} />
                 <Badge variant="outline" className="text-[10px]">{kpis.unprocessedRate.toFixed(0)}%</Badge>
               </div>
-              <p className="text-xl font-bold mt-1">{kpis.unprocessed}</p>
+              <p className="text-2xl font-bold mt-1">{kpis.unprocessed}</p>
               <p className="text-[11px] text-muted-foreground">não processados</p>
             </div>
           </div>
@@ -318,7 +318,7 @@ export function InboundEventsPanel() {
               {pages > 1 && (
                 <div className="flex items-center justify-between p-2 border-t">
                   <Button size="sm" variant="ghost" disabled={page === 0} onClick={() => setPage((p) => p - 1)}>Anterior</Button>
-                  <span className="text-[11px] text-muted-foreground">{page + 1} / {pages}</span>
+                  <span className="text-xs text-muted-foreground">{page + 1} / {pages}</span>
                   <Button size="sm" variant="ghost" disabled={page >= pages - 1} onClick={() => setPage((p) => p + 1)}>Próximo</Button>
                 </div>
               )}

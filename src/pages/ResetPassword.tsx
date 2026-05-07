@@ -181,12 +181,12 @@ export default function ResetPassword() {
       <div className="w-full max-w-md space-y-8 animate-fade-in">
         {/* Logo */}
         <div className="text-center space-y-3">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-primary shadow-lg shadow-primary/30">
-            <Sparkles className="h-8 w-8 text-primary-foreground" />
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-orange shadow-lg shadow-orange/30">
+            <Sparkles className="h-8 w-8 text-orange-foreground" />
           </div>
           <div>
             <h1 className="font-display text-2xl font-bold text-foreground">
-              Promo Gifts
+              Promo Brindes
             </h1>
           </div>
         </div>
@@ -211,7 +211,7 @@ export default function ResetPassword() {
                     id="password"
                     type={showPassword ? 'text' : 'password'}
                     placeholder="••••••••"
-                    className="pl-10 pr-10 bg-[#EDF2F7] border-transparent focus:bg-white text-gray-900 placeholder:text-gray-500 h-12 rounded-xl transition-all duration-300"
+                    className="pl-10 pr-10 bg-input border-border focus:border-orange focus:ring-orange"
                     {...form.register('password')}
                   />
                   <button
@@ -239,7 +239,7 @@ export default function ResetPassword() {
                     id="confirmPassword"
                     type={showPassword ? 'text' : 'password'}
                     placeholder="••••••••"
-                    className="pl-10 bg-[#EDF2F7] border-transparent focus:bg-white text-gray-900 placeholder:text-gray-500 h-12 rounded-xl transition-all duration-300"
+                    className="pl-10 bg-input border-border focus:border-orange focus:ring-orange"
                     {...form.register('confirmPassword')}
                   />
                 </div>
@@ -252,7 +252,8 @@ export default function ResetPassword() {
 
               <Button
                 type="submit"
-                className="w-full h-12 text-base font-bold uppercase tracking-widest bg-[#3B82F6] hover:bg-[#2563EB] text-white shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-300 rounded-xl"
+                variant="orange"
+                className="w-full h-11 text-base font-semibold"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? (

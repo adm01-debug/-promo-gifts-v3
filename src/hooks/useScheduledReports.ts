@@ -1,8 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSalesScope } from "@/lib/auth/visibility-scope";
-import { applySellerScope } from "@/lib/auth/apply-seller-scope";
 import { toast } from 'sonner';
 
 export type ReportFrequency = 'daily' | 'weekly' | 'monthly';
@@ -47,7 +45,6 @@ const REPORT_TYPE_LABELS: Record<ReportType, string> = {
 
 export function useScheduledReports() {
   const { user } = useAuth();
-  const scope = useSalesScope();
   const [reports, setReports] = useState<ScheduledReport[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -55,13 +52,11 @@ export function useScheduledReports() {
     if (!user) return;
     setIsLoading(true);
     try {
-      let q = supabase
+      const { data, error } = await supabase
         .from('scheduled_reports')
-        .select('*');
-
-      q = applySellerScope(q, { scope, userId: user.id, column: "user_id" });
-
-      const { data, error } = await q.order('created_at', { ascending: false });
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
       setReports((data || []) as unknown as ScheduledReport[]);

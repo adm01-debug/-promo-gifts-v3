@@ -132,7 +132,7 @@ export function PricingPanel() {
       <Card>
         <CardContent className="flex flex-col items-center justify-center py-12">
           <AlertCircle className="h-12 w-12 text-destructive mb-4" />
-          <p className="text-xl font-medium text-destructive mb-2">Erro ao carregar tabelas</p>
+          <p className="text-lg font-medium text-destructive mb-2">Erro ao carregar tabelas</p>
           <p className="text-sm text-muted-foreground text-center max-w-md mb-4">
             {error?.message || 'Não foi possível conectar ao banco de dados.'}
           </p>
@@ -210,7 +210,7 @@ export function PricingPanel() {
                 onOpenChange={() => toggleExpand(tecnicaNome)}
               >
                 <CollapsibleTrigger asChild>
-                  <div className="flex items-center justify-between p-4 rounded-xl border bg-card hover:bg-accent/50 cursor-pointer transition-colors">
+                  <div className="flex items-center justify-between p-4 rounded-lg border bg-card hover:bg-accent/50 cursor-pointer transition-colors">
                     <div className="flex items-center gap-3">
                       {expandedTables.has(tecnicaNome) ? (
                         <ChevronDown className="h-5 w-5 text-muted-foreground" />
@@ -256,7 +256,7 @@ export function PricingPanel() {
                   </div>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
-                  <div className="mt-2 rounded-xl border overflow-hidden">
+                  <div className="mt-2 rounded-md border overflow-hidden">
                     <Table>
                       <TableHeader>
                         <TableRow className="bg-muted/50">
@@ -363,7 +363,7 @@ export function PricingPanel() {
         )}
 
         {/* Legenda e Info */}
-        <div className="mt-6 p-4 rounded-xl bg-muted/50 border">
+        <div className="mt-6 p-4 rounded-lg bg-muted/50 border">
           <div className="flex items-start gap-2">
             <Info className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
             <div className="text-sm text-muted-foreground">
