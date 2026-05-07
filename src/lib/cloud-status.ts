@@ -7,8 +7,8 @@
  *   3. HEAD em `/rest/v1/`     → Postgres/PostgREST acessível
  *
  * Estados:
- *   - `healthy`   3/3 OK e latências < 2s
- *   - `warming`   2/3 OK ou 3/3 com latência alta
+ *   - `healthy`   3/3 OK (mesmo com latência alta)
+ *   - `warming`   2/3 OK
  *   - `degraded`  1/3 OK
  *   - `down`      0/3 OK
  *
@@ -98,8 +98,7 @@ async function checkRest(): Promise<{ ok: boolean; ms: number }> {
 
 function deriveStatus(signals: CloudStatusSnapshot['signals']): CloudStatus {
   const okCount = [signals.auth.ok, signals.bridge.ok, signals.rest.ok].filter(Boolean).length;
-  const slow = [signals.auth.ms, signals.bridge.ms, signals.rest.ms].some((m) => m > HIGH_LATENCY_MS);
-  if (okCount === 3) return slow ? 'warming' : 'healthy';
+  if (okCount === 3) return 'healthy';
   if (okCount === 2) return 'warming';
   if (okCount === 1) return 'degraded';
   return 'down';
