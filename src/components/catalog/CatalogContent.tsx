@@ -270,8 +270,10 @@ export const CatalogContent = memo(function CatalogContent({
   onLoadMore, onResetFilters, selectionMode, onSelectedCountChange, activeColorFilter,
   activeProductId, setActiveProductId
 }: CatalogContentProps) {
+  const ctx = useProductsContextSafe();
   const sparklineProductIds = useMemo(() => paginatedProducts.map(p => p.id), [paginatedProducts]);
   const sel = useCatalogSelection(paginatedProducts, selectionMode, onSelectedCountChange);
+
 
   const [showKbdTip, setShowKbdTip] = useState(false);
   useEffect(() => {
