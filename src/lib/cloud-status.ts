@@ -183,6 +183,13 @@ export async function probeCloudStatus(force = false): Promise<CloudStatusSnapsh
       signals,
       checkedAt: Date.now(),
     };
+    
+    saveStatusHistory({
+      status: snapshot.status,
+      timestamp: snapshot.checkedAt,
+      consecutiveFailures
+    });
+
     const previous = cached?.status;
     cached = snapshot;
     if (previous !== snapshot.status) {
