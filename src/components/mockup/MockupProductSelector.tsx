@@ -6,22 +6,20 @@
  * Flow: Search products -> Select product -> Load full data -> Choose color/variant -> Confirmed.
  */
 
-import { useState, useMemo, useRef, useCallback } from "react";
+import { useState, useMemo, useRef, useCallback, useEffect } from "react";
 import { useDebounce } from "@/hooks/useDebounce";
-import Fuse from "fuse.js";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { Search, Package, X, SearchX, Filter } from "lucide-react";
+import { Search, Package, X, SearchX, Filter, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { useProductsLightweight, type ProductLightweight } from "@/hooks/useProductsLightweight";
+import { useProductsCatalog, type ProductLightweight } from "@/hooks/useProductsLightweight";
 import { type Product } from "@/hooks/useProducts";
 import { type ExternalVariantStock } from "@/hooks/useExternalVariantStock";
 import { ProductLoaderAndColorSelector } from "./MockupColorSelector";
-import { createProductFuseOptions, rankProductSearchResults } from "@/utils/product-search";
 
 export interface MockupProductSelection {
   product: Product;
