@@ -29,19 +29,25 @@ const STATUS_CONFIG: Record<string, { message: string; icon: any; className: str
 
 export const CloudStatusBanner = memo(function CloudStatusBanner() {
   const { isDev } = useDevGate();
-  const { status, retry, isChecking } = useCloudStatus();
+  const { status, snapshot, retry, isChecking } = useCloudStatus();
+  const [showDebug, setShowDebug] = useState(false);
+  const [showTimeline, setShowTimeline] = useState(false);
   
   const config = status ? STATUS_CONFIG[status] : null;
   
-  if (!config) return null;
+  // No-op if nothing to show
+  if (!config && !isDev) return null;
 
   // Lógica de visibilidade desacoplada:
   // Mensagens técnicas (warming) aparecem APENAS para usuários com role "dev".
   // Mensagens críticas (down/degraded) aparecem para todos.
   const isTechnical = status === 'warming';
-  const shouldShow = isTechnical ? isDev : true;
+  const shouldShow = isTechnical ? isDev : (status && status !== 'healthy');
 
-  if (!shouldShow) return null;
+  // If we are dev, we might want to see the debug toggle even if healthy
+  if (!shouldShow && !isDev) return null;
+
+  const timeline = getStatusTimeline();
 
   const Icon = config.icon;
 
