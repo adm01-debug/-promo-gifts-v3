@@ -24,7 +24,7 @@ export interface ContactOption {
 export function CompanyAvatar({ name, logoUrl, size = "md" }: { name: string; logoUrl?: string | null; size?: "sm" | "md" }) {
   const dim = size === "sm" ? "w-7 h-7 text-[10px]" : "w-8 h-8 text-xs";
   if (logoUrl) {
-    return <img src={logoUrl} alt="" className={cn(dim, "rounded object-contain bg-background border border-border flex-shrink-0")} loading="lazy" />;
+    return <img src={logoUrl} alt="" className={cn(dim, "rounded-full object-cover bg-background border border-border flex-shrink-0")} loading="lazy" />;
   }
   return (
     <div className={cn(dim, "rounded-full flex items-center justify-center font-bold text-primary-foreground bg-primary flex-shrink-0")}>

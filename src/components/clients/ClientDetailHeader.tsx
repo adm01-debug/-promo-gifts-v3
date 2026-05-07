@@ -22,7 +22,7 @@ export function ClientDetailHeader({ client }: ClientDetailHeaderProps) {
         <ArrowLeft className="h-4 w-4 mr-1" /> Voltar
       </Button>
       <div className="flex items-start gap-4">
-        <div className="h-14 w-14 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
+        <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
           {client.logo_url ? (
             <img src={client.logo_url} alt={name} className="h-full w-full object-cover" />
           ) : (

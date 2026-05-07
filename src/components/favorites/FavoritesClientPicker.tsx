@@ -141,11 +141,11 @@ export function FavoritesClientPicker({ selectedClientId, selectedClientName, on
                   <img
                     src={company.logo_url}
                     alt=""
-                    className="w-6 h-6 rounded object-contain bg-background border border-border flex-shrink-0"
+                    className="w-6 h-6 rounded-full object-cover bg-background border border-border flex-shrink-0"
                     loading="lazy"
                   />
                 ) : (
-                  <div className="w-6 h-6 rounded bg-muted flex items-center justify-center flex-shrink-0">
+                  <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
                     <Building2 className="h-3 w-3 text-muted-foreground" />
                   </div>
                 )}

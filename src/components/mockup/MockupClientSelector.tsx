@@ -27,7 +27,7 @@ function CompanyAvatar({ name, logoUrl, size = "md" }: { name: string; logoUrl?:
       <img
         src={logoUrl}
         alt=""
-        className={cn(dim, "rounded object-contain bg-background border border-border flex-shrink-0")} loading="lazy" />
+        className={cn(dim, "rounded-full object-cover bg-background border border-border flex-shrink-0")} loading="lazy" />
     );
   }
   

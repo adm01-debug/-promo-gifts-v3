@@ -175,7 +175,7 @@ export function CartSidebar({
               className="w-full flex items-center gap-2.5 p-2.5 rounded-lg border border-border/30 hover:border-border/60 hover:bg-muted/20 transition-all text-left"
             >
               {c.company_logo_url ? (
-                <img src={c.company_logo_url} alt="" className="w-8 h-8 rounded-lg object-contain bg-background border border-border/50 p-0.5" loading="lazy" />
+                <img src={c.company_logo_url} alt="" className="w-8 h-8 rounded-full object-cover bg-background border border-border/50" loading="lazy" />
               ) : (
                 <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
                   <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
