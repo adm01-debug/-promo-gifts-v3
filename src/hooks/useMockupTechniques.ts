@@ -10,7 +10,7 @@
  */
 
 import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { invokeExternalRpc } from "@/lib/external-rpc";
 import { invokeExternalDb } from "@/lib/external-db";
 import { adaptCustomizationOptions } from "@/lib/personalization/adapters";
