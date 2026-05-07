@@ -219,7 +219,7 @@ export default function Auth() {
 
           {/* IP Blocked Alert */}
           {ipBlocked && (
-            <Card className="border-destructive bg-destructive/10 shadow-lg">
+            <Card className="border-destructive/40 bg-destructive/10 backdrop-blur-xl shadow-lg">
               <CardContent className="pt-6 pb-6">
                 <div className="flex items-start gap-4">
                   <div className="w-12 h-12 rounded-full bg-destructive/20 flex items-center justify-center flex-shrink-0">
@@ -253,7 +253,7 @@ export default function Auth() {
           )}
 
           {/* Auth Card */}
-          <Card className={`border-border/60 bg-card shadow-2xl ring-1 ring-border/20 backdrop-blur-sm ${ipBlocked ? 'opacity-50 pointer-events-none' : ''}`}>
+          <Card className={`border-white/20 bg-[#0A0D14]/75 backdrop-blur-xl shadow-2xl shadow-black/40 ${ipBlocked ? 'opacity-50 pointer-events-none' : ''}`}>
             {showForgotPassword ? (
               <CardContent className="pt-6 pb-6">
                 <ForgotPasswordForm onBack={() => setShowForgotPassword(false)} />
@@ -390,10 +390,10 @@ export default function Auth() {
 
                     <div className="relative">
                       <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t border-border" />
+                        <span className="w-full border-t border-white/20" />
                       </div>
                       <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-card px-2 text-muted-foreground">ou</span>
+                        <span className="bg-[#0A0D14]/75 px-2 text-muted-foreground backdrop-blur-xl">ou</span>
                       </div>
                     </div>
 
