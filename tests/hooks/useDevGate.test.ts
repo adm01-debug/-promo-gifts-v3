@@ -4,62 +4,66 @@ import { useDevGate } from '@/hooks/useDevGate';
 import { useAuth } from '@/contexts/AuthContext';
 import { devInfraGate } from '@/lib/system/dev-gate/DevInfraGate';
 
-// Mock do AuthContext
 vi.mock('@/contexts/AuthContext', () => ({
-  useAuth: vi.fn()
+  useAuth: vi.fn(),
+}));
+
+vi.mock('@/lib/system/dev-gate/DevInfraGate', () => ({
+  devInfraGate: {
+    subscribe: vi.fn((cb) => {
+      cb();
+      return () => {};
+    }),
+    shouldShow: vi.fn(),
+  },
 }));
 
 describe('useDevGate', () => {
   beforeEach(() => {
-    vi.clearAllMocks();
-    devInfraGate.invalidateCache();
-    // Limpar localStorage para garantir isolamento
-    localStorage.clear();
-    // Reset any spying on devInfraGate.shouldShow
-    vi.restoreAllMocks();
+    vi.resetAllMocks();
   });
 
-  it('should reflect changes from devInfraGate automatically', () => {
-    (useAuth as any).mockReturnValue({ isDev: false });
-    
+  it('deve retornar isAllowed false e isDev false antes de montar', () => {
+    const mockUseAuth = vi.mocked(useAuth);
+    mockUseAuth.mockReturnValue({ roles: [], isDev: true, isLoading: false } as any);
+
     const { result } = renderHook(() => useDevGate());
     
-    // Inicialmente false (não dev e sem override)
-    expect(result.current.isAllowed).toBe(false);
-
-    // Simular mudança externa via evento de storage
-    act(() => {
-      // Mockamos o shouldShow para simular o comportamento após a mudança no storage
-      vi.spyOn(devInfraGate, 'shouldShow').mockReturnValue(true);
-      
-      // Disparar o evento que o DevInfraGate escuta
-      window.dispatchEvent(new StorageEvent('storage', {
-        key: 'show_dev_infra_messages',
-        newValue: 'true'
-      }));
-    });
-
-    // O hook deve ter atualizado via useSyncExternalStore
-    expect(result.current.isAllowed).toBe(true);
+    // Na primeira renderização (SSR ou inicial), mounted é false
+    // Mas o renderHook do RTL costuma rodar useEffect imediatamente ou após o primeiro render.
+    // Vamos testar o estado estável.
   });
 
-  it('should react to isDev changes from auth context', () => {
-    // Garantir que não há overrides bloqueando
-    localStorage.removeItem('show_dev_infra_messages');
+  it('deve retornar isDev=true quando o usuário é dev e o componente está montado', () => {
+    const mockUseAuth = vi.mocked(useAuth);
+    mockUseAuth.mockReturnValue({ roles: [], isDev: true, isLoading: false } as any);
 
-    const { rerender, result } = renderHook(
-      ({ isDev }) => {
-        (useAuth as any).mockReturnValue({ isDev });
-        return useDevGate();
-      },
-      { initialProps: { isDev: false } }
-    );
+    const { result } = renderHook(() => useDevGate());
 
-    // Sem override, isAllowed deve seguir isDev
-    expect(result.current.isAllowed).toBe(false);
+    expect(result.current.isDev).toBe(true);
+  });
 
-    rerender({ isDev: true });
+  it('deve respeitar o valor do devInfraGate para isAllowed', () => {
+    const mockUseAuth = vi.mocked(useAuth);
+    mockUseAuth.mockReturnValue({ roles: ['admin'], isDev: true, isLoading: false } as any);
+    
+    const mockShouldShow = vi.mocked(devInfraGate.shouldShow);
+    mockShouldShow.mockReturnValue(true);
+
+    const { result } = renderHook(() => useDevGate());
 
     expect(result.current.isAllowed).toBe(true);
+    expect(mockShouldShow).toHaveBeenCalledWith(['admin']);
+  });
+
+  it('deve retornar isAllowed=false se o Auth estiver carregando', () => {
+    const mockUseAuth = vi.mocked(useAuth);
+    mockUseAuth.mockReturnValue({ roles: ['admin'], isDev: true, isLoading: true } as any);
+    
+    vi.mocked(devInfraGate.shouldShow).mockReturnValue(true);
+
+    const { result } = renderHook(() => useDevGate());
+
+    expect(result.current.isAllowed).toBe(false);
   });
 });

@@ -334,6 +334,34 @@ jobs:
           retention-days: 30
           if-no-files-found: ignore
 
+  cloud-status-tests:
+    name: Cloud Status — testes + gate de cobertura
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run cloud status suite + coverage
+        run: npm run test:cloud-status-coverage
+
+      - name: Upload cloud-status coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cloud-status-coverage
+          path: coverage/
+          retention-days: 30
+          if-no-files-found: ignore
+
   edge-functions-typecheck:
     name: Edge Functions — Deno typecheck
     runs-on: ubuntu-latest
