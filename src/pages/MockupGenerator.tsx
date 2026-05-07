@@ -42,6 +42,32 @@ const OffscreenLayoutCapture = lazyWithRetry(() => import("@/components/mockup/a
 const TechniqueColorConfigDialog = lazyWithRetry(() => import("@/components/mockup/TechniqueColorConfigDialog").then(m => ({ default: m.TechniqueColorConfigDialog })));
 const AIMockupAssistant = lazyWithRetry(() => import("@/components/ai").then(m => ({ default: m.AIMockupAssistant })));
 
+const STEP_SECTION_MAP: Record<number, string> = {
+  1: "step-client", 2: "step-product", 3: "step-technique",
+  4: "step-logo", 5: "step-logo", 6: "step-logo",
+};
+
+function scrollToStep(step: number, highlight = false): void {
+  const targetId = STEP_SECTION_MAP[step];
+  if (!targetId) return;
+  let attempts = 0;
+  const tryScroll = () => {
+    const el = document.getElementById(targetId);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (highlight) {
+        el.classList.add('ring-2', 'ring-primary/50', 'rounded-lg');
+        window.setTimeout(() => el.classList.remove('ring-2', 'ring-primary/50', 'rounded-lg'), 2000);
+      }
+      return;
+    }
+    if (attempts++ < 10) {
+      window.requestAnimationFrame(tryScroll);
+    }
+  };
+  window.requestAnimationFrame(tryScroll);
+}
+
 // ─── Sub-components ──────────────────────────────────────────────────
 
 function MockupHeader({ 
