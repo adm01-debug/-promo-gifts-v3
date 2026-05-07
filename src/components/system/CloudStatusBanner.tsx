@@ -34,7 +34,7 @@ const STATUS_CONFIG: Partial<Record<'down' | 'degraded' | 'warming', BannerVaria
 };
 
 export const CloudStatusBanner = memo(function CloudStatusBanner() {
-  const { isDev } = useDevGate();
+  const { isAllowed, isDev } = useDevGate();
   const { status, snapshot, retry, isChecking } = useCloudStatus();
   const [showDebug, setShowDebug] = useState(false);
   const [showTimeline, setShowTimeline] = useState(false);
@@ -42,7 +42,9 @@ export const CloudStatusBanner = memo(function CloudStatusBanner() {
   const timeline = useMemo(() => getStatusTimeline(), []);
   const isIssueStatus = status === 'down' || status === 'degraded' || status === 'warming';
   const config = isIssueStatus ? STATUS_CONFIG[status] : null;
-  const shouldShowIssue = status === 'warming' ? isDev : status === 'down' || status === 'degraded';
+  const shouldShowIssue = status === 'warming'
+    ? isAllowed
+    : status === 'down' || status === 'degraded';
   const shouldShowHealthyDevBar = isDev && (status === 'healthy' || status === 'unknown');
   const shouldShow = shouldShowIssue || shouldShowHealthyDevBar;
 
