@@ -97,7 +97,7 @@ describe('CloudStatusBanner — visibilidade por papel e criticidade', () => {
     // Test warming
     setStatus('warming');
     const { rerender } = render(<CloudStatusBanner />);
-    expect(screen.getByText(/Backend reiniciando/i)).toBeInTheDocument();
+    expect(screen.getByText(/Backend inicializando parcialmente/i)).toBeInTheDocument();
 
     // Test down
     setStatus('down');
@@ -117,5 +117,52 @@ describe('CloudStatusBanner — visibilidade por papel e criticidade', () => {
     setStatus('down');
     render(<CloudStatusBanner />);
     expect(screen.getByText(/Backend indisponível/i)).toBeInTheDocument();
+  });
+
+  it('renderiza estado healthy em dev sem tocar em config inexistente', () => {
+    mockUseAuth.mockReturnValue({ isDev: true });
+    setStatus('healthy');
+
+    render(<CloudStatusBanner />);
+
+    expect(screen.getByText(/Cloud saudável/i)).toBeInTheDocument();
+  });
+
+  it('renderiza estado unknown em dev sem tocar em config inexistente', () => {
+    mockUseAuth.mockReturnValue({ isDev: true });
+    setStatus('unknown');
+
+    render(<CloudStatusBanner />);
+
+    expect(screen.getByText(/aguardando primeira sondagem/i)).toBeInTheDocument();
+  });
+
+  it('abre painel de debug mostrando probes sem crash', () => {
+    mockUseAuth.mockReturnValue({ isDev: true });
+    setStatus('degraded');
+
+    render(<CloudStatusBanner />);
+
+    fireEvent.click(screen.getByTitle(/Debug Latência/i));
+
+    expect(screen.getByText(/AUTH: 120ms/i)).toBeInTheDocument();
+    expect(screen.getByText(/BRIDGE: 140ms/i)).toBeInTheDocument();
+    expect(screen.getByText(/REST: 160ms/i)).toBeInTheDocument();
+  });
+
+  it('abre timeline histórica mostrando falhas consecutivas', () => {
+    mockUseAuth.mockReturnValue({ isDev: true });
+    mockGetStatusTimeline.mockReturnValue([
+      { status: 'healthy', timestamp: Date.now() - 1000, consecutiveFailures: 0 },
+      { status: 'down', timestamp: Date.now() - 500, consecutiveFailures: 2 },
+    ]);
+    setStatus('healthy');
+
+    render(<CloudStatusBanner />);
+
+    fireEvent.click(screen.getByTitle(/Ver histórico/i));
+
+    expect(screen.getByText('DOWN')).toBeInTheDocument();
+    expect(screen.getByText('(2 falhas)')).toBeInTheDocument();
   });
 });
