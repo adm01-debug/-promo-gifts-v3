@@ -1,9 +1,13 @@
-import { memo } from 'react';
-import { AlertTriangle, Loader2, RefreshCw, WifiOff } from 'lucide-react';
+import { memo, useState } from 'react';
+import { AlertTriangle, Loader2, RefreshCw, WifiOff, Info, CheckCircle2, XCircle, Clock } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { useCloudStatus } from '@/hooks/useCloudStatus';
 import { useDevGate } from '@/hooks/useDevGate';
+import { getStatusTimeline } from '@/lib/cloud-status';
+import { cn } from '@/lib/utils';
+import { formatDistanceToNow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 
 const STATUS_CONFIG: Record<string, { message: string; icon: any; className: string }> = {
   down: {
