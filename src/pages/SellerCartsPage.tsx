@@ -189,7 +189,7 @@ function SellerCartsContent() {
               <div className="flex items-center gap-4 min-w-0">
                 <div className="relative">
                   {s.activeCart.company_logo_url ? (
-                    <img src={s.activeCart.company_logo_url} alt="" className="w-12 h-12 rounded-xl object-contain bg-background border border-border/40 p-1.5 flex-shrink-0 shadow-inner group-hover/header:scale-105 transition-transform duration-300" loading="lazy" />
+                    <img src={s.activeCart.company_logo_url} alt="" className="w-12 h-12 rounded-full object-cover bg-background border border-border/40 flex-shrink-0 shadow-inner group-hover/header:scale-105 transition-transform duration-300" loading="lazy" />
                   ) : (
                     <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 group-hover/header:bg-primary/20 transition-colors">
                       <Building2 className="h-5 w-5 text-primary" />

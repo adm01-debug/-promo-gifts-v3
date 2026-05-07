@@ -172,9 +172,9 @@ export function CartCompanyPickerDialog({ open, onOpenChange, onCreated }: CartC
       disabled={!canCreateCart}
     >
       {company.logo_url ? (
-        <img src={company.logo_url} alt="" className="w-9 h-9 rounded-lg object-contain bg-background border border-border/40 flex-shrink-0" loading="lazy" />
+        <img src={company.logo_url} alt="" className="w-9 h-9 rounded-full object-cover bg-background border border-border/40 flex-shrink-0" loading="lazy" />
       ) : (
-        <div className="w-9 h-9 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
+        <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
           <Building2 className="h-4 w-4 text-muted-foreground" />
         </div>
       )}

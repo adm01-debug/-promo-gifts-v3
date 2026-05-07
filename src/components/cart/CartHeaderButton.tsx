@@ -230,10 +230,10 @@ export function CartHeaderButton() {
                                 <img
                                   src={cart.company_logo_url}
                                   alt="Logo da empresa"
-                                  className="w-9 h-9 rounded-lg object-contain bg-background border border-border/50 flex-shrink-0 p-0.5" loading="lazy" />
+                                  className="w-9 h-9 rounded-full object-cover bg-background border border-border/50 flex-shrink-0" loading="lazy" />
                               ) : (
                                 <div className={cn(
-                                  "w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0",
+                                  "w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0",
                                   isActive ? "bg-primary/15 text-primary" : "bg-muted text-muted-foreground"
                                 )}>
                                   <Building2 className="h-4 w-4" />
