@@ -231,6 +231,7 @@ export function useFilteredTechniques(
 
     // No customization data yet (loading) -> return empty to avoid showing wrong list
     if (!customizationData?.locations) {
+      // Return previously calculated techniques to avoid flickering while loading
       return [];
     }
 
