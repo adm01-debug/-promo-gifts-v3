@@ -1006,6 +1006,7 @@ export type Database = {
       }
       collection_items: {
         Row: {
+          added_at: string
           collection_id: string
           color_hex: string | null
           color_name: string | null
@@ -1018,6 +1019,7 @@ export type Database = {
           thumbnail_url: string | null
         }
         Insert: {
+          added_at?: string
           collection_id: string
           color_hex?: string | null
           color_name?: string | null
@@ -1030,6 +1032,7 @@ export type Database = {
           thumbnail_url?: string | null
         }
         Update: {
+          added_at?: string
           collection_id?: string
           color_hex?: string | null
           color_name?: string | null
@@ -1108,6 +1111,7 @@ export type Database = {
           icon: string | null
           icon_color: string | null
           id: string
+          is_deleted: boolean
           is_featured: boolean
           is_public: boolean
           name: string
@@ -1124,6 +1128,7 @@ export type Database = {
           icon?: string | null
           icon_color?: string | null
           id?: string
+          is_deleted?: boolean
           is_featured?: boolean
           is_public?: boolean
           name: string
@@ -1140,6 +1145,7 @@ export type Database = {
           icon?: string | null
           icon_color?: string | null
           id?: string
+          is_deleted?: boolean
           is_featured?: boolean
           is_public?: boolean
           name?: string
@@ -1986,6 +1992,36 @@ export type Database = {
           shared_token?: string | null
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      favorites: {
+        Row: {
+          added_at: string
+          id: string
+          is_deleted: boolean
+          product_id: string
+          updated_at: string
+          user_id: string
+          variant_info: Json | null
+        }
+        Insert: {
+          added_at?: string
+          id?: string
+          is_deleted?: boolean
+          product_id: string
+          updated_at?: string
+          user_id: string
+          variant_info?: Json | null
+        }
+        Update: {
+          added_at?: string
+          id?: string
+          is_deleted?: boolean
+          product_id?: string
+          updated_at?: string
+          user_id?: string
+          variant_info?: Json | null
         }
         Relationships: []
       }
@@ -3406,10 +3442,66 @@ export type Database = {
           },
         ]
       }
+      order_item_personalizations: {
+        Row: {
+          created_at: string | null
+          id: string
+          image_url: string | null
+          location_id: string | null
+          location_name: string | null
+          order_item_id: string
+          personalization_text: string | null
+          price_adjustment: number | null
+          technique_id: string | null
+          technique_name: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          location_id?: string | null
+          location_name?: string | null
+          order_item_id: string
+          personalization_text?: string | null
+          price_adjustment?: number | null
+          technique_id?: string | null
+          technique_name?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          image_url?: string | null
+          location_id?: string | null
+          location_name?: string | null
+          order_item_id?: string
+          personalization_text?: string | null
+          price_adjustment?: number | null
+          technique_id?: string | null
+          technique_name?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_item_personalizations_order_item_id_fkey"
+            columns: ["order_item_id"]
+            isOneToOne: false
+            referencedRelation: "order_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_items: {
         Row: {
+          color_hex: string | null
+          color_name: string | null
           created_at: string
+          gender: string | null
           id: string
+          kit_group_id: string | null
+          kit_name: string | null
+          notes: string | null
           order_id: string | null
           organization_id: string | null
           product_id: string | null
@@ -3417,11 +3509,19 @@ export type Database = {
           product_name: string | null
           product_sku: string | null
           quantity: number | null
+          size_code: string | null
+          total_price: number | null
           unit_price: number | null
         }
         Insert: {
+          color_hex?: string | null
+          color_name?: string | null
           created_at?: string
+          gender?: string | null
           id?: string
+          kit_group_id?: string | null
+          kit_name?: string | null
+          notes?: string | null
           order_id?: string | null
           organization_id?: string | null
           product_id?: string | null
@@ -3429,11 +3529,19 @@ export type Database = {
           product_name?: string | null
           product_sku?: string | null
           quantity?: number | null
+          size_code?: string | null
+          total_price?: number | null
           unit_price?: number | null
         }
         Update: {
+          color_hex?: string | null
+          color_name?: string | null
           created_at?: string
+          gender?: string | null
           id?: string
+          kit_group_id?: string | null
+          kit_name?: string | null
+          notes?: string | null
           order_id?: string | null
           organization_id?: string | null
           product_id?: string | null
@@ -3441,6 +3549,8 @@ export type Database = {
           product_name?: string | null
           product_sku?: string | null
           quantity?: number | null
+          size_code?: string | null
+          total_price?: number | null
           unit_price?: number | null
         }
         Relationships: [
@@ -4756,6 +4866,27 @@ export type Database = {
           },
         ]
       }
+      recently_viewed_products: {
+        Row: {
+          id: string
+          product_id: string
+          user_id: string
+          viewed_at: string
+        }
+        Insert: {
+          id?: string
+          product_id: string
+          user_id: string
+          viewed_at?: string
+        }
+        Update: {
+          id?: string
+          product_id?: string
+          user_id?: string
+          viewed_at?: string
+        }
+        Relationships: []
+      }
       request_rate_limits: {
         Row: {
           blocked_until: string | null
@@ -5599,6 +5730,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_search_history: {
+        Row: {
+          created_at: string | null
+          history_type: string
+          id: string
+          is_pinned: boolean | null
+          metadata: Json | null
+          query_text: string
+          result_count: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          history_type?: string
+          id?: string
+          is_pinned?: boolean | null
+          metadata?: Json | null
+          query_text: string
+          result_count?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          history_type?: string
+          id?: string
+          is_pinned?: boolean | null
+          metadata?: Json | null
+          query_text?: string
+          result_count?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_token_revocations: {
         Row: {
           revoked_at: string
@@ -6098,6 +6265,14 @@ export type Database = {
         }
         Returns: boolean
       }
+      convert_quote_to_order: {
+        Args: {
+          p_organization_id?: string
+          p_quote_id: string
+          p_seller_id: string
+        }
+        Returns: Json
+      }
       create_organization_with_owner: {
         Args: { _name: string; _slug: string }
         Returns: string
@@ -6296,7 +6471,12 @@ export type Database = {
         }[]
       }
       get_unread_count: { Args: never; Returns: number }
-      get_user_org_ids: { Args: { _user_id: string }; Returns: string[] }
+      get_user_org_ids: {
+        Args: { _user_id: string }
+        Returns: {
+          organization_id: string
+        }[]
+      }
       get_user_recent_comparisons: {
         Args: { p_limit?: number }
         Returns: {

@@ -42,6 +42,32 @@ const OffscreenLayoutCapture = lazyWithRetry(() => import("@/components/mockup/a
 const TechniqueColorConfigDialog = lazyWithRetry(() => import("@/components/mockup/TechniqueColorConfigDialog").then(m => ({ default: m.TechniqueColorConfigDialog })));
 const AIMockupAssistant = lazyWithRetry(() => import("@/components/ai").then(m => ({ default: m.AIMockupAssistant })));
 
+const STEP_SECTION_MAP: Record<number, string> = {
+  1: "step-client", 2: "step-product", 3: "step-technique",
+  4: "step-logo", 5: "step-logo", 6: "step-logo",
+};
+
+function scrollToStep(step: number, highlight = false): void {
+  const targetId = STEP_SECTION_MAP[step];
+  if (!targetId) return;
+  let attempts = 0;
+  const tryScroll = () => {
+    const el = document.getElementById(targetId);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      if (highlight) {
+        el.classList.add('ring-2', 'ring-primary/50', 'rounded-lg');
+        window.setTimeout(() => el.classList.remove('ring-2', 'ring-primary/50', 'rounded-lg'), 2000);
+      }
+      return;
+    }
+    if (attempts++ < 10) {
+      window.requestAnimationFrame(tryScroll);
+    }
+  };
+  window.requestAnimationFrame(tryScroll);
+}
+
 // ─── Sub-components ──────────────────────────────────────────────────
 
 function MockupHeader({ 
@@ -121,11 +147,7 @@ export default function MockupGenerator() {
     isLoading: mg.isLoading,
     onStepChange: (step) => {
       mg.setActiveTab("generator");
-      const sectionMap: Record<number, string> = { 1: "step-client", 2: "step-product", 3: "step-technique", 4: "step-logo", 5: "step-logo", 6: "step-logo" };
-      const targetId = sectionMap[step];
-      if (targetId) {
-        document.getElementById(targetId)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
+      scrollToStep(step);
     }
   });
 
@@ -134,10 +156,13 @@ export default function MockupGenerator() {
     const mockupUrl = mg.lastSavedMockupUrl || mg.generatedMockup || "";
     if (!mockupUrl) return null;
 
-    const now = new Date();
-    const dateStr = now.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
-    const docNumber = `MK-${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, "0")}${String(now.getDate()).padStart(2, "0")}-${String(now.getHours()).padStart(2, "0")}${String(now.getMinutes()).padStart(2, "0")}`;
+    // recordId é estável por captura → derivamos data/numeroDoc dele para manter o memo determinístico
+    const stableSeed = mg.lastSavedRecordId;
+    const seedDate = new Date(parseInt(stableSeed.slice(0, 8), 16) * 1000 || Date.now());
+    const dateStr = seedDate.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric" });
+    const docNumber = `MK-${stableSeed.slice(0, 12).toUpperCase()}`;
 
+    const tech = mg.selectedTechnique as MockupTechnique;
     const approvalData: MockupApprovalData = {
       documentNumber: docNumber,
       date: dateStr,
@@ -162,15 +187,15 @@ export default function MockupGenerator() {
         weightG: mg.selectedProduct.dimensions?.weight_g ?? null,
       },
       personalization: {
-        techniqueName: mg.selectedTechnique.name,
-        techniqueCode: mg.selectedTechnique.code || undefined,
-        locationName: ('locationName' in mg.selectedTechnique ? (mg.selectedTechnique as MockupTechnique).locationName : null) || mg.activeArea?.name || "Frente",
+        techniqueName: tech.name,
+        techniqueCode: tech.code || undefined,
+        locationName: tech.locationName ?? mg.activeArea?.name ?? "Frente",
         widthCm: mg.activeArea?.logoWidth || 0,
         heightCm: mg.activeArea?.logoHeight || 0,
         colorsCount: mg.techniqueColorConfig?.colorCount,
       },
-      pantoneColors: (mg.logoColorAnalysis.colors || []).map((c: any) => ({
-        name: c.selectedPantone || c.pantoneMatch?.name || c.name,
+      pantoneColors: (mg.logoColorAnalysis.colors || []).map((c: { selectedPantone?: string; pantoneMatch?: { name?: string }; name?: string; hex: string }) => ({
+        name: c.selectedPantone || c.pantoneMatch?.name || c.name || "",
         hex: c.hex,
       })),
       mockupImageUrl: mockupUrl,
@@ -178,7 +203,7 @@ export default function MockupGenerator() {
     };
 
     return { data: approvalData, recordId: mg.lastSavedRecordId, userId: user.id };
-  }, [mg.lastSavedRecordId, mg.lastSavedMockupUrl, mg.lastSavedLayoutMode, user?.id, mg.selectedProduct, mg.selectedTechnique, mg.selectedClient, mg.activeArea, mg.generatedMockup, profile, mg.techniqueColorConfig, mg.logoColorAnalysis.colors, mg.productSelection]);
+  }, [mg.lastSavedRecordId, mg.lastSavedMockupUrl, mg.lastSavedLayoutMode, user?.id, mg.selectedProduct, mg.selectedTechnique, mg.selectedClient, mg.activeArea, mg.generatedMockup, profile, mg.techniqueColorConfig, mg.logoColorAnalysis.colors, mg.productSelection, mg]);
 
   const handleLayoutCaptured = useCallback(() => {
     mg.setLastSavedRecordId(null);
@@ -211,16 +236,7 @@ export default function MockupGenerator() {
                 hasGenerated={!!mg.generatedMockup}
                 onStepClick={(step) => {
                   mg.setActiveTab("generator");
-                  const sectionMap: Record<number, string> = { 1: "step-client", 2: "step-product", 3: "step-technique", 4: "step-logo", 5: "step-logo", 6: "step-logo" };
-                  const targetId = sectionMap[step];
-                  if (targetId) {
-                    const el = document.getElementById(targetId);
-                    if (el) {
-                      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                      el.classList.add('ring-2', 'ring-primary/50', 'rounded-lg');
-                      setTimeout(() => el.classList.remove('ring-2', 'ring-primary/50', 'rounded-lg'), 2000);
-                    }
-                  }
+                  scrollToStep(step, true);
                 }}
               />
             </Suspense>
@@ -246,7 +262,7 @@ export default function MockupGenerator() {
           </Alert>
         )}
 
-        <Tabs value={mg.activeTab} onValueChange={mg.setActiveTab} className="w-full">
+        <Tabs value={mg.activeTab} onValueChange={(v) => mg.setActiveTab(v as "generator" | "history")} className="w-full">
           <div className="flex items-center justify-between gap-2 mb-4">
             <TabsList>
               <TabsTrigger value="generator" className="flex items-center gap-2"><Wand2 className="h-4 w-4" /> Gerar Mockup</TabsTrigger>
@@ -282,7 +298,13 @@ export default function MockupGenerator() {
                   onAreasChange={mg.setPersonalizationAreas}
                   onActiveAreaChange={mg.setActiveAreaId}
                   onLogoUpload={mg.handleAreaLogoUpload}
-                   onLogoRemove={() => mg.logoColorAnalysis.clearAnalysis()}
+                   onLogoRemove={() => {
+                     mg.logoColorAnalysis.clearAnalysis();
+                     if (mg.activeArea) {
+                       mg.updateActiveArea({ logoPreview: null, logoFile: null });
+                     }
+                     mg.setGeneratedMockup(null);
+                   }}
                    productLocations={mg.productLocations}
                    logoColorAnalysis={mg.logoColorAnalysis}
                    artAttachments={mg.artAttachments}
@@ -303,8 +325,8 @@ export default function MockupGenerator() {
                       logoScale={mg.activeArea.logoScale ?? 100}
                       techniqueCode={mg.selectedTechnique?.code}
                       techniqueName={mg.selectedTechnique?.name}
-                      maxWidth={'maxWidth' in (mg.selectedTechnique || {}) ? (mg.selectedTechnique as MockupTechnique).maxWidth : null}
-                      maxHeight={'maxHeight' in (mg.selectedTechnique || {}) ? (mg.selectedTechnique as MockupTechnique).maxHeight : null}
+                      maxWidth={mg.selectedTechnique?.maxWidth ?? null}
+                      maxHeight={mg.selectedTechnique?.maxHeight ?? null}
                       productHeightCm={mg.selectedProduct?.dimensions?.height_cm ?? (mg.selectedProduct?.metadata?.height_mm ? mg.selectedProduct.metadata.height_mm / 10 : null)}
                       productWidthCm={mg.selectedProduct?.dimensions?.width_cm ?? mg.selectedProduct?.dimensions?.diameter_cm ?? (mg.selectedProduct?.metadata?.width_mm ? mg.selectedProduct.metadata.width_mm / 10 : null)}
                       onPositionChange={(x, y) => mg.updateActiveArea({ positionX: x, positionY: y })}
@@ -330,10 +352,11 @@ export default function MockupGenerator() {
                             weightG: mg.selectedProduct.dimensions?.weight_g ?? null,
                           } : null}
                           technique={mg.selectedTechnique ? {
-                            name: mg.selectedTechnique.name, code: mg.selectedTechnique.code,
-                            maxWidth: 'maxWidth' in mg.selectedTechnique ? (mg.selectedTechnique as MockupTechnique).maxWidth : null,
-                            maxHeight: 'maxHeight' in mg.selectedTechnique ? (mg.selectedTechnique as MockupTechnique).maxHeight : null,
-                            locationName: 'locationName' in mg.selectedTechnique ? (mg.selectedTechnique as MockupTechnique).locationName : null,
+                            name: mg.selectedTechnique.name,
+                            code: mg.selectedTechnique.code,
+                            maxWidth: mg.selectedTechnique.maxWidth ?? null,
+                            maxHeight: mg.selectedTechnique.maxHeight ?? null,
+                            locationName: mg.selectedTechnique.locationName ?? null,
                           } : null}
                           client={mg.selectedClient}
                           seller={profile ? { name: profile.full_name || "—", email: profile.email || undefined } : null}

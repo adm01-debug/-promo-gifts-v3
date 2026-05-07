@@ -61,6 +61,7 @@ export interface ExternalPrintArea {
 export interface MockupTechnique {
   id?: string;
   name?: string;
+  code?: string | null;
   locationName?: string | null;
   maxWidth?: number | null;
   maxHeight?: number | null;
