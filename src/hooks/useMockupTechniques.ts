@@ -183,7 +183,8 @@ function useAllTechniqueDimensions(techniques: Technique[], shouldFetch: boolean
       return codeMap;
     },
     enabled: shouldFetch,
-    staleTime: 10 * 60 * 1000,
+    staleTime: 60 * 60 * 1000, // Increase to 1 hour as this is static-ish data
+    placeholderData: keepPreviousData,
   });
 }
 
