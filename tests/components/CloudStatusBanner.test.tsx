@@ -96,12 +96,13 @@ describe('CloudStatusBanner — visibilidade por papel e criticidade', () => {
     
     // Test warming
     setStatus('warming');
-    const { rerender } = render(<CloudStatusBanner />);
+    const { unmount } = render(<CloudStatusBanner />);
     expect(screen.getByText(/Backend inicializando parcialmente/i)).toBeInTheDocument();
 
     // Test down
+    unmount();
     setStatus('down');
-    rerender(<CloudStatusBanner />);
+    render(<CloudStatusBanner />);
     expect(screen.getByText(/Backend indisponível/i)).toBeInTheDocument();
   });
 
