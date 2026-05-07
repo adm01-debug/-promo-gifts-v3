@@ -306,8 +306,8 @@ export default function MockupGenerator() {
                       logoScale={mg.activeArea.logoScale ?? 100}
                       techniqueCode={mg.selectedTechnique?.code}
                       techniqueName={mg.selectedTechnique?.name}
-                      maxWidth={'maxWidth' in (mg.selectedTechnique || {}) ? (mg.selectedTechnique as MockupTechnique).maxWidth : null}
-                      maxHeight={'maxHeight' in (mg.selectedTechnique || {}) ? (mg.selectedTechnique as MockupTechnique).maxHeight : null}
+                      maxWidth={mg.selectedTechnique?.maxWidth ?? null}
+                      maxHeight={mg.selectedTechnique?.maxHeight ?? null}
                       productHeightCm={mg.selectedProduct?.dimensions?.height_cm ?? (mg.selectedProduct?.metadata?.height_mm ? mg.selectedProduct.metadata.height_mm / 10 : null)}
                       productWidthCm={mg.selectedProduct?.dimensions?.width_cm ?? mg.selectedProduct?.dimensions?.diameter_cm ?? (mg.selectedProduct?.metadata?.width_mm ? mg.selectedProduct.metadata.width_mm / 10 : null)}
                       onPositionChange={(x, y) => mg.updateActiveArea({ positionX: x, positionY: y })}
