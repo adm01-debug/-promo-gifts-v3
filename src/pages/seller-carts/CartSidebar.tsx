@@ -27,14 +27,161 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import type { UseMutationResult } from "@tanstack/react-query";
-import { AvatarLogo } from "@/components/shared/AvatarLogo";
 
 interface CartSidebarProps {
-// ... keep existing code
-            className="w-full flex items-center gap-2.5 p-2.5 rounded-lg border border-border/30 hover:border-border/60 hover:bg-muted/20 transition-all text-left"
+  cart: SellerCart;
+  otherCarts: SellerCart[];
+  cartSubtotal: number;
+  cartTotalQty: number;
+  cartAge: number;
+  weightVolume: { weightKg: number; volumeM3: number; volumeCm3: number } | null;
+  allProducts: unknown[];
+  isLoadingProducts?: boolean;
+  templates: { id: string; name: string; description?: string | null; items: CartTemplateItem[]; created_at?: string }[];
+  canCreateCart: boolean;
+  onGenerateQuote: (cart: SellerCart) => void;
+  onShareCart: (cartId: string) => void;
+  onDuplicateCart: (cartId: string) => void;
+  onExportCSV: (cart: SellerCart) => void;
+  onExportPDF: (cart: SellerCart) => void;
+  onSaveTemplate: (name: string, description: string) => void;
+  onLoadTemplate: (items: CartTemplateItem[]) => void;
+  onDeleteTemplate: UseMutationResult<void, Error, string>;
+  onClear: () => void;
+  onNavigate: (path: string) => void;
+  onSetActiveCartId: (id: string) => void;
+  onFocusNotes?: () => void;
+}
+
+export function CartSidebar({
+  cart, otherCarts, cartSubtotal, cartTotalQty, cartAge, weightVolume,
+  allProducts, isLoadingProducts, templates, canCreateCart,
+  onGenerateQuote, onShareCart, onDuplicateCart, onExportCSV, onExportPDF,
+  onSaveTemplate, onLoadTemplate, onDeleteTemplate, onClear, onNavigate, onSetActiveCartId,
+  onFocusNotes,
+}: CartSidebarProps) {
+  const [saveOpen, setSaveOpen] = useState(false);
+  const [loadOpen, setLoadOpen] = useState(false);
+  const [tplName, setTplName] = useState("");
+  const [tplDesc, setTplDesc] = useState("");
+
+  return (
+    <div className="hidden md:block xl:sticky xl:top-20 xl:self-start space-y-4">
+      {/* ZONE 1 — Hero Pricing */}
+      <Card className="p-5 space-y-5 border-primary/20 bg-gradient-to-br from-primary/[0.04] via-background to-background relative overflow-hidden group/hero shadow-md">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-3xl -mr-16 -mt-16 group-hover/hero:bg-primary/10 transition-colors" />
+        
+        <div className="space-y-1 relative z-10">
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-[0.15em] opacity-70">Subtotal do Carrinho</p>
+          <div className="flex items-baseline gap-1">
+            <motion.p 
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              key={cartSubtotal}
+              className="text-3xl font-display font-black text-primary tabular-nums leading-none tracking-tight"
+            >
+              {formatCurrency(cartSubtotal)}
+            </motion.p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3 text-xs pt-4 border-t border-primary/10 relative z-10">
+          <div className="space-y-1">
+            <p className="text-muted-foreground font-medium flex items-center gap-1.5"><Package className="h-3 w-3 opacity-60" /> SKUs</p>
+            <p className="font-bold text-sm tabular-nums">{cart.items.length}</p>
+          </div>
+          <div className="space-y-1">
+            <p className="text-muted-foreground font-medium flex items-center gap-1.5">Qtd. total</p>
+            <p className="font-bold text-sm tabular-nums">{cartTotalQty.toLocaleString("pt-BR")}</p>
+          </div>
+          {weightVolume && weightVolume.weightKg > 0 && (
+            <div className="space-y-1">
+              <p className="text-muted-foreground font-medium flex items-center gap-1.5"><Weight className="h-3 w-3 opacity-60" /> Peso</p>
+              <p className="font-bold text-sm tabular-nums">
+                {weightVolume.weightKg >= 1
+                  ? `${weightVolume.weightKg.toFixed(1)}kg`
+                  : `${(weightVolume.weightKg * 1000).toFixed(0)}g`}
+              </p>
+            </div>
+          )}
+          {weightVolume && weightVolume.volumeCm3 > 0 && (
+            <div className="space-y-1">
+              <p className="text-muted-foreground font-medium flex items-center gap-1.5"><Box className="h-3 w-3 opacity-60" /> Volume</p>
+              <p className="font-bold text-sm tabular-nums">
+                {weightVolume.volumeM3 >= 0.001
+                  ? `${weightVolume.volumeM3.toFixed(3)}m³`
+                  : `${weightVolume.volumeCm3.toLocaleString("pt-BR")}cm³`}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* ZONE 2 — Ação primária */}
+        <div className="relative z-10 pt-1">
+          <Button
+            data-testid="cart-checkout-cta"
+            className="w-full gap-2.5 h-12 font-bold bg-success hover:bg-success/90 text-success-foreground rounded-xl shadow-lg shadow-success/20 hover:shadow-xl hover:shadow-success/30 transition-all duration-300 hover:scale-[1.02] active:scale-[0.98] group/cta"
+            onClick={() => onGenerateQuote(cart)}
           >
-            <AvatarLogo name={c.company_name} logoUrl={c.company_logo_url} size="md" />
-            <div className="flex-1 min-w-0">
+            Gerar Orçamento
+            <ArrowRight className="h-4 w-4 transition-transform group-hover/cta:translate-x-1" />
+          </Button>
+        </div>
+
+        {/* ZONE 3 — Menu de ações secundárias */}
+        <CartActionsMenu
+          onShare={() => onShareCart(cart.id)}
+          onDuplicate={() => onDuplicateCart(cart.id)}
+          onExportCSV={() => onExportCSV(cart)}
+          onExportPDF={() => onExportPDF(cart)}
+          onSaveTemplate={() => setSaveOpen(true)}
+          onLoadTemplate={() => setLoadOpen(true)}
+          onAddProducts={() => onNavigate("/produtos")}
+          onClear={onClear}
+          canDuplicate={canCreateCart}
+        />
+      </Card>
+
+      {/* Health Checklist (substitui o Score) */}
+      <CartHealthChecklist
+        cart={cart}
+        cartSubtotal={cartSubtotal}
+        onFocusNotes={onFocusNotes}
+        onAddProducts={() => onNavigate("/produtos")}
+      />
+
+      {/* Insights compactos */}
+      <Card className="p-4 space-y-3 border-border/30 shadow-sm">
+        <h4 className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-2">
+          <Sparkles className="h-3.5 w-3.5 text-warning fill-warning/20" /> Inteligência de Vendas
+        </h4>
+        <SmartSuggestions cart={cart} allProducts={allProducts} isLoading={isLoadingProducts} />
+        <ActionHistoryPanel cartId={cart.id} />
+        {cartAge >= 3 && (
+          <p className="text-[10px] text-warning bg-warning/5 rounded-lg px-2.5 py-1.5 border border-warning/10">
+            ⏰ Carrinho há {cartAge} dias — considere fazer follow-up!
+          </p>
+        )}
+      </Card>
+
+      {/* Outros carrinhos */}
+      {otherCarts.length > 0 && (
+        <Card className="p-4 space-y-3">
+          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Outros Carrinhos</h4>
+          {otherCarts.map(c => (
+            <button
+              key={c.id}
+              onClick={() => onSetActiveCartId(c.id)}
+              className="w-full flex items-center gap-2.5 p-2.5 rounded-lg border border-border/30 hover:border-border/60 hover:bg-muted/20 transition-all text-left"
+            >
+              {c.company_logo_url ? (
+                <img src={c.company_logo_url} alt="" className="w-8 h-8 rounded-lg object-contain bg-background border border-border/50 p-0.5" loading="lazy" />
+              ) : (
+                <div className="w-8 h-8 rounded-lg bg-muted flex items-center justify-center">
+                  <Building2 className="h-3.5 w-3.5 text-muted-foreground" />
+                </div>
+              )}
+              <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium truncate">{c.company_name}</p>
                 <p className="text-[10px] text-muted-foreground">{c.items.length} itens</p>
               </div>
