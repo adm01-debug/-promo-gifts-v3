@@ -162,7 +162,22 @@ function RoutePrefetcher() {
        // On dashboard, prefetch products and orders
        import("./pages/FiltersPage");
        import("./pages/QuotesListPage");
+       import("./pages/OrdersPage");
+       import("./pages/ClientsPage");
+    } else if (pathname === "/produtos") {
+       // On products page, prefetch detailed product view and tools
+       import("./pages/ProductDetail");
+       import("./pages/MockupGenerator");
+       import("./pages/PriceSimulatorPage");
     }
+    
+    // Low priority prefetch for common tools
+    const timeoutId = setTimeout(() => {
+      if (pathname !== "/orcamentos/novo") import("./pages/QuoteBuilderPage");
+      if (pathname !== "/novidades") import("./pages/NoveltiesPage");
+    }, 2000);
+    
+    return () => clearTimeout(timeoutId);
   }, [pathname]);
   
   return null;
