@@ -18,15 +18,38 @@ import {
 import type { SellerCart } from "@/hooks/useSellerCarts";
 import type { CartTemplateItem } from "@/hooks/useCartTemplates";
 import { formatCurrency, getStatusCfg } from "../CartUtilComponents";
-import { AvatarLogo } from "@/components/shared/AvatarLogo";
 
 export function CompareCartsDialog({ carts }: { carts: SellerCart[] }) {
-// ... keep existing code
+  if (carts.length < 2) return null;
+
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm" className="gap-1.5 text-xs">
+          <Columns className="h-3.5 w-3.5" />
+          Comparar
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-5xl max-h-[80vh]">
+        <DialogHeader>
+          <DialogTitle>Comparar Carrinhos</DialogTitle>
+        </DialogHeader>
+        <ScrollArea className="max-h-[65vh]">
+          <div className={cn("grid gap-4", carts.length === 2 ? "grid-cols-2" : "grid-cols-3")}>
+            {carts.map(cart => {
+              const subtotal = cart.items.reduce((s, i) => s + i.product_price * i.quantity, 0);
+              const totalQty = cart.items.reduce((s, i) => s + i.quantity, 0);
               const statusCfg = getStatusCfg(cart.status);
               return (
                 <Card key={cart.id} className="p-4 space-y-3">
                   <div className="flex items-center gap-2">
-                    <AvatarLogo name={cart.company_name} logoUrl={cart.company_logo_url} size="md" />
+                    {cart.company_logo_url ? (
+                      <img src={cart.company_logo_url} alt="Logo da empresa" className="w-8 h-8 rounded-full object-cover bg-background border border-border/50" loading="lazy" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center">
+                        <Building2 className="h-4 w-4 text-muted-foreground" />
+                      </div>
+                    )}
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold truncate">{cart.company_name}</p>
                       <Badge variant="outline" className={cn("text-[9px]", statusCfg.color)}>
