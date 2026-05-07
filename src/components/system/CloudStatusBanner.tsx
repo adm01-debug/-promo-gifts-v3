@@ -17,7 +17,7 @@ const STATUS_CONFIG: Record<string, { message: string; icon: any; className: str
     className: 'bg-warning text-warning-foreground border-warning/40'
   },
   warming: {
-    message: 'Backend reiniciando, aguarde alguns segundos…',
+    message: 'Backend inicializando parcialmente — algumas operações podem demorar alguns segundos.',
     icon: Loader2,
     className: 'bg-muted text-muted-foreground border-border'
   }
