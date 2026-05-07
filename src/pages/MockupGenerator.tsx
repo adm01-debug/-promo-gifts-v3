@@ -437,11 +437,14 @@ export default function MockupGenerator() {
           </TabsContent>
         </Tabs>
 
-        <TechniqueChangeDialog 
-          open={technique.isDialogOpen} 
-          onOpenChange={technique.setIsDialogOpen} 
-          onConfirm={technique.confirmTechniqueChange} 
-          techniqueName={technique.pendingTechnique?.name || ""} 
+        <TechniqueChangeDialog
+          open={technique.techniqueChangeDialogOpen}
+          onOpenChange={technique.setTechniqueChangeDialogOpen}
+          onConfirm={technique.confirmTechniqueChange}
+          onCancel={() => technique.setTechniqueChangeDialogOpen(false)}
+          fromName={mg.selectedTechnique?.name}
+          toName={technique.pendingTechnique?.name}
+          hasGeneratedMockup={!!mg.generatedMockup}
         />
 
         <DeleteMockupDialog 
