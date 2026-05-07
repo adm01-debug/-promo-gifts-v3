@@ -7,35 +7,16 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { useClientFuzzySearch } from "@/hooks/useGenericFuzzySearch";
 import { X, Building2, Search, Loader2, AlertCircle, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AvatarLogo } from "@/components/shared/AvatarLogo";
 import { Input } from "@/components/ui/input";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { useCrmInfiniteCompanySelector } from "@/hooks/useCrmCompanies";
-import { motion, AnimatePresence } from "framer-motion";
-import { Button } from "@/components/ui/button";
-import type { MockupClient } from "./MockupConfigPanel";
-
+// ... keep existing code
 interface MockupClientSelectorProps {
   selectedClient: MockupClient | null;
   onClientSelect: (client: MockupClient | null) => void;
 }
 
 function CompanyAvatar({ name, logoUrl, size = "md" }: { name: string; logoUrl?: string | null; size?: "sm" | "md" }) {
-  const dim = size === "sm" ? "w-7 h-7 text-[10px]" : "w-8 h-8 text-xs";
-  
-  if (logoUrl) {
-    return (
-      <img
-        src={logoUrl}
-        alt=""
-        className={cn(dim, "rounded-full object-cover bg-background border border-border flex-shrink-0")} loading="lazy" />
-    );
-  }
-  
-  return (
-    <div className={cn(dim, "rounded-full flex items-center justify-center font-bold text-primary-foreground bg-primary flex-shrink-0")}>
-      {name.substring(0, 2).toUpperCase()}
-    </div>
-  );
+  return <AvatarLogo name={name} logoUrl={logoUrl} size={size} />;
 }
 
 export function MockupClientSelector({ selectedClient, onClientSelect }: MockupClientSelectorProps) {

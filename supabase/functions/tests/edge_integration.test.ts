@@ -24,20 +24,35 @@ async function invokeFunction(name: string, body: any, headers: any = {}) {
 
 Deno.test("Edge Function: cnpj-lookup - validação de entrada", async () => {
   const res = await invokeFunction("cnpj-lookup", { cnpj: "invalid" });
-  // Should return 400 or a specific validation error payload
-  assert(res.status === 400 || res.status === 422, `Expected 400/422 but got ${res.status}`);
+  assertEquals(res.status, 400, "CNPJ inválido deve retornar 400");
+  const data = await res.json();
+  assert(data.error || data.message, "Deve conter mensagem de erro");
 });
 
 Deno.test("Edge Function: validate-access - status codes", async () => {
   const res = await invokeFunction("validate-access", {});
-  // Empty payload might be unauthorized or bad request depending on implementation
-  assert(res.status >= 400, `Expected error status but got ${res.status}`);
+  assert(res.status === 400 || res.status === 401, `Status inesperado: ${res.status}`);
 });
 
-Deno.test("Edge Function: HMAC verification simulation (if applicable)", async () => {
-  // Mocking a webhook call that requires HMAC
-  const res = await invokeFunction("webhook-inbound", { test: true }, {
-    "X-Hub-Signature-256": "invalid_signature"
+Deno.test("Edge Function: webhook-inbound - HMAC verification", async () => {
+  // Test case 1: Missing signature
+  const res1 = await invokeFunction("webhook-inbound", { event: "test" });
+  assertEquals(res1.status, 401, "Rejeitar sem assinatura");
+
+  // Test case 2: Invalid signature format
+  const res2 = await invokeFunction("webhook-inbound", { event: "test" }, {
+    "X-Hub-Signature-256": "plain_text_not_hmac"
   });
-  assertEquals(res.status, 401, "Should reject invalid HMAC signature");
+  assertEquals(res2.status, 401, "Rejeitar formato inválido");
+
+  // Test case 3: Valid signature but wrong secret (simulation)
+  const res3 = await invokeFunction("webhook-inbound", { event: "test" }, {
+    "X-Hub-Signature-256": "sha256=4f2f5e1f76e3d23f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f"
+  });
+  assertEquals(res3.status, 401, "Rejeitar assinatura incorreta");
+});
+
+Deno.test("Edge Function: bitrix-sync - erro de payload", async () => {
+  const res = await invokeFunction("bitrix-sync", { malformed: true });
+  assert(res.status >= 400, "Payload malformado deve falhar");
 });

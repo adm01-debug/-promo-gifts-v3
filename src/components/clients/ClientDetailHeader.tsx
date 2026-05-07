@@ -6,29 +6,17 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { getCompanyDisplayName, type CrmCompany } from "@/types/crm";
+import { AvatarLogo } from "@/components/shared/AvatarLogo";
 
 interface ClientDetailHeaderProps {
-  client: CrmCompany;
-}
-
-export function ClientDetailHeader({ client }: ClientDetailHeaderProps) {
-  const navigate = useNavigate();
-  const name = getCompanyDisplayName(client);
-  const location = [client.cidade, client.estado].filter(Boolean).join(" / ");
-
+// ... keep existing code
   return (
     <div className="space-y-3">
       <Button variant="ghost" size="sm" onClick={() => navigate("/clientes")} className="-ml-2">
         <ArrowLeft className="h-4 w-4 mr-1" /> Voltar
       </Button>
       <div className="flex items-start gap-4">
-        <div className="h-14 w-14 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
-          {client.logo_url ? (
-            <img src={client.logo_url} alt={name} className="h-full w-full object-cover" />
-          ) : (
-            <Building2 className="h-7 w-7 text-primary" />
-          )}
-        </div>
+        <AvatarLogo name={name} logoUrl={client.logo_url} size="xl" />
         <div className="min-w-0 flex-1">
           <h1 className="text-2xl font-bold font-display text-foreground truncate">{name}</h1>
           <div className="flex items-center gap-3 text-sm text-muted-foreground mt-1 flex-wrap">
