@@ -38,18 +38,24 @@ Deno.test("Edge Function: webhook-inbound - HMAC verification", async () => {
   // Test case 1: Missing signature
   const res1 = await invokeFunction("webhook-inbound", { event: "test" });
   assertEquals(res1.status, 401, "Rejeitar sem assinatura");
+  const data1 = await res1.json();
+  assertEquals(data1.error, "missing_signature", "Mensagem de erro deve ser missing_signature");
 
-  // Test case 2: Invalid signature format
+  // Test case 2: Invalid signature format (no prefix)
   const res2 = await invokeFunction("webhook-inbound", { event: "test" }, {
     "X-Hub-Signature-256": "plain_text_not_hmac"
   });
-  assertEquals(res2.status, 401, "Rejeitar formato inválido");
+  assertEquals(res2.status, 401, "Rejeitar formato sem prefixo sha256=");
+  const data2 = await res2.json();
+  assertEquals(data2.error, "invalid_signature_format", "Mensagem de erro deve ser invalid_signature_format");
 
-  // Test case 3: Valid signature but wrong secret (simulation)
+  // Test case 3: Valid format but incorrect signature
   const res3 = await invokeFunction("webhook-inbound", { event: "test" }, {
     "X-Hub-Signature-256": "sha256=4f2f5e1f76e3d23f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f"
   });
   assertEquals(res3.status, 401, "Rejeitar assinatura incorreta");
+  const data3 = await res3.json();
+  assertEquals(data3.error, "invalid_signature", "Mensagem de erro deve ser invalid_signature");
 });
 
 Deno.test("Edge Function: bitrix-sync - erro de payload", async () => {
