@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { invokeCrmDb } from "@/lib/crm-db";
+import { useCloudStatus } from "@/hooks/useCloudStatus";
 import {
   CheckCircle,
   XCircle,
@@ -15,8 +16,11 @@ import {
   Clock,
   Wifi,
   TableProperties,
+  Monitor,
+  Activity
 } from "lucide-react";
 import { PageSEO } from "@/components/seo/PageSEO";
+import { cn } from "@/lib/utils";
 
 interface StatusItem {
   name: string;
@@ -45,8 +49,10 @@ const CRM_CRITICAL_TABLES = [
 ];
 
 export default function SystemStatusPage() {
+  const { status: cloudStatus, snapshot, retry: retryCloud, isChecking: isCheckingCloud } = useCloudStatus();
   const [statuses, setStatuses] = useState<StatusItem[]>([]);
   const [crmTables, setCrmTables] = useState<CrmTableCheck[]>([]);
+  const [isPreviewOk, setIsPreviewOk] = useState<boolean | null>(null);
   const [isChecking, setIsChecking] = useState(false);
   const [isCheckingCrm, setIsCheckingCrm] = useState(false);
   const [lastCheck, setLastCheck] = useState<Date | null>(null);
@@ -117,41 +123,33 @@ export default function SystemStatusPage() {
       });
     }
 
-    // 5. Network
+    // 5. Preview Server Check
+    try {
+      const response = await fetch(window.location.origin, { method: "HEAD" });
+      setIsPreviewOk(response.ok);
+      results.push({
+        name: "Servidor de Preview",
+        status: response.ok ? "ok" : "error",
+        message: response.ok ? "Respondendo normalmente" : "Falha na resposta",
+        icon: <Monitor className="h-5 w-5" />,
+      });
+    } catch {
+      setIsPreviewOk(false);
+      results.push({
+        name: "Servidor de Preview",
+        status: "error",
+        message: "Inacessível (CORS ou rede)",
+        icon: <Monitor className="h-5 w-5" />,
+      });
+    }
+
+    // 6. Network
     results.push({
       name: "Conexão de Rede",
       status: navigator.onLine ? "ok" : "error",
       message: navigator.onLine ? "Online" : "Offline",
       icon: <Wifi className="h-5 w-5" />,
     });
-
-    // 6. Local quotes tables
-    try {
-      const localTables = ["quotes", "quote_items", "quote_templates", "quote_history"] as const;
-      const checks = await Promise.all(
-        localTables.map(async (t) => {
-          const { error } = await supabase.from(t).select("id", { count: "exact", head: true });
-          return { table: t, ok: !error, msg: error?.message };
-        })
-      );
-      const allOk = checks.every((c) => c.ok);
-      const failed = checks.filter((c) => !c.ok);
-      results.push({
-        name: "Tabelas de Orçamentos (Local)",
-        status: allOk ? "ok" : "error",
-        message: allOk
-          ? `${localTables.length} tabelas verificadas`
-          : `Falha em: ${failed.map((f) => f.table).join(", ")}`,
-        icon: <TableProperties className="h-5 w-5" />,
-      });
-    } catch {
-      results.push({
-        name: "Tabelas de Orçamentos (Local)",
-        status: "error",
-        message: "Erro ao verificar tabelas locais",
-        icon: <TableProperties className="h-5 w-5" />,
-      });
-    }
 
     setStatuses(results);
     setLastCheck(new Date());
@@ -258,55 +256,98 @@ export default function SystemStatusPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                {overallStatus === "ok" ? (
+                {overallStatus === "ok" && cloudStatus === 'healthy' ? (
                   <CheckCircle className="h-10 w-10 text-primary" />
                 ) : (
                   <XCircle className="h-10 w-10 text-destructive" />
                 )}
                 <div>
                   <h2 className="text-xl font-semibold font-display">
-                    {overallStatus === "ok" ? "Sistema Operacional" : "Problemas Detectados"}
+                    {overallStatus === "ok" && cloudStatus === 'healthy' ? "Sistema Operacional" : "Problemas Detectados"}
                   </h2>
                   <p className="text-muted-foreground text-sm">
-                    {statuses.filter((s) => s.status === "ok").length}/{statuses.length} serviços funcionando
+                    {statuses.filter((s) => s.status === "ok").length}/{statuses.length} serviços locais • Cloud: {cloudStatus}
                   </p>
                 </div>
               </div>
-              <Button onClick={runHealthCheck} disabled={isChecking} variant="outline">
-                <RefreshCw className={`h-4 w-4 mr-2 ${isChecking ? "animate-spin" : ""}`} />
-                Verificar
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={runHealthCheck} disabled={isChecking} variant="outline" size="sm">
+                  <RefreshCw className={`h-4 w-4 mr-2 ${isChecking ? "animate-spin" : ""}`} />
+                  Recarregar
+                </Button>
+                <Button onClick={() => retryCloud()} disabled={isCheckingCloud} variant="default" size="sm">
+                  <Activity className={`h-4 w-4 mr-2 ${isCheckingCloud ? "animate-spin" : ""}`} />
+                  Check Cloud
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Version Info */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Code className="h-5 w-5" />
-              Informações da Build
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex justify-between items-center py-2 border-b">
-              <span className="text-muted-foreground">Versão do App</span>
-              <Badge variant="secondary">{appVersion}</Badge>
-            </div>
-            <div className="flex justify-between items-center py-2 border-b">
-              <span className="text-muted-foreground">Data da Build</span>
-              <span className="font-mono text-sm">{buildDate}</span>
-            </div>
-            <div className="flex justify-between items-center py-2 border-b">
-              <span className="text-muted-foreground">Ambiente</span>
-              <Badge variant="outline">{import.meta.env.MODE}</Badge>
-            </div>
-            <div className="flex justify-between items-center py-2">
-              <span className="text-muted-foreground">React Version</span>
-              <span className="font-mono text-sm">18.3.1</span>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Preview Status & Version Info */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card className={cn("border-2", isPreviewOk === true ? "border-primary/30" : isPreviewOk === false ? "border-destructive/30" : "border-border")}>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Monitor className="h-5 w-5" />
+                Preview Local
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Estado do Preview</span>
+                {isPreviewOk === true ? (
+                  <Badge className="bg-primary/20 text-primary border-primary/30">ATIVO</Badge>
+                ) : isPreviewOk === false ? (
+                  <Badge className="bg-destructive/20 text-destructive border-destructive/30">FALHA</Badge>
+                ) : (
+                  <Badge variant="outline" className="animate-pulse">VERIFICANDO...</Badge>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Este teste verifica se o servidor local do Lovable está respondendo a requisições de origem.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Code className="h-5 w-5" />
+                Informações da Build
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex justify-between items-center py-2 border-b border-border/50">
+                <span className="text-muted-foreground text-sm">Versão do App</span>
+                <Badge variant="secondary">{appVersion}</Badge>
+              </div>
+              <div className="flex justify-between items-center py-2">
+                <span className="text-muted-foreground text-sm">Ambiente</span>
+                <Badge variant="outline">{import.meta.env.MODE}</Badge>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Real-time Cloud Signals */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[
+            { label: 'AUTH', signal: snapshot?.signals.auth },
+            { label: 'BRIDGE', signal: snapshot?.signals.bridge },
+            { label: 'REST', signal: snapshot?.signals.rest }
+          ].map(({ label, signal }) => (
+            <Card key={label} className={cn("border", signal?.ok ? "border-primary/20" : "border-destructive/20")}>
+              <CardContent className="p-4 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {signal?.ok ? <CheckCircle className="h-4 w-4 text-primary" /> : <XCircle className="h-4 w-4 text-destructive" />}
+                  <span className="font-bold text-xs">{label}</span>
+                </div>
+                <span className="font-mono text-[10px] text-muted-foreground">{signal?.ms ?? '?'}ms</span>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
 
         {/* Status Items */}
         <Card>
