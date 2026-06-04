@@ -122,41 +122,33 @@ export default function SystemStatusPage() {
       });
     }
 
-    // 5. Network
+    // 5. Preview Server Check
+    try {
+      const response = await fetch(window.location.origin, { method: "HEAD" });
+      setIsPreviewOk(response.ok);
+      results.push({
+        name: "Servidor de Preview",
+        status: response.ok ? "ok" : "error",
+        message: response.ok ? "Respondendo normalmente" : "Falha na resposta",
+        icon: <Monitor className="h-5 w-5" />,
+      });
+    } catch {
+      setIsPreviewOk(false);
+      results.push({
+        name: "Servidor de Preview",
+        status: "error",
+        message: "Inacessível (CORS ou rede)",
+        icon: <Monitor className="h-5 w-5" />,
+      });
+    }
+
+    // 6. Network
     results.push({
       name: "Conexão de Rede",
       status: navigator.onLine ? "ok" : "error",
       message: navigator.onLine ? "Online" : "Offline",
       icon: <Wifi className="h-5 w-5" />,
     });
-
-    // 6. Local quotes tables
-    try {
-      const localTables = ["quotes", "quote_items", "quote_templates", "quote_history"] as const;
-      const checks = await Promise.all(
-        localTables.map(async (t) => {
-          const { error } = await supabase.from(t).select("id", { count: "exact", head: true });
-          return { table: t, ok: !error, msg: error?.message };
-        })
-      );
-      const allOk = checks.every((c) => c.ok);
-      const failed = checks.filter((c) => !c.ok);
-      results.push({
-        name: "Tabelas de Orçamentos (Local)",
-        status: allOk ? "ok" : "error",
-        message: allOk
-          ? `${localTables.length} tabelas verificadas`
-          : `Falha em: ${failed.map((f) => f.table).join(", ")}`,
-        icon: <TableProperties className="h-5 w-5" />,
-      });
-    } catch {
-      results.push({
-        name: "Tabelas de Orçamentos (Local)",
-        status: "error",
-        message: "Erro ao verificar tabelas locais",
-        icon: <TableProperties className="h-5 w-5" />,
-      });
-    }
 
     setStatuses(results);
     setLastCheck(new Date());
