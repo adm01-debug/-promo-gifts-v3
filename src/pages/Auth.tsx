@@ -181,8 +181,7 @@ export default function Auth() {
   }
 
   return (
-    <main className="min-h-screen flex relative overflow-hidden bg-[#0A0D14]" role="main" aria-label="Autenticação">
-      {/* Fundo unificado azul-escuro com estrelas cobrindo TODA a tela */}
+    <main className="min-h-screen flex relative overflow-hidden bg-[#0A0D14] transition-colors duration-500" role="main" aria-label="Autenticação">
       <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
         <Starfield />
       </div>
