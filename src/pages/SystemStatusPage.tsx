@@ -311,6 +311,25 @@ export default function SystemStatusPage() {
           </CardContent>
         </Card>
 
+        {/* Real-time Cloud Signals */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[
+            { label: 'AUTH', signal: snapshot?.signals.auth },
+            { label: 'BRIDGE', signal: snapshot?.signals.bridge },
+            { label: 'REST', signal: snapshot?.signals.rest }
+          ].map(({ label, signal }) => (
+            <Card key={label} className={cn("border", signal?.ok ? "border-primary/20" : "border-destructive/20")}>
+              <CardContent className="p-4 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  {signal?.ok ? <CheckCircle className="h-4 w-4 text-primary" /> : <XCircle className="h-4 w-4 text-destructive" />}
+                  <span className="font-bold text-xs">{label}</span>
+                </div>
+                <span className="font-mono text-[10px] text-muted-foreground">{signal?.ms ?? '?'}ms</span>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
         {/* Status Items */}
         <Card>
           <CardHeader>
