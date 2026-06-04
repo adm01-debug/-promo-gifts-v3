@@ -171,8 +171,11 @@ export default function Auth() {
 
   if (authLoading) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-background" role="main" aria-label="Carregando autenticação">
-        <Loader2 className="h-8 w-8 animate-spin text-orange" />
+      <main className="min-h-screen flex items-center justify-center bg-[#0A0D14]" role="main" aria-label="Carregando autenticação">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
+          <Starfield />
+        </div>
+        <Loader2 className="h-8 w-8 animate-spin text-orange relative z-10" />
       </main>
     );
   }
