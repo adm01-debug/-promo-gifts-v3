@@ -255,7 +255,7 @@ export default function Auth() {
           )}
 
           {/* Auth Card */}
-          <Card className={`border-white/20 bg-[#0A0D14]/75 backdrop-blur-xl shadow-2xl shadow-black/40 ${ipBlocked ? 'opacity-50 pointer-events-none' : ''}`}>
+          <Card className={`border-white/30 bg-[#0A0D14]/85 backdrop-blur-2xl shadow-2xl shadow-black/60 relative z-10 transition-all duration-500 ${ipBlocked ? 'opacity-50 pointer-events-none' : ''}`}>
             {showForgotPassword ? (
               <CardContent className="pt-6 pb-6">
                 <ForgotPasswordForm onBack={() => setShowForgotPassword(false)} />
