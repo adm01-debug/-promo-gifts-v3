@@ -34,19 +34,19 @@ export function useProductsByMaterial(options: UseProductsByMaterialOptions = {}
   const { materialTypeSlugs = [], materialGroupSlugs = [], enabled = true } = options;
 
   // CRITICAL: Estabilizar referência dos arrays para evitar re-renderizações infinitas
-  const materialTypeSlugsKey = useMemo(() => [...materialTypeSlugs].sort().join(','), [materialTypeSlugs]);
-  const materialGroupSlugsKey = useMemo(() => [...materialGroupSlugs].sort().join(','), [materialGroupSlugs]);
+  const materialTypeSlugsKey = useMemo(() => (materialTypeSlugs || []).slice().sort().join(','), [materialTypeSlugs]);
+  const materialGroupSlugsKey = useMemo(() => (materialGroupSlugs || []).slice().sort().join(','), [materialGroupSlugs]);
 
   // Só faz a query se há filtros ativos
-  const hasFilter = materialTypeSlugs.length > 0 || materialGroupSlugs.length > 0;
+  const hasFilter = (materialTypeSlugs?.length || 0) > 0 || (materialGroupSlugs?.length || 0) > 0;
   const shouldFetch = enabled && hasFilter;
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: ['products-by-materials', materialTypeSlugsKey, materialGroupSlugsKey],
     queryFn: async () => {
       const result = await materialService.getProductsByMaterials({
-        materialTypeIds: materialTypeSlugs.length > 0 ? materialTypeSlugs : undefined,
-        materialGroupSlugs: materialGroupSlugs.length > 0 ? materialGroupSlugs : undefined,
+        materialTypeIds: materialTypeSlugs && materialTypeSlugs.length > 0 ? materialTypeSlugs : undefined,
+        materialGroupSlugs: materialGroupSlugs && materialGroupSlugs.length > 0 ? materialGroupSlugs : undefined,
       });
       return result;
     },
