@@ -40,29 +40,6 @@ html[data-scroll-locked] body {
   pointer-events: auto !important;
 }
 
-#root:empty {
-  min-height: 100vh;
-  background-color: #0A0D14;
-}
-
-#root:empty::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  width: 40px;
-  height: 40px;
-  border: 3px solid rgba(251, 146, 60, 0.2);
-  border-top-color: #FB923C;
-  border-radius: 50%;
-  animation: spinner 0.8s linear infinite;
-}
-
-@keyframes spinner {
-  to { transform: translate(-50%, -50%) rotate(360deg); }
-}
-
 /* ============================================
    PROMO BRINDES - TASK GIFTS DESIGN SYSTEM
    ============================================ */
