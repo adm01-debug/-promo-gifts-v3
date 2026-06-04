@@ -284,33 +284,51 @@ export default function SystemStatusPage() {
           </CardContent>
         </Card>
 
-        {/* Version Info */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Code className="h-5 w-5" />
-              Informações da Build
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <div className="flex justify-between items-center py-2 border-b">
-              <span className="text-muted-foreground">Versão do App</span>
-              <Badge variant="secondary">{appVersion}</Badge>
-            </div>
-            <div className="flex justify-between items-center py-2 border-b">
-              <span className="text-muted-foreground">Data da Build</span>
-              <span className="font-mono text-sm">{buildDate}</span>
-            </div>
-            <div className="flex justify-between items-center py-2 border-b">
-              <span className="text-muted-foreground">Ambiente</span>
-              <Badge variant="outline">{import.meta.env.MODE}</Badge>
-            </div>
-            <div className="flex justify-between items-center py-2">
-              <span className="text-muted-foreground">React Version</span>
-              <span className="font-mono text-sm">18.3.1</span>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Preview Status & Version Info */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Card className={cn("border-2", isPreviewOk === true ? "border-primary/30" : isPreviewOk === false ? "border-destructive/30" : "border-border")}>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Monitor className="h-5 w-5" />
+                Preview Local
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Estado do Preview</span>
+                {isPreviewOk === true ? (
+                  <Badge className="bg-primary/20 text-primary border-primary/30">ATIVO</Badge>
+                ) : isPreviewOk === false ? (
+                  <Badge className="bg-destructive/20 text-destructive border-destructive/30">FALHA</Badge>
+                ) : (
+                  <Badge variant="outline" className="animate-pulse">VERIFICANDO...</Badge>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground leading-relaxed">
+                Este teste verifica se o servidor local do Lovable está respondendo a requisições de origem.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center gap-2">
+                <Code className="h-5 w-5" />
+                Informações da Build
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex justify-between items-center py-2 border-b border-border/50">
+                <span className="text-muted-foreground text-sm">Versão do App</span>
+                <Badge variant="secondary">{appVersion}</Badge>
+              </div>
+              <div className="flex justify-between items-center py-2">
+                <span className="text-muted-foreground text-sm">Ambiente</span>
+                <Badge variant="outline">{import.meta.env.MODE}</Badge>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
         {/* Real-time Cloud Signals */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
