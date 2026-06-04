@@ -48,8 +48,10 @@ const CRM_CRITICAL_TABLES = [
 ];
 
 export default function SystemStatusPage() {
+  const { status: cloudStatus, snapshot, retry: retryCloud, isChecking: isCheckingCloud } = useCloudStatus();
   const [statuses, setStatuses] = useState<StatusItem[]>([]);
   const [crmTables, setCrmTables] = useState<CrmTableCheck[]>([]);
+  const [isPreviewOk, setIsPreviewOk] = useState<boolean | null>(null);
   const [isChecking, setIsChecking] = useState(false);
   const [isCheckingCrm, setIsCheckingCrm] = useState(false);
   const [lastCheck, setLastCheck] = useState<Date | null>(null);
