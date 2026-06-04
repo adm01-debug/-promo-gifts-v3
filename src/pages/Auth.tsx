@@ -395,7 +395,7 @@ export default function Auth() {
                         <span className="w-full border-t border-white/20" />
                       </div>
                       <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-[#0A0D14]/75 px-2 text-muted-foreground backdrop-blur-xl">ou</span>
+                        <span className="bg-[#0A0D14]/85 px-2 text-muted-foreground backdrop-blur-2xl">ou</span>
                       </div>
                     </div>
 
