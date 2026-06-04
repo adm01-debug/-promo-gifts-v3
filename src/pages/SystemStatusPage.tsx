@@ -20,6 +20,7 @@ import {
   Activity
 } from "lucide-react";
 import { PageSEO } from "@/components/seo/PageSEO";
+import { cn } from "@/lib/utils";
 
 interface StatusItem {
   name: string;
