@@ -3,6 +3,12 @@ import { render, screen } from '../test-utils';
 import { PackagingBadge } from '@/components/products/PackagingBadge';
 import { KitComposition } from '@/components/products/KitComposition';
 
+import { describe, it, expect, vi } from 'vitest';
+import { render, screen, fireEvent, waitFor } from '../test-utils';
+import { PackagingBadge } from '@/components/products/PackagingBadge';
+import { KitComposition } from '@/components/products/KitComposition';
+import { act } from 'react';
+
 describe('PackagingDisplay Logic', () => {
   describe('PackagingBadge', () => {
     it('should NOT render when hasCommercialPackaging is false', () => {
@@ -75,16 +81,20 @@ describe('PackagingDisplay Logic', () => {
       expect(screen.getByText(/2 componentes • 2 peças/i)).toBeInTheDocument();
     });
 
-    it('should correctly classify packaging items in stats', () => {
-      // We click to open the dialog to see full stats
+    it('should correctly classify packaging items in stats', async () => {
       render(<KitComposition items={mockItems} />);
+      
       const trigger = screen.getByRole('button');
-      trigger.click();
+      await act(async () => {
+        fireEvent.click(trigger);
+      });
 
-      // Check for stats inside dialog
-      expect(screen.getByText('1 item')).toBeInTheDocument();
-      expect(screen.getByText('1 embalagem')).toBeInTheDocument();
-      expect(screen.getByText('1 personalizáveis')).toBeInTheDocument();
+      // Stats are inside the dialog, so we wait for them to appear
+      await waitFor(() => {
+        expect(screen.getByText('1 item')).toBeInTheDocument();
+        expect(screen.getByText('1 embalagem')).toBeInTheDocument();
+        expect(screen.getByText('1 personalizáveis')).toBeInTheDocument();
+      }, { timeout: 2000 });
     });
   });
 });
