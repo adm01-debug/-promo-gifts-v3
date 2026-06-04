@@ -189,7 +189,6 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <ThemeInitializer />
-        <ThemeDiagnostic />
         <AccessibilityProvider>
           <AriaLiveProvider>
             <TooltipProvider>
