@@ -175,7 +175,10 @@ export default function Auth() {
         <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
           <Starfield />
         </div>
-        <Loader2 className="h-8 w-8 animate-spin text-orange relative z-10" />
+        <div className="flex flex-col items-center gap-4 relative z-10">
+          <Loader2 className="h-10 w-10 animate-spin text-orange" />
+          <p className="text-white/50 text-sm font-medium animate-pulse">Iniciando sistemas...</p>
+        </div>
       </main>
     );
   }
