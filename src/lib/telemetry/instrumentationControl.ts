@@ -18,16 +18,13 @@ const STORAGE_KEY = 'lov:instrumentation:paused';
 
 let paused = (() => {
   try {
-    if (typeof localStorage === 'undefined') return true;
+    if (typeof localStorage === 'undefined') return false;
     const v = localStorage.getItem(STORAGE_KEY);
-    // Kill-switch FORÇADO: default = pausado. Para reativar, set '0' explicitamente.
-    if (v === '0') return false;
-    if (v !== '1') {
-      try { localStorage.setItem(STORAGE_KEY, '1'); } catch { /* noop */ }
-    }
-    return true;
+    // Se o usuário desativou manualmente, respeitamos. Caso contrário, default = ativo (0).
+    if (v === '1') return true;
+    return false;
   } catch {
-    return true;
+    return false;
   }
 })();
 

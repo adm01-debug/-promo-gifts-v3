@@ -2485,56 +2485,6 @@ export type Database = {
           },
         ]
       }
-      kit_share_tokens: {
-        Row: {
-          client_email: string | null
-          client_name: string | null
-          created_at: string
-          expires_at: string | null
-          id: string
-          kit_id: string
-          seller_id: string
-          status: string
-          token: string
-          updated_at: string
-          viewed_at: string | null
-        }
-        Insert: {
-          client_email?: string | null
-          client_name?: string | null
-          created_at?: string
-          expires_at?: string | null
-          id?: string
-          kit_id: string
-          seller_id: string
-          status?: string
-          token?: string
-          updated_at?: string
-          viewed_at?: string | null
-        }
-        Update: {
-          client_email?: string | null
-          client_name?: string | null
-          created_at?: string
-          expires_at?: string | null
-          id?: string
-          kit_id?: string
-          seller_id?: string
-          status?: string
-          token?: string
-          updated_at?: string
-          viewed_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "kit_share_tokens_kit_id_fkey"
-            columns: ["kit_id"]
-            isOneToOne: false
-            referencedRelation: "custom_kits"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       kit_templates: {
         Row: {
           box_data: Json | null
@@ -4252,39 +4202,6 @@ export type Database = {
         }
         Relationships: []
       }
-      public_token_failures: {
-        Row: {
-          attempted_token: string | null
-          created_at: string
-          id: string
-          ip_address: string | null
-          reason: string | null
-          resource_id: string | null
-          resource_type: string
-          user_agent: string | null
-        }
-        Insert: {
-          attempted_token?: string | null
-          created_at?: string
-          id?: string
-          ip_address?: string | null
-          reason?: string | null
-          resource_id?: string | null
-          resource_type: string
-          user_agent?: string | null
-        }
-        Update: {
-          attempted_token?: string | null
-          created_at?: string
-          id?: string
-          ip_address?: string | null
-          reason?: string | null
-          resource_id?: string | null
-          resource_type?: string
-          user_agent?: string | null
-        }
-        Relationships: []
-      }
       query_telemetry: {
         Row: {
           cache_hit: boolean
@@ -4345,75 +4262,6 @@ export type Database = {
           severity?: string
           table_name?: string | null
           user_id?: string | null
-        }
-        Relationships: []
-      }
-      quote_approval_tokens: {
-        Row: {
-          client_email: string | null
-          client_name: string | null
-          created_at: string
-          expires_at: string | null
-          id: string
-          quote_id: string
-          responded_at: string | null
-          response: string | null
-          response_notes: string | null
-          seller_id: string
-          signature_hash: string | null
-          signed_at: string | null
-          signer_document: string | null
-          signer_ip: string | null
-          signer_name: string | null
-          signer_user_agent: string | null
-          status: string
-          token: string
-          updated_at: string
-          viewed_at: string | null
-        }
-        Insert: {
-          client_email?: string | null
-          client_name?: string | null
-          created_at?: string
-          expires_at?: string | null
-          id?: string
-          quote_id: string
-          responded_at?: string | null
-          response?: string | null
-          response_notes?: string | null
-          seller_id: string
-          signature_hash?: string | null
-          signed_at?: string | null
-          signer_document?: string | null
-          signer_ip?: string | null
-          signer_name?: string | null
-          signer_user_agent?: string | null
-          status?: string
-          token?: string
-          updated_at?: string
-          viewed_at?: string | null
-        }
-        Update: {
-          client_email?: string | null
-          client_name?: string | null
-          created_at?: string
-          expires_at?: string | null
-          id?: string
-          quote_id?: string
-          responded_at?: string | null
-          response?: string | null
-          response_notes?: string | null
-          seller_id?: string
-          signature_hash?: string | null
-          signed_at?: string | null
-          signer_document?: string | null
-          signer_ip?: string | null
-          signer_name?: string | null
-          signer_user_agent?: string | null
-          status?: string
-          token?: string
-          updated_at?: string
-          viewed_at?: string | null
         }
         Relationships: []
       }
@@ -6417,37 +6265,6 @@ export type Database = {
       get_platform_failure_metrics: {
         Args: { window_minutes?: number }
         Returns: Json
-      }
-      get_quote_token_by_value: {
-        Args: { _token: string }
-        Returns: {
-          client_email: string | null
-          client_name: string | null
-          created_at: string
-          expires_at: string | null
-          id: string
-          quote_id: string
-          responded_at: string | null
-          response: string | null
-          response_notes: string | null
-          seller_id: string
-          signature_hash: string | null
-          signed_at: string | null
-          signer_document: string | null
-          signer_ip: string | null
-          signer_name: string | null
-          signer_user_agent: string | null
-          status: string
-          token: string
-          updated_at: string
-          viewed_at: string | null
-        }[]
-        SetofOptions: {
-          from: "*"
-          to: "quote_approval_tokens"
-          isOneToOne: false
-          isSetofReturn: true
-        }
       }
       get_top_collected_products: {
         Args: { _days?: number; _limit?: number }
