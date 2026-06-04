@@ -155,7 +155,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           match: sessionMatchesTarget,
         });
 
-        // Buscar profile e TODAS as roles em paralelo
+        // Buscar profile e TODAS as roles em paralelo com retry exponencial
         const [profileResult, firstRoles] = await Promise.all([
           authService.fetchProfile(userId),
           authService.queryRoles(userId),
