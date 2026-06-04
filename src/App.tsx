@@ -25,6 +25,7 @@ import { RouteScrollReset } from "@/components/common/RouteScrollReset";
 import { useAppBootstrap } from "@/hooks/useAppBootstrap";
 import "./App.css";
 import { ThemeInitializer } from "@/components/ThemeInitializer";
+import { ThemeDiagnostic } from "@/components/ThemeDiagnostic";
 const queryClient = createQueryClient();
 
 // Auth Pages
