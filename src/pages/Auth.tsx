@@ -171,15 +171,20 @@ export default function Auth() {
 
   if (authLoading) {
     return (
-      <main className="min-h-screen flex items-center justify-center bg-background" role="main" aria-label="Carregando autenticação">
-        <Loader2 className="h-8 w-8 animate-spin text-orange" />
+      <main className="min-h-screen flex items-center justify-center bg-[#0A0D14]" role="main" aria-label="Carregando autenticação">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
+          <Starfield />
+        </div>
+        <div className="flex flex-col items-center gap-4 relative z-10">
+          <Loader2 className="h-10 w-10 animate-spin text-orange" />
+          <p className="text-white/50 text-sm font-medium animate-pulse">Iniciando sistemas...</p>
+        </div>
       </main>
     );
   }
 
   return (
-    <main className="min-h-screen flex relative overflow-hidden bg-[#0A0D14]" role="main" aria-label="Autenticação">
-      {/* Fundo unificado azul-escuro com estrelas cobrindo TODA a tela */}
+    <main className="min-h-screen flex relative overflow-hidden bg-[#0A0D14] transition-colors duration-500" role="main" aria-label="Autenticação">
       <div className="absolute inset-0 overflow-hidden pointer-events-none" aria-hidden>
         <Starfield />
       </div>
@@ -253,7 +258,7 @@ export default function Auth() {
           )}
 
           {/* Auth Card */}
-          <Card className={`border-white/20 bg-[#0A0D14]/75 backdrop-blur-xl shadow-2xl shadow-black/40 ${ipBlocked ? 'opacity-50 pointer-events-none' : ''}`}>
+          <Card className={`border-white/30 bg-[#0A0D14]/85 backdrop-blur-2xl shadow-2xl shadow-black/60 relative z-10 transition-all duration-500 ${ipBlocked ? 'opacity-50 pointer-events-none' : ''}`}>
             {showForgotPassword ? (
               <CardContent className="pt-6 pb-6">
                 <ForgotPasswordForm onBack={() => setShowForgotPassword(false)} />
@@ -393,7 +398,7 @@ export default function Auth() {
                         <span className="w-full border-t border-white/20" />
                       </div>
                       <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-[#0A0D14]/75 px-2 text-muted-foreground backdrop-blur-xl">ou</span>
+                        <span className="bg-[#0A0D14]/85 px-2 text-muted-foreground backdrop-blur-2xl">ou</span>
                       </div>
                     </div>
 
