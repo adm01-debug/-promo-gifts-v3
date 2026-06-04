@@ -255,24 +255,30 @@ export default function SystemStatusPage() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                {overallStatus === "ok" ? (
+                {overallStatus === "ok" && cloudStatus === 'healthy' ? (
                   <CheckCircle className="h-10 w-10 text-primary" />
                 ) : (
                   <XCircle className="h-10 w-10 text-destructive" />
                 )}
                 <div>
                   <h2 className="text-xl font-semibold font-display">
-                    {overallStatus === "ok" ? "Sistema Operacional" : "Problemas Detectados"}
+                    {overallStatus === "ok" && cloudStatus === 'healthy' ? "Sistema Operacional" : "Problemas Detectados"}
                   </h2>
                   <p className="text-muted-foreground text-sm">
-                    {statuses.filter((s) => s.status === "ok").length}/{statuses.length} serviços funcionando
+                    {statuses.filter((s) => s.status === "ok").length}/{statuses.length} serviços locais • Cloud: {cloudStatus}
                   </p>
                 </div>
               </div>
-              <Button onClick={runHealthCheck} disabled={isChecking} variant="outline">
-                <RefreshCw className={`h-4 w-4 mr-2 ${isChecking ? "animate-spin" : ""}`} />
-                Verificar
-              </Button>
+              <div className="flex gap-2">
+                <Button onClick={runHealthCheck} disabled={isChecking} variant="outline" size="sm">
+                  <RefreshCw className={`h-4 w-4 mr-2 ${isChecking ? "animate-spin" : ""}`} />
+                  Recarregar
+                </Button>
+                <Button onClick={() => retryCloud()} disabled={isCheckingCloud} variant="default" size="sm">
+                  <Activity className={`h-4 w-4 mr-2 ${isCheckingCloud ? "animate-spin" : ""}`} />
+                  Check Cloud
+                </Button>
+              </div>
             </div>
           </CardContent>
         </Card>
