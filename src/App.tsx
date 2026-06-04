@@ -27,6 +27,7 @@ import "./App.css";
 import { ThemeInitializer } from "@/components/ThemeInitializer";
 const queryClient = createQueryClient();
 
+
 // Auth Pages
 const Auth = lazyWithRetry(() => import("./pages/Auth"));
 const Unauthorized = lazyWithRetry(() => import("@/components/access/UnauthorizedPage").then(m => ({ default: m.UnauthorizedPage })));
