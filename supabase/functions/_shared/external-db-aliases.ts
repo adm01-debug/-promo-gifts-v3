@@ -17,6 +17,10 @@ export function isCustomizationPriceTablesAlias(table: string) {
   return table === 'customization_price_tables' || table === 'customization_price_tiers';
 }
 
+export function isGroupMemberAlias(table: string) {
+  return table === 'product_group_members';
+}
+
 // ============================================
 // Product field sanitization
 // ============================================
@@ -63,6 +67,22 @@ export function mapPriceTableFiltersToExternal(filters: Record<string, unknown> 
   if ('customization_type_name' in out) { out.tecnica_codigo = out.customization_type_name; delete out.customization_type_name; }
   return out;
 }
+
+// ============================================
+// Group member mapping (product_group_members → product_group_members)
+// ============================================
+
+export function mapGroupMemberFiltersToExternal(filters: Record<string, unknown> | undefined) {
+  if (!filters) return undefined;
+  const out: Record<string, unknown> = { ...filters };
+  // Rename group_id to product_group_id if it exists in filters
+  if ('group_id' in out) {
+    out.product_group_id = out.group_id;
+    delete out.group_id;
+  }
+  return out;
+}
+
 
 export function mapPriceTableOrderByToExternal(orderBy: { column: string; ascending?: boolean } | undefined) {
   if (!orderBy) return { column: 'table_code', ascending: true };
@@ -172,7 +192,7 @@ export interface AliasResolution {
   filters?: Record<string, unknown>;
   orderBy?: { column: string; ascending?: boolean };
   select: string;
-  aliasType: 'technique' | 'variante' | 'priceTable' | null;
+  aliasType: 'technique' | 'variante' | 'priceTable' | 'groupMember' | null;
   parentTechniqueId?: unknown;
 }
 
@@ -216,6 +236,16 @@ export function resolveTableAlias(
       orderBy: mapPriceTableOrderByToExternal(orderBy),
       select: '*',
       aliasType: 'priceTable',
+    };
+  }
+
+  if (isGroupMemberAlias(table)) {
+    return {
+      table: 'product_group_members',
+      filters: mapGroupMemberFiltersToExternal(filters),
+      orderBy,
+      select: select || '*',
+      aliasType: 'groupMember',
     };
   }
 

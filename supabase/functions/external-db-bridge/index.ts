@@ -1167,6 +1167,13 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
       let records = retryData || [];
       if (aliasType === 'technique') records = records.map(mapTechniqueRowToLegacyShape);
       if (aliasType === 'priceTable') records = records.map(mapPriceTableRowToLegacyShape);
+      if (aliasType === 'groupMember') {
+        records = records.map(row => ({
+          ...row as Record<string, unknown>,
+          group_id: (row as Record<string, unknown>).product_group_id,
+        }));
+      }
+
       emitTelemetry({ operation: 'select', table, limit: 50, offset: safeOffset, countMode: 'none', durationMs: retryDuration, status: classifyDuration(retryDuration), recordCount: records.length });
       console.log(`[retry] Selected ${records.length} records from ${table} (offset=${safeOffset}, limit=50)`);
       return { records, count: null };
@@ -1211,6 +1218,13 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
       let records = retryData || [];
       if (aliasType === 'technique') records = records.map(mapTechniqueRowToLegacyShape);
       if (aliasType === 'priceTable') records = records.map(mapPriceTableRowToLegacyShape);
+      if (aliasType === 'groupMember') {
+        records = records.map(row => ({
+          ...row as Record<string, unknown>,
+          group_id: (row as Record<string, unknown>).product_group_id,
+        }));
+      }
+
 
       emitTelemetry({
         operation: 'select',
@@ -1241,6 +1255,13 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
   const rowsAsRecords = () => records as Record<string, unknown>[];
   if (aliasType === 'technique') records = rowsAsRecords().map(mapTechniqueRowToLegacyShape);
   if (aliasType === 'priceTable') records = rowsAsRecords().map(mapPriceTableRowToLegacyShape);
+  if (aliasType === 'groupMember') {
+    records = rowsAsRecords().map(row => ({
+      ...row,
+      group_id: row.product_group_id,
+    }));
+  }
+
 
   emitTelemetry({ operation: 'select', table, limit: safeLimit, offset: safeOffset, countMode, durationMs: selectDuration, status: classifyDuration(selectDuration), recordCount: records.length });
   console.log(`Selected ${records.length} records from ${table} (offset=${safeOffset}, limit=${safeLimit}, count=${count ?? 'n/a'})`);
