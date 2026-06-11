@@ -17,6 +17,10 @@ export function isCustomizationPriceTablesAlias(table: string) {
   return table === 'customization_price_tables' || table === 'customization_price_tiers';
 }
 
+export function isGroupMemberAlias(table: string) {
+  return table === 'product_group_members';
+}
+
 // ============================================
 // Product field sanitization
 // ============================================
