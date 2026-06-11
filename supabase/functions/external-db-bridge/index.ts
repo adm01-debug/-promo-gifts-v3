@@ -1255,6 +1255,13 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
   const rowsAsRecords = () => records as Record<string, unknown>[];
   if (aliasType === 'technique') records = rowsAsRecords().map(mapTechniqueRowToLegacyShape);
   if (aliasType === 'priceTable') records = rowsAsRecords().map(mapPriceTableRowToLegacyShape);
+  if (aliasType === 'groupMember') {
+    records = rowsAsRecords().map(row => ({
+      ...row,
+      group_id: row.product_group_id,
+    }));
+  }
+
 
   emitTelemetry({ operation: 'select', table, limit: safeLimit, offset: safeOffset, countMode, durationMs: selectDuration, status: classifyDuration(selectDuration), recordCount: records.length });
   console.log(`Selected ${records.length} records from ${table} (offset=${safeOffset}, limit=${safeLimit}, count=${count ?? 'n/a'})`);
