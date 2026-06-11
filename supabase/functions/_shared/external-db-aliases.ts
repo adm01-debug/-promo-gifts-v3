@@ -68,6 +68,22 @@ export function mapPriceTableFiltersToExternal(filters: Record<string, unknown> 
   return out;
 }
 
+// ============================================
+// Group member mapping (product_group_members → product_group_members)
+// ============================================
+
+export function mapGroupMemberFiltersToExternal(filters: Record<string, unknown> | undefined) {
+  if (!filters) return undefined;
+  const out: Record<string, unknown> = { ...filters };
+  // Rename group_id to product_group_id if it exists in filters
+  if ('group_id' in out) {
+    out.product_group_id = out.group_id;
+    delete out.group_id;
+  }
+  return out;
+}
+
+
 export function mapPriceTableOrderByToExternal(orderBy: { column: string; ascending?: boolean } | undefined) {
   if (!orderBy) return { column: 'table_code', ascending: true };
   const columnMap: Record<string, string> = {
