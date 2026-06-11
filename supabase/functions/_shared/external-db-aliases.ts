@@ -239,5 +239,15 @@ export function resolveTableAlias(
     };
   }
 
+  if (isGroupMemberAlias(table)) {
+    return {
+      table: 'product_group_members',
+      filters: mapGroupMemberFiltersToExternal(filters),
+      orderBy,
+      select: select || '*',
+      aliasType: 'groupMember',
+    };
+  }
+
   return { table, filters, orderBy, select: select || '*', aliasType: null };
 }
