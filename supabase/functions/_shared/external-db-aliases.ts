@@ -192,7 +192,7 @@ export interface AliasResolution {
   filters?: Record<string, unknown>;
   orderBy?: { column: string; ascending?: boolean };
   select: string;
-  aliasType: 'technique' | 'variante' | 'priceTable' | null;
+  aliasType: 'technique' | 'variante' | 'priceTable' | 'groupMember' | null;
   parentTechniqueId?: unknown;
 }
 
