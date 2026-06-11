@@ -1218,6 +1218,13 @@ async function handleSelect(externalSupabase: any, table: string, opts: any) {
       let records = retryData || [];
       if (aliasType === 'technique') records = records.map(mapTechniqueRowToLegacyShape);
       if (aliasType === 'priceTable') records = records.map(mapPriceTableRowToLegacyShape);
+      if (aliasType === 'groupMember') {
+        records = records.map(row => ({
+          ...row as Record<string, unknown>,
+          group_id: (row as Record<string, unknown>).product_group_id,
+        }));
+      }
+
 
       emitTelemetry({
         operation: 'select',
