@@ -540,10 +540,16 @@ async function handleBatch(body: any, req: Request, corsHeaders: Record<string, 
 
   const results = await Promise.all(
     queries.map(async (q, idx) => {
-      const qTable = q.table as string;
-      const qSelect = (q.select as string) || '*';
-      const qFilters = q.filters as Record<string, unknown> | undefined;
-      const qOrderBy = q.orderBy as { column: string; ascending?: boolean } | undefined;
+      const qAlias = resolveTableAlias(
+        q.table as string,
+        q.filters as Record<string, unknown> | undefined,
+        q.orderBy as { column: string; ascending?: boolean } | undefined,
+        q.select as string | undefined,
+      );
+      const qTable = qAlias.table;
+      const qSelect = qAlias.select || '*';
+      const qFilters = qAlias.filters;
+      const qOrderBy = qAlias.orderBy;
       const hasSearch = !!(qFilters && '_search' in qFilters);
       const rawLimit = (q.limit as number) || 500;
       const qOffset = (q.offset as number) || 0;
