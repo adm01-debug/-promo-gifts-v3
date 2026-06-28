@@ -108,6 +108,10 @@ export function sanitizeExternalWriteData(table: string, data: Record<string, un
   if (table !== 'products') return data;
   const result: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(data)) {
+    if (key === 'active') {
+      if (!Object.prototype.hasOwnProperty.call(data, 'is_active')) result.is_active = value;
+      continue;
+    }
     if (PRODUCT_COLUMNS_NOT_IN_EXTERNAL_SCHEMA.has(key)) {
       const renamed = PRODUCT_FIELD_RENAME_MAP[key];
       if (renamed) result[renamed] = value;
