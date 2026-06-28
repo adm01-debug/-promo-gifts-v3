@@ -37,7 +37,7 @@ export async function fetchPromobrindProducts(options?: {
 }): Promise<PromobrindProduct[] | { products: PromobrindProduct[]; count: number | null }> {
   const filters: Record<string, unknown> = {
     ...(options?.filters?.active === undefined && options?.filters?.is_active === undefined
-      ? { active: true }
+      ? { is_active: true }
       : {}),
     ...options?.filters,
   };

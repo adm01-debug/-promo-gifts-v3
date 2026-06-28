@@ -4,7 +4,6 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { invokeExternalDb } from '@/lib/external-db/bridge';
-import { invokeBatchBridge } from '@/lib/external-db/bridge';
 
 export interface CatalogRealStats {
   totalVariants: number;
@@ -41,7 +40,7 @@ export function useCatalogRealStats() {
           table: 'categories',
           operation: 'select',
           select: 'id,name',
-          filters: { active: true },
+          filters: { is_active: true },
           limit: 1000,
           offset: 0,
           countMode: 'exact',
@@ -50,7 +49,7 @@ export function useCatalogRealStats() {
           table: 'suppliers',
           operation: 'select',
           select: 'id',
-          filters: { active: true },
+          filters: { is_active: true },
           limit: 1,
           offset: 0,
           countMode: 'exact',

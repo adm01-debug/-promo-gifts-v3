@@ -112,7 +112,7 @@ async function fetchCatalogPage(
   offset: number,
   search?: string,
 ): Promise<CatalogPage> {
-  const filters: Record<string, unknown> = { active: true };
+  const filters: Record<string, unknown> = { is_active: true };
   if (search) filters._search = search;
   const orderBy = { column: 'name', ascending: true };
 
@@ -139,7 +139,7 @@ async function fetchCatalogPage(
       limit: CATALOG_PAGE_SIZE,
       offset,
       orderBy,
-      filters: { active: true },
+      filters: { is_active: true },
     });
 
     return {
