@@ -93,7 +93,7 @@ export function mapPromobrindToProduct(p: PromobrindProduct): Product {
     materials: parseMaterials(p.materials),
     supplier_reference: p.supplier_reference,
     brand: p.brand,
-    is_active: p.is_active || p.active,
+    is_active: p.is_active ?? p.active ?? true,
     minQuantity: p.min_quantity || 1,
     stockStatus: getStockStatus(stock),
     featured: Boolean(p.is_featured || p.is_bestseller),
