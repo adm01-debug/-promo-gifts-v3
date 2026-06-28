@@ -23,6 +23,7 @@ import {
 } from "./index.ts";
 import {
   mapProductFiltersToExternal,
+  sanitizeExternalWriteData,
   sanitizeProductSelectForExternal,
 } from "../_shared/external-db-aliases.ts";
 
@@ -79,6 +80,11 @@ Deno.test("products compat: filtro active é remapeado para is_active antes da q
 Deno.test("products compat: select active vira alias PostgREST sem ler products.active", () => {
   const mapped = sanitizeProductSelectForExternal("id,name,is_active,active,metadata->>summary");
   assertEquals(mapped, "id,name,is_active,active:is_active,metadata->>summary");
+});
+
+Deno.test("products compat: write active é remapeado/descartado para nunca gravar products.active", () => {
+  assertEquals(sanitizeExternalWriteData("products", { active: false, name: "X" }), { is_active: false, name: "X" });
+  assertEquals(sanitizeExternalWriteData("products", { active: true, is_active: false, name: "X" }), { is_active: false, name: "X" });
 });
 
 Deno.test("applyFilters: nunca chama .select() (operadores PostgREST string)", () => {
