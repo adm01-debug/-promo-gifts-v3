@@ -64,7 +64,7 @@ async function fetchProductsByIds(ids: string[]): Promise<SimilarProductItem[]> 
     table: 'products',
     operation: 'select',
     select: SIMILAR_PRODUCT_SELECT,
-    filters: { id: ids, active: true },
+    filters: { id: ids, is_active: true },
     limit: ids.length,
   });
 

@@ -138,6 +138,11 @@ describe("product-mapper", () => {
       expect(result.priceFreshnessThresholdDays).toBeNull();
     });
 
+    it("preserves explicit inactive products when only is_active exists", () => {
+      const result = mapPromobrindToProduct({ ...baseProduct, is_active: false, active: undefined } as any);
+      expect(result.is_active).toBe(false);
+    });
+
     it("forwards an external DB price_updated_at ISO string unchanged to the UI field", () => {
       const iso = "2026-03-20T08:30:00.000Z";
       const result = mapPromobrindToProduct({

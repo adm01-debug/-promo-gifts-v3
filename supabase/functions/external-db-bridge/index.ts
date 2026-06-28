@@ -21,6 +21,7 @@ import {
 import {
   resolveTableAlias,
   sanitizeExternalWriteData,
+  sanitizeProductSelectForExternal,
   mapTechniqueRowToLegacyShape,
   mapPriceTableRowToLegacyShape,
 } from "../_shared/external-db-aliases.ts";
@@ -539,10 +540,16 @@ async function handleBatch(body: any, req: Request, corsHeaders: Record<string, 
 
   const results = await Promise.all(
     queries.map(async (q, idx) => {
-      const qTable = q.table as string;
-      const qSelect = (q.select as string) || '*';
-      const qFilters = q.filters as Record<string, unknown> | undefined;
-      const qOrderBy = q.orderBy as { column: string; ascending?: boolean } | undefined;
+      const qAlias = resolveTableAlias(
+        q.table as string,
+        q.filters as Record<string, unknown> | undefined,
+        q.orderBy as { column: string; ascending?: boolean } | undefined,
+        q.select as string | undefined,
+      );
+      const qTable = qAlias.table;
+      const qSelect = qAlias.select || '*';
+      const qFilters = qAlias.filters;
+      const qOrderBy = qAlias.orderBy;
       const hasSearch = !!(qFilters && '_search' in qFilters);
       const rawLimit = (q.limit as number) || 500;
       const qOffset = (q.offset as number) || 0;
@@ -1695,7 +1702,7 @@ function warmupExternalClient(): Promise<void> {
 warmupExternalClient();
 
 // Default lightweight columns for products table to avoid fetching heavy JSONB columns
-const PRODUCTS_LIGHTWEIGHT_SELECT = 'id,name,sku,sale_price,cost_price,primary_image_url,category_id,main_category_id,supplier_id,supplier_reference,description,short_description,brand,is_active,active,stock_quantity,min_quantity,created_at,updated_at,is_featured,is_bestseller,is_new,is_on_sale,is_kit';
+const PRODUCTS_LIGHTWEIGHT_SELECT = sanitizeProductSelectForExternal('id,name,sku,sale_price,cost_price,primary_image_url,category_id,main_category_id,supplier_id,supplier_reference,description,short_description,brand,is_active,active,stock_quantity,min_quantity,created_at,updated_at,is_featured,is_bestseller,is_new,is_on_sale,is_kit')!;
 
 // ============================================
 // PRODUCTS SELECT RESOLVER — single source of truth for the lightweight rule

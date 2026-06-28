@@ -24,7 +24,7 @@ function mapLightweight(p: LightweightProduct): ProductLightweight {
     stock: p.stock_quantity ?? 0,
     brand: p.brand,
     category_id: p.category_id || p.main_category_id,
-    is_active: p.is_active || p.active,
+    is_active: p.is_active ?? p.active ?? true,
   };
 }
 
@@ -54,7 +54,7 @@ export function mapLightweightToProduct(p: LightweightProduct): Product {
     materials: [],
     supplier_reference: p.supplier_reference ?? null,
     brand: p.brand,
-    is_active: p.is_active || p.active,
+    is_active: p.is_active ?? p.active ?? true,
     minQuantity: p.min_quantity || 1,
     stockStatus: getStockStatus(stock),
     featured: false,
@@ -112,7 +112,7 @@ async function fetchCatalogPage(
   offset: number,
   search?: string,
 ): Promise<CatalogPage> {
-  const filters: Record<string, unknown> = { active: true };
+  const filters: Record<string, unknown> = { is_active: true };
   if (search) filters._search = search;
   const orderBy = { column: 'name', ascending: true };
 
@@ -139,7 +139,7 @@ async function fetchCatalogPage(
       limit: CATALOG_PAGE_SIZE,
       offset,
       orderBy,
-      filters: { active: true },
+      filters: { is_active: true },
     });
 
     return {

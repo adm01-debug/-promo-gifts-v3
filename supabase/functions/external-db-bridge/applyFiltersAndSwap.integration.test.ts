@@ -21,6 +21,11 @@ import {
   applyFilters,
   resolveProductsSelect,
 } from "./index.ts";
+import {
+  mapProductFiltersToExternal,
+  sanitizeExternalWriteData,
+  sanitizeProductSelectForExternal,
+} from "../_shared/external-db-aliases.ts";
 
 // ────────────────────────────────────────────────────────────────────────────
 // 1) Query-builder spy — registra TODA chamada de método encadeado.
@@ -65,6 +70,21 @@ Deno.test("applyFilters: nunca chama .select() (filtros simples eq)", () => {
   applyFilters(query, { is_active: true, brand: "X" }, null);
   assert(calls.length > 0, "deve ter aplicado predicados");
   assert(calls.every((c) => c.method !== "select"));
+});
+
+Deno.test("products compat: filtro active é remapeado para is_active antes da query", () => {
+  const mapped = mapProductFiltersToExternal({ active: true, brand: "X" });
+  assertEquals(mapped, { brand: "X", is_active: true });
+});
+
+Deno.test("products compat: select active vira alias PostgREST sem ler products.active", () => {
+  const mapped = sanitizeProductSelectForExternal("id,name,is_active,active,metadata->>summary");
+  assertEquals(mapped, "id,name,is_active,active:is_active,metadata->>summary");
+});
+
+Deno.test("products compat: write active é remapeado/descartado para nunca gravar products.active", () => {
+  assertEquals(sanitizeExternalWriteData("products", { active: false, name: "X" }), { is_active: false, name: "X" });
+  assertEquals(sanitizeExternalWriteData("products", { active: true, is_active: false, name: "X" }), { is_active: false, name: "X" });
 });
 
 Deno.test("applyFilters: nunca chama .select() (operadores PostgREST string)", () => {
@@ -172,6 +192,8 @@ Deno.test("handleSelect: limit=51 + select='*' em products → swap lightweight"
   });
   assertEquals(r.forcedLightweight, true);
   assertEquals(r.reason, "star-select-listing");
+  assert(!r.effectiveSelect.split(",").includes("active"), "não pode consultar coluna física products.active");
+  assert(r.effectiveSelect.split(",").includes("active:is_active"), "deve preservar alias active para o frontend");
 });
 
 Deno.test("handleSelect: limit=50 (limite exato) → SEM swap", () => {

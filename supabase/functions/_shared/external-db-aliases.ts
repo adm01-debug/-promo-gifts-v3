@@ -21,6 +21,71 @@ export function isGroupMemberAlias(table: string) {
   return table === 'product_group_members';
 }
 
+function isProductsTable(table: string) {
+  return table === 'products';
+}
+
+// ============================================
+// Product read compatibility
+// ============================================
+
+const PRODUCT_READ_FIELD_RENAME_MAP: Record<string, string> = {
+  active: 'is_active',
+};
+
+function mapProductReadFieldToExternal(field: string): string {
+  return PRODUCT_READ_FIELD_RENAME_MAP[field] ?? field;
+}
+
+function mapProductOrderColumnToExternal(column: string): string {
+  return mapProductReadFieldToExternal(column);
+}
+
+function mapProductSelectTokenToExternal(rawToken: string): string | null {
+  const token = rawToken.trim();
+  if (!token) return null;
+  if (token === '*') return token;
+  if (token.includes('(')) return token;
+
+  const aliasSeparator = token.indexOf(':');
+  const alias = aliasSeparator >= 0 ? token.slice(0, aliasSeparator).trim() : '';
+  const columnExpression = aliasSeparator >= 0 ? token.slice(aliasSeparator + 1).trim() : token;
+  const [baseColumn, ...jsonPathParts] = columnExpression.split('->');
+  const externalBaseColumn = mapProductReadFieldToExternal(baseColumn.trim());
+  const externalExpression = [externalBaseColumn, ...jsonPathParts].join('->');
+
+  if (alias) return `${alias}:${externalExpression}`;
+
+  // O BD externo usa `is_active`; mantemos `active` como alias virtual para
+  // compatibilidade com chamadas antigas sem consultar uma coluna inexistente.
+  if (baseColumn.trim() === 'active') return 'active:is_active';
+  return externalExpression;
+}
+
+export function sanitizeProductSelectForExternal(select: string | undefined) {
+  if (!select || select.trim() === '' || select.trim() === '*') return select;
+  const mapped = select
+    .split(',')
+    .map(mapProductSelectTokenToExternal)
+    .filter((token): token is string => Boolean(token));
+  return mapped.length > 0 ? mapped.join(',') : select;
+}
+
+export function mapProductFiltersToExternal(filters: Record<string, unknown> | undefined) {
+  if (!filters) return undefined;
+  const out: Record<string, unknown> = { ...filters };
+  if ('active' in out) {
+    if (!('is_active' in out)) out.is_active = out.active;
+    delete out.active;
+  }
+  return out;
+}
+
+export function mapProductOrderByToExternal(orderBy: { column: string; ascending?: boolean } | undefined) {
+  if (!orderBy) return undefined;
+  return { ...orderBy, column: mapProductOrderColumnToExternal(orderBy.column) };
+}
+
 // ============================================
 // Product field sanitization
 // ============================================
@@ -43,6 +108,10 @@ export function sanitizeExternalWriteData(table: string, data: Record<string, un
   if (table !== 'products') return data;
   const result: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(data)) {
+    if (key === 'active') {
+      if (!Object.prototype.hasOwnProperty.call(data, 'is_active')) result.is_active = value;
+      continue;
+    }
     if (PRODUCT_COLUMNS_NOT_IN_EXTERNAL_SCHEMA.has(key)) {
       const renamed = PRODUCT_FIELD_RENAME_MAP[key];
       if (renamed) result[renamed] = value;
@@ -202,6 +271,16 @@ export function resolveTableAlias(
   orderBy?: { column: string; ascending?: boolean },
   select?: string,
 ): AliasResolution {
+  if (isProductsTable(table)) {
+    return {
+      table: 'products',
+      filters: mapProductFiltersToExternal(filters),
+      orderBy: mapProductOrderByToExternal(orderBy),
+      select: sanitizeProductSelectForExternal(select) || '*',
+      aliasType: null,
+    };
+  }
+
   if (isTechniqueTableAlias(table)) {
     return {
       table: 'tabela_preco_gravacao_oficial',
