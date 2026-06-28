@@ -21,6 +21,7 @@ import {
 import {
   resolveTableAlias,
   sanitizeExternalWriteData,
+  sanitizeProductSelectForExternal,
   mapTechniqueRowToLegacyShape,
   mapPriceTableRowToLegacyShape,
 } from "../_shared/external-db-aliases.ts";
@@ -1695,7 +1696,7 @@ function warmupExternalClient(): Promise<void> {
 warmupExternalClient();
 
 // Default lightweight columns for products table to avoid fetching heavy JSONB columns
-const PRODUCTS_LIGHTWEIGHT_SELECT = 'id,name,sku,sale_price,cost_price,primary_image_url,category_id,main_category_id,supplier_id,supplier_reference,description,short_description,brand,is_active,active,stock_quantity,min_quantity,created_at,updated_at,is_featured,is_bestseller,is_new,is_on_sale,is_kit';
+const PRODUCTS_LIGHTWEIGHT_SELECT = sanitizeProductSelectForExternal('id,name,sku,sale_price,cost_price,primary_image_url,category_id,main_category_id,supplier_id,supplier_reference,description,short_description,brand,is_active,active,stock_quantity,min_quantity,created_at,updated_at,is_featured,is_bestseller,is_new,is_on_sale,is_kit')!;
 
 // ============================================
 // PRODUCTS SELECT RESOLVER — single source of truth for the lightweight rule
